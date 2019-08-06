@@ -1,0 +1,21 @@
+{
+	"id" : "Diagral_eOne",
+	"name" : "Diagral eOne",
+	"description" : "Plugin pour gérer les alarmes Diagral eOne",
+	"licence" : "AGPL",
+	"author" : "mguyard",
+	"require" : "3.2",
+	"category" : "security",
+	"hasDependency" : false,
+	"hasOwnDeamon" : false,
+	"maxDependancyInstallTime" : 0,
+	"changelog" : "https://github.com/mguyard/Jeedom-Diagral_eOne/#language#/changelog",
+	"issue" : "https://github.com/mguyard/Jeedom-Diagral_eOne/issues",
+	"documentation" : "https://github.com/mguyard/Jeedom-Diagral_eOne/#language#/",
+	"link" : {
+		"forum":"",
+		"video" : ""
+	},
+	"language" : "",
+	"compatibility" : ""
+}
