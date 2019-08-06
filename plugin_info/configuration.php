@@ -37,12 +37,6 @@ if (!isConnect()) {
             </div>
         </div>
         <div class="form-group">
-            <label class="col-lg-4 control-label">{{Master Code}}</label>
-            <div class="col-lg-4">
-                <input class="configKey form-control" data-l1key="mastercode" type="password" placeholder="MasterCode utilisé pour votre compte Diagral"/>
-            </div>
-        </div>
-        <div class="form-group">
             <label class="col-lg-4 control-label">{{Verbose}}</label>
             <div class="col-lg-2">
                 <select class="configKey form-control" data-l1key="verbose">

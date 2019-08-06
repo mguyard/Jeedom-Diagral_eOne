@@ -254,8 +254,7 @@ class Diagral_eOne{
                         $this->addVerboseEvent("DEBUG", "eOne Status : Connected to Internet");
                     }
                 } else {
-                    throw new \Exception("Your eOne isn't connected to Internet", 11);
-                }
+                    throw new \Exception("Your eOne isn't connected to Internet -- " . json_encode($data), 11);                }
             } else {
                 throw new \Exception("Unable to know if eOne is connected (http code : ".$httpRespCode.")", 19);
             }
@@ -302,6 +301,10 @@ class Diagral_eOne{
             $this->isConnected();
         } catch (Exception $e) {
             throw $e;
+        }
+        if (empty($masterCode)) {
+            throw new \Exception("MasterCode cannot be empty", 41);
+
         }
         if (preg_match("/^[0-9]*$/", $masterCode)) {
             $this->masterCode = $masterCode;
@@ -1121,6 +1124,25 @@ class Diagral_eOne{
             array_push($GroupNames, $this->DeviceMultizone["centralLearningZone"]["groupNames"][$id]);
         }
         return $GroupNames;
+    }
+
+
+    /**
+     * Retreive all groups with Id and Name
+     * @return array Array of All Diagral Group Names
+     */
+    public function getAllGroups() {
+        if(!isset($this->DeviceMultizone["centralLearningZone"]["groupNames"])) {
+            try {
+                $this->getDevicesMultizone();
+            } catch (Exception $e) {
+                throw $e;
+            }
+        }
+        $nbGroups = $this->DeviceMultizone["centralSettingsZone"]["nbGroups"];
+        $allGroups = $this->DeviceMultizone["centralLearningZone"]["groupNames"];
+        array_splice($allGroups,$nbGroups);
+        return $allGroups;
     }
 
 

@@ -1,0 +1,42 @@
+{
+    "commands":[{
+        "name": "Rafraichir",
+        "type": "action",
+        "subtype": "other",
+        "isVisible": 1,
+        "logicalId": "refresh",
+        "isDashboard": 0
+    }, {
+        "name": "Statut",
+        "type": "info",
+        "subtype": "string",
+        "isVisible": 1,
+		"isHistorized": 0,
+		"logicalId": "status",
+        "isDashboard": 1
+    }, {
+        "name": "Désactivation Total",
+        "type": "action",
+        "subtype": "other",
+        "isVisible": 1,
+		"logicalId": "total_disarm",
+        "isDashboard": 1
+    }, {
+        "name": "Activation Mode Presence",
+        "type": "action",
+        "subtype": "other",
+        "isVisible": 1,
+        "logicalId": "arm_presence",
+        "isDashboard": 1
+    }, {
+        "name": "Activation Partielle",
+        "type": "action",
+        "subtype": "select",
+        "isVisible": 1,
+        "configuration" : {
+            "listValue" : "0|Zone 1;1|Zone 2;2|Zone 3"
+        },
+        "logicalId": "arm_partial",
+        "isDashboard": 0
+    }]
+}
