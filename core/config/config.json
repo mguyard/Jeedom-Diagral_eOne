@@ -34,9 +34,18 @@
         "subtype": "select",
         "isVisible": 1,
         "configuration" : {
-            "listValue" : "0|Zone 1;1|Zone 2;2|Zone 3"
+            "listValue" : "0|FAKE;1|FAKE;2|FAKE",
+            "function" : "listValue::generateZonePossibilities"
         },
         "logicalId": "arm_partial",
+        "masterCodeNeed": 1,
         "isDashboard": 0
+    }, {
+        "name": "Force Group Refresh",
+        "type": "action",
+        "subtype": "other",
+        "isVisible": 0,
+        "logicalId": "force_group_refresh_json",
+        "isDashboard": 1
     }]
 }
