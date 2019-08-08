@@ -32,7 +32,7 @@ function Diagral_eOne_remove() {
 }
 
 function Diagral_eOne_Cron($action) {
-    $cron = cron::byClassAndFunction('Diagral_eOne', 'generateGroupJsonAllDevices');
+    $cron = cron::byClassAndFunction('Diagral_eOne', 'generateJsonAllDevices');
     switch ($action) {
         case 'create':
             $random_minutes = random_int(0, 59);
@@ -40,7 +40,7 @@ function Diagral_eOne_Cron($action) {
             if ( ! is_object($cron)) {
                 $cron = new cron();
                 $cron->setClass('Diagral_eOne');
-                $cron->setFunction('generateGroupJsonAllDevices');
+                $cron->setFunction('generateJsonAllDevices');
                 $cron->setEnable(1);
                 $cron->setDeamon(0);
                 $cron->setTimeout(5);
