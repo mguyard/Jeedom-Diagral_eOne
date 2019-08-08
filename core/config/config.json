@@ -34,7 +34,7 @@
         "subtype": "select",
         "isVisible": 1,
         "configuration" : {
-            "listValue" : "0|FAKE;1|FAKE;2|FAKE",
+            "listValue" : "1|FAKE;2|FAKE;3|FAKE",
             "function" : "listValue::generateZonePossibilities"
         },
         "logicalId": "arm_partial",
@@ -46,6 +46,6 @@
         "subtype": "other",
         "isVisible": 0,
         "logicalId": "force_group_refresh_json",
-        "isDashboard": 1
+        "isDashboard": 0
     }]
 }
