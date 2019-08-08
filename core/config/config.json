@@ -35,17 +35,36 @@
         "isVisible": 1,
         "configuration" : {
             "listValue" : "1|FAKE;2|FAKE;3|FAKE",
-            "function" : "listValue::generateZonePossibilities"
+            "function" : "listValue::generateGroupsPossibilities"
         },
         "logicalId": "arm_partial",
         "masterCodeNeed": 1,
         "isDashboard": 0
     }, {
-        "name": "Force Group Refresh",
+        "name": "Lancement Scenario",
+        "type": "action",
+        "subtype": "select",
+        "isVisible": 1,
+        "configuration" : {
+            "listValue" : "1|FAKE;2|FAKE;3|FAKE",
+            "function" : "listValue::generateScenariosPossibilities"
+        },
+        "logicalId": "launch_scenario",
+        "masterCodeNeed": 1,
+        "isDashboard": 0
+    }, {
+        "name": "Force Groups Refresh",
         "type": "action",
         "subtype": "other",
         "isVisible": 0,
-        "logicalId": "force_group_refresh_json",
+        "logicalId": "force_groups_refresh_json",
+        "isDashboard": 0
+    }, {
+        "name": "Force Scenarios Refresh",
+        "type": "action",
+        "subtype": "other",
+        "isVisible": 0,
+        "logicalId": "force_scenarios_refresh_json",
         "isDashboard": 0
     }]
 }
