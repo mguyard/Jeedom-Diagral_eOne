@@ -1,3 +1,5 @@
+![Logo](../../plugin_info/Diagral_eOne_icon.svg)
+
 # Présentation 
 
 Diagral est un constructeur français d'alarme, appartenant au groupe HAGER :
@@ -79,6 +81,7 @@ Il existe actuellement plusieurs commandes qui sont décrites ci-dessous :
     -   presence : Alarme en mode présence
     -   group : Alarme activé uniquement sur certains groupes
     -   tempogroup : Alarme en cours d'activation
+-   Groupes Actifs : Liste des groupes actifs par leur nom (ex. Détecteur Ouverture Étage + Garage)
 
 # Diagnostique
 

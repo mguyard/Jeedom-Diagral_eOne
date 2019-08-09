@@ -170,10 +170,10 @@ class Diagral_eOne extends eqLogic {
         $filename = __ROOT__.'/core/config/config.json';
         $config = $this->loadConfigFile($filename, 'commands');
 
-        foreach ($config['commands'] as $command) {
+        foreach ($config['commands'] as $key => $command) {
             $newCmd = false;
             $cmd = $this->getCmd(null, $command['logicalId']);
-            // Si la commande existe deja
+            // Si la commande n'existe pas deja
             if (!is_object($cmd)) {
                 $newCmd = true;
                 $cmd = new Diagral_eOneCmd();
@@ -181,7 +181,7 @@ class Diagral_eOne extends eqLogic {
             }
             // Le parametre JSON masterCodeNeed n'existe pas ou est à false ou bien que le MasterCode est rempli
             if (! isset($command['masterCodeNeed']) || $command['masterCodeNeed'] === false || ! empty($this->getConfiguration('mastercode'))) {
-                $cmd->setOrder($i++);
+                $cmd->setOrder(++$key);
                 $cmd->setEqLogic_id($this->getId());
                 if( isset($command['configuration']['function'])) {
                     list($fieldType, $fieldFunction)= explode("::", $command['configuration']['function']);
@@ -427,7 +427,27 @@ class Diagral_eOne extends eqLogic {
         }
         $MyAlarm->logout();
         log::add('Diagral_eOne', 'debug', 'getDiagralStatus::' . $this->getConfiguration('systemid') . '::Result ' . var_export($MyAlarm->systemState, true) );
-        return $MyAlarm->systemState;
+        if ( strcmp($MyAlarm->systemState, 'off') !== 0) {
+            $filename = __ROOT__.'/core/config/groups_' . $this->getConfiguration('systemid') . '.json';
+            // Si le fichier JSON des groupes n'existe pas, on le genère.
+            if ( file_exists($filename) === false ) {
+                $this->generateGroupJson();
+            }
+            // Recuperation de l'ensemble des groups avec leur nom et leur ID
+            $config = $this->loadConfigFile($filename, 'groups');
+            // Recupération des groupes actif de l'alarme et affichage de l'état de l'alarme
+            foreach ($MyAlarm->groups as $key => $groupID) {
+                log::add('Diagral_eOne', 'debug', 'getDiagralStatus::searchingGroupID ' . $groupID);
+                $groupArrayKey = array_search($groupID, array_column($config['groups'], 'groupID'));
+                log::add('Diagral_eOne', 'debug', 'getDiagralStatus::groupIDsFindInArrayWithKey ' . var_export($groupArrayKey, true));
+                $MyAlarm->groups[$key] = $config['groups'][$groupArrayKey]['groupName'];
+            }
+            $groups = implode(' + ', $MyAlarm->groups);
+            log::add('Diagral_eOne', 'debug', 'getDiagralStatus::GroupsEnable ' . var_export($MyAlarm->groups, true));
+        } else {
+            $groups = "";
+        }
+        return array($MyAlarm->systemState, $groups);
     }
 
     /**
@@ -562,26 +582,30 @@ class Diagral_eOneCmd extends cmd {
         $eqLogic = $this->getEqLogic(); //récupère l'éqlogic de la commande $this
         switch ($this->getLogicalId()) {	//vérifie le logicalid de la commande
             case 'refresh': // LogicalId de la commande rafraîchir que l’on a créé dans la méthode Postsave.
-                $status = $eqLogic->getDiagralStatus(); 	//On lance la fonction getDiagralStatus() pour récupérer le statut de l'alarme et on la stocke dans la variable $status
+                list($status,$groups) = $eqLogic->getDiagralStatus(); 	//On lance la fonction getDiagralStatus() pour récupérer le statut de l'alarme et on la stocke dans la variable $status
                 $eqLogic->checkAndUpdateCmd('status', $status); // on met à jour la commande avec le LogicalId "status"  de l'eqlogic
+                $eqLogic->checkAndUpdateCmd('groups_enable', $groups); // On met à jour la commande avec le LogicalId "groups_enable" de l'eqlogic
                 break;
             case 'total_disarm':
                 $eqLogic->setCompleteDesactivation();
                 ## TODO : Voir si on peut pas remplacer ces deux commandes par un appel de la commande refresh
-                $status = $eqLogic->getDiagralStatus();
+                list($status,$groups) = $eqLogic->getDiagralStatus();
                 $eqLogic->checkAndUpdateCmd('status', $status);
+                $eqLogic->checkAndUpdateCmd('groups_enable', $groups);
                 break;
             case 'arm_presence':
                 $eqLogic->setPresenceActivation();
                 ## TODO : Voir si on peut pas remplacer ces deux commandes par un appel de la commande refresh
-                $status = $eqLogic->getDiagralStatus();
+                list($status,$groups) = $eqLogic->getDiagralStatus();
                 $eqLogic->checkAndUpdateCmd('status', $status);
+                $eqLogic->checkAndUpdateCmd('groups_enable', $groups);
                 break;
             case 'arm_partial':
                 $eqLogic->setPartialActivation($_options['select'], $this->getConfiguration('listValue'));
                 ## TODO : Voir si on peut pas remplacer ces deux commandes par un appel de la commande refresh
-                $status = $eqLogic->getDiagralStatus();
+                list($status,$groups) = $eqLogic->getDiagralStatus();
                 $eqLogic->checkAndUpdateCmd('status', $status);
+                $eqLogic->checkAndUpdateCmd('groups_enable', $groups);
                 break;
             case 'launch_scenario':
                 $eqLogic->setScenario($_options['select'], $this->getConfiguration('listValue'));
