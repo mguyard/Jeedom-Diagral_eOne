@@ -15,6 +15,14 @@
 		"logicalId": "status",
         "isDashboard": 1
     }, {
+        "name": "Groupes Actifs",
+        "type": "info",
+        "subtype": "string",
+        "isVisible": 1,
+		"isHistorized": 0,
+		"logicalId": "groups_enable",
+        "isDashboard": 1
+    }, {
         "name": "Désactivation Total",
         "type": "action",
         "subtype": "other",
