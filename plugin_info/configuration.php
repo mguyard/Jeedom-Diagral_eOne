@@ -24,6 +24,9 @@ if (!isConnect()) {
 ?>
 <form class="form-horizontal">
     <fieldset>
+        <legend>
+			<i class="fa fa-list-alt"></i> {{Compte Diagral}}
+		</legend>
         <div class="form-group">
             <label class="col-lg-4 control-label">{{Identifiant}}</label>
             <div class="col-lg-4">
@@ -36,10 +39,32 @@ if (!isConnect()) {
                 <input class="configKey form-control" data-l1key="password" type="password" placeholder="Mot de passe utilisé pour votre compte Diagral"/>
             </div>
         </div>
+    </fieldset>
+    <fieldset>
+        <legend>
+			<i class="fa fa-list-alt"></i> {{Configuration}}
+		</legend>
+        <div class="form-group">
+            <label class="col-lg-4 control-label">{{Nombre de tentatives}}</label>
+            <div class="col-lg-4">
+                <input class="configKey form-control" data-l1key="retry" placeholder="1"/>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-lg-4 control-label">{{Délai entre les tentatives (secondes)}}</label>
+            <div class="col-lg-4">
+                <input class="configKey form-control" data-l1key="waitRetry" placeholder="5"/>
+            </div>
+        </div>
+        </fieldset>
+    <fieldset>
+        <legend>
+			<i class="fa fa-list-alt"></i> {{Debug}}
+		</legend>
         <div class="form-group">
             <label class="col-lg-4 control-label">{{Verbose}}</label>
             <div class="col-lg-2">
-                <select class="configKey form-control" data-l1key="verbose">
+                <select class="configKey form-control" data-l1key="verbose" disabled>
                     <option value="1">Enable</option>
                     <option value="0">Disable</option>
                 </select>
