@@ -27,7 +27,9 @@ Vous y saissez les informations suivantes :
 
 -   Identifiant : Adresse email utilisé sur l'application mobile Diagral e-ONE
 -   Mot de passe : Le mot de passe associé à l'identifiant
--   Verbose : Permettant de définir un niveau de verbosité pour les requètes vers le Cloud Diagral (_Pas encore utilisé_)
+-   Nombre de tentatives : Nombre de tentative en cas d'échec de connexion au Cloud Diagral (default : 1)
+-   Délai entre les tentatives : Délais entre les tentatives (en secondes)
+-   Verbose : Permettant de définir un niveau de verbosité pour les requètes vers le Cloud Diagral (_Pas encore utilisable_)
 
 ![Configuration Générale](../assets/images/ConfigurationGenerale.png)
 
