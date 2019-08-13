@@ -204,7 +204,6 @@ class Diagral_eOne extends eqLogic {
                     }
                 }
                 utils::a2o($cmd, $command);
-                log::add('Diagral_eOne', 'debug', 'Debug Command ' . var_export($cmd, true));
                 $cmd->save();
                 if ($newCmd === true) {
                     log::add('Diagral_eOne', 'info', 'postSave::createCmd '.$command['logicalId'].' ('.$command['name'].')');
@@ -403,6 +402,12 @@ class Diagral_eOne extends eqLogic {
         if ( ! empty($this->getConfiguration('mastercode'))) {
         $MyAlarm = new Mguyard\Diagral\Diagral_eOne(config::byKey('login', 'Diagral_eOne'),config::byKey('password', 'Diagral_eOne'));
         $MyAlarm->verbose = config::byKey('verbose', 'Diagral_eOne');
+        if ( ! empty(config::byKey('retry', 'Diagral_eOne'))) {
+            $MyAlarm->doRequestAttempts = config::byKey('retry', 'Diagral_eOne');
+        }
+        if ( ! empty(config::byKey('waitRetry', 'Diagral_eOne'))) {
+            $MyAlarm->waitBetweenAttempts = config::byKey('waitRetry', 'Diagral_eOne');
+        }
         $MyAlarm->login();
         $MyAlarm->getSystems();
         $MyAlarm->setSystemId(intval($this->getConfiguration('systemid')));
