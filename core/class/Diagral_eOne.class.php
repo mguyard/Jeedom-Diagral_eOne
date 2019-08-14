@@ -181,7 +181,7 @@ class Diagral_eOne extends eqLogic {
             }
             // Le parametre JSON masterCodeNeed n'existe pas ou est à false ou bien que le MasterCode est rempli
             if (! isset($command['masterCodeNeed']) || $command['masterCodeNeed'] === false || ! empty($this->getConfiguration('mastercode'))) {
-                $cmd->setOrder(++$key);
+                $cmd->setOrder($key);
                 $cmd->setEqLogic_id($this->getId());
                 if( isset($command['configuration']['function'])) {
                     list($fieldType, $fieldFunction)= explode("::", $command['configuration']['function']);
