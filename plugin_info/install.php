@@ -19,19 +19,50 @@
 require_once dirname(__FILE__) . '/../../../core/php/core.inc.php';
 
 function Diagral_eOne_install() {
-    Diagral_eOne_Cron('create');
+    Diagral_eOne_Cron_Pull('create');
+    Diagral_eOne_Cron_JSON('create');
 }
 
 function Diagral_eOne_update() {
-    Diagral_eOne_Cron('update');
+    Diagral_eOne_Cron_Pull('update');
+    Diagral_eOne_Cron_JSON('update');
 }
 
 
 function Diagral_eOne_remove() {
-    Diagral_eOne_Cron('remove');
+    Diagral_eOne_Cron_Pull('remove');
+    Diagral_eOne_Cron_JSON('remove');
 }
 
-function Diagral_eOne_Cron($action) {
+function Diagral_eOne_Cron_Pull($action) {
+    $cron = cron::byClassAndFunction('Diagral_eOne', 'pull');
+    switch ($action) {
+        case 'create':
+            if ( ! is_object($cron)) {
+                $cron = new cron();
+                $cron->setClass('Diagral_eOne');
+                $cron->setFunction('pull');
+                $cron->setEnable(1);
+                $cron->setDeamon(0);
+                $cron->setTimeout(2);
+                $cron->setSchedule('*/10 * * * *');
+                $cron->save();
+            }
+            break;
+        case 'remove':
+            if (is_object($cron)) {
+                $cron->remove(true);
+            }
+            break;
+        case 'update':
+            if ( ! is_object($cron)) {
+                Diagral_eOne_Cron_Pull('create');
+            }
+            break;
+    }
+}
+
+function Diagral_eOne_Cron_JSON($action) {
     $cron = cron::byClassAndFunction('Diagral_eOne', 'generateJsonAllDevices');
     switch ($action) {
         case 'create':
@@ -55,7 +86,7 @@ function Diagral_eOne_Cron($action) {
             break;
         case 'update':
             if ( ! is_object($cron)) {
-                Diagral_eOne_Cron('create');
+                Diagral_eOne_Cron_JSON('create');
             }
             break;
     }
