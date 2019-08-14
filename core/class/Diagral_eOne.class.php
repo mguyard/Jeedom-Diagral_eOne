@@ -420,6 +420,75 @@ class Diagral_eOne extends eqLogic {
     }
 
     /**
+     * Recuperation automatique (cron) du statut de l'ensemble des équipements actifs
+     */
+    public function pull() {
+        log::add('Diagral_eOne', 'debug', 'pull::Starting Request');
+        foreach (eqLogic::byType('Diagral_eOne') as $eqLogic) {
+            if($eqLogic->getIsEnable() && ! empty($eqLogic->getConfiguration('mastercode'))) {
+                list($status,$groups) = $eqLogic->getDiagralStatus();
+                $eqLogic->checkAndUpdateCmd('status', $status); // on met à jour la commande avec le LogicalId "status"  de l'eqlogic
+                $eqLogic->checkAndUpdateCmd('groups_enable', $groups); // On met à jour la commande avec le LogicalId "groups_enable" de l'eqlogic
+            }
+        }
+    }
+
+
+    public function checkConfig() {
+        // Checking Username
+        log::add('Diagral_eOne', 'debug', 'checkConfig::login::Start');
+        if ( ! empty(config::byKey('login', 'Diagral_eOne'))) {
+            if(!filter_var(config::byKey('login', 'Diagral_eOne'), FILTER_VALIDATE_EMAIL)){
+                throw new Exception(__('L\'adresse email utilisé en identifiant à un format invalide.', __FILE__));
+            } else {
+                log::add('Diagral_eOne', 'debug', 'checkConfig::login OK with value ' . config::byKey('login', 'Diagral_eOne'));
+            }
+        } else {
+            log::add('Diagral_eOne', 'debug', 'checkConfig::login Default Value');
+        }
+        // Checking Password
+        log::add('Diagral_eOne', 'debug', 'checkConfig::password::Start');
+        if ( empty(config::byKey('password', 'Diagral_eOne'))) {
+            throw new Exception(__('Le mot de passe doit être rempli.', __FILE__));
+        } else {
+            log::add('Diagral_eOne', 'debug', 'checkConfig::password OK with value ************');
+        }
+        // Checking Retry
+        log::add('Diagral_eOne', 'debug', 'checkConfig::retry::Start');
+        if ( ! empty(config::byKey('retry', 'Diagral_eOne'))) {
+            if(!filter_var(config::byKey('retry', 'Diagral_eOne'), FILTER_VALIDATE_INT, array('options' => array('min_range' => 1, 'max_range' => 10)))){
+                throw new Exception(__('Le nombre de tentative en cas d\'echec est invalide. Elle doit contenir un nombre (entier) compris entre 1 et 10.', __FILE__));
+            } else {
+                log::add('Diagral_eOne', 'debug', 'checkConfig::retry OK with value ' . config::byKey('retry', 'Diagral_eOne'));
+            }
+        } else {
+            log::add('Diagral_eOne', 'debug', 'checkConfig::retry Default Value');
+        }
+        // Checking waitRetry
+        log::add('Diagral_eOne', 'debug', 'checkConfig::waitRetry::Start');
+        if ( ! empty(config::byKey('waitRetry', 'Diagral_eOne'))) {
+            if(!filter_var(config::byKey('waitRetry', 'Diagral_eOne'), FILTER_VALIDATE_INT, array('options' => array('min_range' => 5)))){
+                throw new Exception(__('Le nombre de minutes entre les tentatives est invalide. Elle doit contenir un nombre (entier) de secondes superieur à 5.', __FILE__));
+            } else {
+                log::add('Diagral_eOne', 'debug', 'checkConfig::waitRetry OK with value ' . config::byKey('waitRetry', 'Diagral_eOne'));
+            }
+        } else {
+            log::add('Diagral_eOne', 'debug', 'checkConfig::waitRetry Default Value');
+        }
+        //Checking polling interval
+        log::add('Diagral_eOne', 'debug', 'checkConfig::polling_interval::Start');
+        if ( ! empty(config::byKey('polling_interval', 'Diagral_eOne'))) {
+            if(!filter_var(config::byKey('polling_interval', 'Diagral_eOne'), FILTER_VALIDATE_INT, array('options' => array('min_range' => 1)))){
+                throw new Exception(__('La frequence de mise à jour (polling) est invalide. Elle doit contenir un nombre (entier) de minutes superieur a 1.', __FILE__));
+            } else {
+                log::add('Diagral_eOne', 'debug', 'checkConfig::polling_interval OK with value ' . config::byKey('polling_interval', 'Diagral_eOne'));
+            }
+        } else {
+            log::add('Diagral_eOne', 'debug', 'checkConfig::polling_interval Default Value');
+        }
+    }
+
+    /**
      * Recupere le statut de l'alarme
      * @return string statut de l'état de l'alarme
      */

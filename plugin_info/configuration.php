@@ -47,13 +47,19 @@ if (!isConnect()) {
         <div class="form-group">
             <label class="col-lg-4 control-label">{{Nombre de tentatives}}</label>
             <div class="col-lg-4">
-                <input class="configKey form-control" data-l1key="retry" placeholder="1"/>
+                <input class="configKey form-control" data-l1key="retry" type="number" min="1" max="10" placeholder="1"/>
             </div>
         </div>
         <div class="form-group">
             <label class="col-lg-4 control-label">{{Délai entre les tentatives (secondes)}}</label>
             <div class="col-lg-4">
-                <input class="configKey form-control" data-l1key="waitRetry" placeholder="5"/>
+                <input class="configKey form-control" data-l1key="waitRetry" type="number" min="5" placeholder="5"/>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-lg-4 control-label">{{Mise à jour automatique (minutes)}}</label>
+            <div class="col-lg-4">
+                <input class="configKey form-control" data-l1key="polling_interval" type="number" min="1" placeholder="10"/>
             </div>
         </div>
         </fieldset>
@@ -70,5 +76,38 @@ if (!isConnect()) {
                 </select>
             </div>
         </div>
+
+    <script>
+        function Diagral_eOne_postSaveConfiguration(){
+            $.ajax({// fonction permettant de faire de l'ajax
+                type: "POST", // methode de transmission des données au fichier php
+                url: "plugins/Diagral_eOne/core/ajax/Diagral_eOne.ajax.php", // url du fichier php
+                data: {
+                    action: "postSave",
+                    //Let's send previous values as parameters, to be able to set them back in case of bad values
+                    login: "<?php echo config::byKey('login', 'Diagral_eOne'); ?>",
+                    password: "<?php echo config::byKey('password', 'Diagral_eOne'); ?>",
+                    retry: "<?php echo config::byKey('retry', 'Diagral_eOne', 1); ?>",
+                    default_retry: "1",
+                    waitRetry: "<?php echo config::byKey('waitRetry', 'Diagral_eOne', 5); ?>",
+                    default_waitRetry: "5",
+                    polling_interval: "<?php echo config::byKey('polling_interval', 'Diagral_eOne',10); ?>",
+                    default_polling_interval: "10",
+                },
+                dataType: 'json',
+                error: function (request, status, error) {
+                    handleAjaxError(request, status, error);
+                },
+                success: function (data) { // si l'appel a bien fonctionné
+                    if (data.state != 'ok') {
+                        $('#div_alert').showAlert({message: data.result, level: 'danger'});
+                        return;
+                    }
+                    $('#ul_plugin .li_plugin[data-plugin_id=Diagral_eOne]').click();
+                }
+            });
+        }
+    </script>
+
   </fieldset>
 </form>
