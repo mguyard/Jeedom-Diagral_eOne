@@ -30,6 +30,13 @@
 		"logicalId": "total_disarm",
         "isDashboard": 1
     }, {
+        "name": "Activation Totale",
+        "type": "action",
+        "subtype": "other",
+        "isVisible": 1,
+        "logicalId": "total_arm",
+        "isDashboard": 1
+    }, {
         "name": "Activation Mode Presence",
         "type": "action",
         "subtype": "other",

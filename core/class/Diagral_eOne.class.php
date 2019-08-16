@@ -26,7 +26,11 @@ require_once (__ROOT__.'/3rparty/Diagral-eOne-API-PHP/class/Diagral/Diagral_eOne
 class Diagral_eOne extends eqLogic {
     /*     * *************************Attributs****************************** */
 
-
+    public static $_widgetPossibility = array(
+		'custom' => true,
+		'custom::layout' => false,
+		'parameters' => array(),
+	);
 
     /*     * ***********************Methode static*************************** */
 
@@ -138,12 +142,38 @@ class Diagral_eOne extends eqLogic {
 
     }
 
-    /*
-     * Non obligatoire mais permet de modifier l'affichage du widget si vous en avez besoin
-      public function toHtml($_version = 'dashboard') {
+    public function toHtml($_version = 'dashboard') {
+        $replace = $this->preToHtml($_version);
+		if (!is_array($replace)) {
+			return $replace;
+		}
+		$version = jeedom::versionAlias($_version);
+		$replace['#text_color#'] = $this->getConfiguration('text_color');
+        $replace['#version#'] = $_version;
+        $this->emptyCacheWidget(); //vide le cache. Pratique pour le développement
 
-      }
-     */
+        foreach ($this->getCmd('info') as $cmd) {
+			$replace['#' . $cmd->getLogicalId() . '_id#'] = $cmd->getId();
+			$replace['#' . $cmd->getLogicalId() . '#'] = $cmd->execCmd();
+        }
+
+        foreach ($this->getCmd('action') as $cmd) {
+            $replace['#' . $cmd->getLogicalId() . '_id#'] = $cmd->getId();
+            if ($cmd->getSubType() == 'select') {
+                $listValue = "<option value>" . $cmd->getName() . "</option>";
+                $listValueArray = explode(';', $cmd->getConfiguration('listValue'));
+                foreach ($listValueArray as $value) {
+                    list($id, $name) = explode('|', $value);
+                    $listValue = $listValue . "<option value=" . $id . ">" . $name . "</option>";
+                }
+                $replace['#' . $cmd->getLogicalId() . '_listValue#'] = $listValue;
+            }
+        }
+
+        $replace['#systemID#'] = $this->getConfiguration('systemid');
+
+        return $this->postToHtml($_version, template_replace($replace, getTemplate('core', $version, 'eqLogic', 'Diagral_eOne')));
+    }
 
     /*
      * Non obligatoire mais ca permet de déclencher une action après modification de variable de configuration
@@ -663,6 +693,12 @@ class Diagral_eOneCmd extends cmd {
             case 'total_disarm':
                 $eqLogic->setCompleteDesactivation();
                 ## TODO : Voir si on peut pas remplacer ces deux commandes par un appel de la commande refresh
+                list($status,$groups) = $eqLogic->getDiagralStatus();
+                $eqLogic->checkAndUpdateCmd('status', $status);
+                $eqLogic->checkAndUpdateCmd('groups_enable', $groups);
+                break;
+            case 'total_arm':
+                $eqLogic->setCompleteActivation();
                 list($status,$groups) = $eqLogic->getDiagralStatus();
                 $eqLogic->checkAndUpdateCmd('status', $status);
                 $eqLogic->checkAndUpdateCmd('groups_enable', $groups);
