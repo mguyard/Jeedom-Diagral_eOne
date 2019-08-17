@@ -17,10 +17,10 @@
                 </span>
             </div>
         </div>
-        <div class="row">
-            <div class="col-xs-10 text-left cmd cmd-widget" id="groupName">
-            </div>
-            <div class="col-xs-1 cmd cmd-widget state" id="groupStatus">
+        <div class="row" id="groups">
+            <div class="col-12">
+                <table class="table" id="groupsTable">
+                </table>
             </div>
         </div>
         <hr>
@@ -79,18 +79,24 @@
         // FA for Groups
         if ('#status#' == 'off') {
             $( "#groups" ).hide();
+            $('.Diagral_eOne_widget').css('height', '380px');
         } else {
+            $('.Diagral_eOne_widget').css('height', '480px');
             $.getJSON("/plugins/Diagral_eOne/core/config/groups_#systemID#.json", function(groups_JSON) {
                 $.each(groups_JSON.groups, function (key, val) {
-                    $( "<span style='font-weight: bold;font-size : 12px;' class='groupName'>" + val.groupName + "<br /></span>" ).appendTo( "#groupName" );
                     var test = "#groups_enable#"
+                    var icon = "";
                     if (test != "") {
                         if (test.includes(val.groupName)) {
-                            $( "<i class='fa fa-lock'></i>" ).appendTo( "#groupStatus" );
+                            icon = "<i class='fa fa-lock'></i>";
                         } else {
-                            $( "<i class='fa fa-unlock'></i>" ).appendTo( "#groupStatus" );
+                            icon = "<i class='fa fa-unlock'></i>";
                         }
                     }
+                    $('<tr class="row text-center">').append(
+                        $('<td class="col-10 text-left">').text(val.groupName),
+                        $('<td class="col-2">').html(icon),
+                    ).appendTo("#groupsTable");                    
                 });
             });
         }
