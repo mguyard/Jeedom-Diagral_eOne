@@ -1,17 +1,17 @@
 <div class="eqLogic eqLogic-widget noResize Diagral_eOne_widget Diagral_eOne cmd cmd-widget" data-eqType="#eqType#" data-translate-category="#translate_category#" data-category="#category#" data-tags="#tags#" data-version="#version#" style="text-align:center; width: 300px;border:#border#;border-radius:#border-radius#;background-color: #background-color#;color: #color#;#style#;height:500px;" data-eqLogic_id="#id#" data-eqLogic_uid="#uid#">
     <link rel="stylesheet" href="plugins/Diagral_eOne/core/template/dashboard/css/style.css" />
     <span class="cmd refresh pull-right cursor" data-cmd_id="#refresh_id" style="margin-top: 2px;margin-right: 2px;" onclick="jeedom.cmd.execute({id: #refresh_id#});">
-		<i class="fa fa-refresh"></i>
+		<i class="fa fa-sync"></i>
 	</span>
     <center class="widget-name">
-		<span class="reportModeVisible" style="font-size : 1.2em;display:none;">#name_display# <span style="font-size: 0.85em;">#object_name#</span></span>
-		<a href="#eqLink#" class="reportModeHidden" style="font-size : 1.2em;#hideEqLogicName#">#name_display# <span style="display:none;" class="object_name">#object_name#</span></a>
+		<span class="reportModeVisible state" style="font-size : 1.2em;display:none;">#name_display#</span>
+		<a href="#eqLink#" class="reportModeHidden" style="font-size : 1.2em;#hideEqLogicName#">#name_display#</a>
     </center>
     
     <div class="container-fluid">
         <div class="row">
             <div class="col-12">
-                <span class="fa-stack fa-3x">
+                <span class="state fa-stack fa-3x">
                     <i class="fa fa-square-o fa-stack-2x"></i>
                     <i class="fa-stack-1x iconCmd#status_id# cmd cmd-widget"></i>
                 </span>
@@ -20,22 +20,24 @@
         <div class="row">
             <div class="col-xs-10 text-left cmd cmd-widget" id="groupName">
             </div>
-            <div class="col-xs-1 cmd cmd-widget" id="groupStatus">
+            <div class="col-xs-1 cmd cmd-widget state" id="groupStatus">
             </div>
         </div>
         <hr>
         <span style='font-weight: bold;font-size : 12px;'>Actions</span>
         <div class="row" id="actions">
             <div class="col-xs-5 btn-group" role="group">
-                    <button class="btn cmd" data-cmd_id="#total_arm_id#" title="Armement Total" onclick="jeedom.cmd.execute({id: #total_arm_id#});"><i class="fa-black fa fa-lock"></i></button>
-                    <button class="btn cmd" data-cmd_id="#total_disarm_id#" title="Désarmement Total" onclick="jeedom.cmd.execute({id: #total_disarm_id#});"><i class="fa-black fa fa-unlock"></i></button>
-                    <button class="btn cmd" data-cmd_id="#arm_presence_id#" title="Mode Presence" onclick="jeedom.cmd.execute({id: #arm_presence_id#});"><i class="fa-black fa fa-home"></i></button>
+                    <button class="btn cmd action oundedLeft" data-cmd_id="#total_arm_id#" title="Armement Total" onclick="jeedom.cmd.execute({id: #total_arm_id#});"><i class="fa-black fa fa-lock"></i></button>
+                    <button class="btn cmd action" data-cmd_id="#total_disarm_id#" title="Désarmement Total" onclick="jeedom.cmd.execute({id: #total_disarm_id#});"><i class="fa-black fa fa-unlock"></i></button>
+                    <button class="btn cmd action roundedRight" data-cmd_id="#arm_presence_id#" title="Mode Presence" onclick="jeedom.cmd.execute({id: #arm_presence_id#});"><i class="fa-black fa fa-home"></i></button>
             </div>
             <div class="cmd cmd-widget reportModeHidden partial_arm col-xs-7" data-type="action" data-subtype="select" data-cmd_id="#arm_partial_id#" data-cmd_uid="cmd#arm_partial_id#partial" data-version="#version#" data-eqLogic_id="#arm_partial_id#">
-                <select class="selectCmd form-control form-control-lg" title="Activation Partielle">#arm_partial_listValue#</select>
+                <select class="selectCmd action form-control form-control-lg" title="Activation Partielle">#arm_partial_listValue#</select>
                 <script>
                         $(".cmd[data-cmd_uid=cmd#arm_partial_id#partial] .selectCmd").on('change', function () {
-                            jeedom.cmd.execute({id: '#arm_partial_id#', value: {select: $(this).value()}});
+                            if ($(this).value() != "") {
+                                jeedom.cmd.execute({id: '#arm_partial_id#', value: {select: $(this).value()}});
+                            }
                         });
                 </script>
             </div>

@@ -453,12 +453,16 @@ class Diagral_eOne extends eqLogic {
      * Recuperation automatique (cron) du statut de l'ensemble des équipements actifs
      */
     public function pull() {
+        $changed = false;
         log::add('Diagral_eOne', 'debug', 'pull::Starting Request');
         foreach (eqLogic::byType('Diagral_eOne') as $eqLogic) {
             if($eqLogic->getIsEnable() && ! empty($eqLogic->getConfiguration('mastercode'))) {
                 list($status,$groups) = $eqLogic->getDiagralStatus();
-                $eqLogic->checkAndUpdateCmd('status', $status); // on met à jour la commande avec le LogicalId "status"  de l'eqlogic
-                $eqLogic->checkAndUpdateCmd('groups_enable', $groups); // On met à jour la commande avec le LogicalId "groups_enable" de l'eqlogic
+                $changed = $eqLogic->checkAndUpdateCmd('status', $status) || $changed; // on met à jour la commande avec le LogicalId "status"  de l'eqlogic
+                $changed = $eqLogic->checkAndUpdateCmd('groups_enable', $groups) || $changed; // On met à jour la commande avec le LogicalId "groups_enable" de l'eqlogic
+                if ($changed) {
+					$eqLogic->refreshWidget();
+				}
             }
         }
     }
@@ -683,39 +687,40 @@ class Diagral_eOneCmd extends cmd {
      */
 
     public function execute($_options = array()) {
+        $changed = false;
         $eqLogic = $this->getEqLogic(); //récupère l'éqlogic de la commande $this
         switch ($this->getLogicalId()) {	//vérifie le logicalid de la commande
             case 'refresh': // LogicalId de la commande rafraîchir que l’on a créé dans la méthode Postsave.
                 list($status,$groups) = $eqLogic->getDiagralStatus(); 	//On lance la fonction getDiagralStatus() pour récupérer le statut de l'alarme et on la stocke dans la variable $status
-                $eqLogic->checkAndUpdateCmd('status', $status); // on met à jour la commande avec le LogicalId "status"  de l'eqlogic
-                $eqLogic->checkAndUpdateCmd('groups_enable', $groups); // On met à jour la commande avec le LogicalId "groups_enable" de l'eqlogic
+                $changed = $eqLogic->checkAndUpdateCmd('status', $status) || $changed; // on met à jour la commande avec le LogicalId "status"  de l'eqlogic
+                $changed = $eqLogic->checkAndUpdateCmd('groups_enable', $groups) || $changed; // On met à jour la commande avec le LogicalId "groups_enable" de l'eqlogic
                 break;
             case 'total_disarm':
                 $eqLogic->setCompleteDesactivation();
                 ## TODO : Voir si on peut pas remplacer ces deux commandes par un appel de la commande refresh
                 list($status,$groups) = $eqLogic->getDiagralStatus();
-                $eqLogic->checkAndUpdateCmd('status', $status);
-                $eqLogic->checkAndUpdateCmd('groups_enable', $groups);
+                $changed = $eqLogic->checkAndUpdateCmd('status', $status) || $changed;
+                $changed = $eqLogic->checkAndUpdateCmd('groups_enable', $groups) || $changed;
                 break;
             case 'total_arm':
                 $eqLogic->setCompleteActivation();
                 list($status,$groups) = $eqLogic->getDiagralStatus();
-                $eqLogic->checkAndUpdateCmd('status', $status);
-                $eqLogic->checkAndUpdateCmd('groups_enable', $groups);
+                $changed = $eqLogic->checkAndUpdateCmd('status', $status) || $changed;
+                $changed = $eqLogic->checkAndUpdateCmd('groups_enable', $groups) || $changed;
                 break;
             case 'arm_presence':
                 $eqLogic->setPresenceActivation();
                 ## TODO : Voir si on peut pas remplacer ces deux commandes par un appel de la commande refresh
                 list($status,$groups) = $eqLogic->getDiagralStatus();
-                $eqLogic->checkAndUpdateCmd('status', $status);
-                $eqLogic->checkAndUpdateCmd('groups_enable', $groups);
+                $changed = $eqLogic->checkAndUpdateCmd('status', $status) || $changed;
+                $changed = $eqLogic->checkAndUpdateCmd('groups_enable', $groups) || $changed;
                 break;
             case 'arm_partial':
                 $eqLogic->setPartialActivation($_options['select'], $this->getConfiguration('listValue'));
                 ## TODO : Voir si on peut pas remplacer ces deux commandes par un appel de la commande refresh
                 list($status,$groups) = $eqLogic->getDiagralStatus();
-                $eqLogic->checkAndUpdateCmd('status', $status);
-                $eqLogic->checkAndUpdateCmd('groups_enable', $groups);
+                $changed = $eqLogic->checkAndUpdateCmd('status', $status) || $changed;
+                $changed = $eqLogic->checkAndUpdateCmd('groups_enable', $groups) || $changed;
                 break;
             case 'launch_scenario':
                 $eqLogic->setScenario($_options['select'], $this->getConfiguration('listValue'));
@@ -728,6 +733,9 @@ class Diagral_eOneCmd extends cmd {
                 break;
             default:
                 log::add('Diagral_eOne', 'warning', 'Commande inconnue : ' . $this->getLogicalId());
+        }
+        if ($changed) {
+            $eqLogic->refreshWidget();
         }
     }
 
