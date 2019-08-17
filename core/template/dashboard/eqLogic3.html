@@ -1,5 +1,5 @@
-<div class="eqLogic eqLogic-widget noResize Diagral_eOne_widget Diagral_eOne cmd cmd-widget" data-eqType="#eqType#" data-translate-category="#translate_category#" data-category="#category#" data-tags="#tags#" data-version="#version#" style="text-align:center; width: 300px;border:#border#;border-radius:#border-radius#;background-color: #background-color#;color: #color#;#style#;height:400px;" data-eqLogic_id="#id#" data-eqLogic_uid="#uid#" template='#template#'>
-    <link rel="stylesheet" href="plugins/Diagral_eOne/core/template/dashboard/css/style.css" />
+<div class="eqLogic eqLogic-widget noResize Diagral_eOne_widget Diagral_eOne cmd cmd-widget" data-eqType="#eqType#" data-translate-category="#translate_category#" data-category="#category#" data-tags="#tags#" data-version="#version#" style="text-align:center; width: 300px;border:#border#;border-radius:#border-radius#;background-color: #background-color#;color: #color#;#style#;height:500px;" data-eqLogic_id="#id#" data-eqLogic_uid="#uid#" template='#template#'>
+    <link rel="stylesheet" href="plugins/Diagral_eOne/core/template/dashboard/css/style3.css" />
     <span class="cmd refresh pull-right cursor" data-cmd_id="#refresh_id" style="margin-top: 2px;margin-right: 2px;" onclick="jeedom.cmd.execute({id: #refresh_id#});">
 		<i class="fa fa-sync"></i>
 	</span>
@@ -11,26 +11,27 @@
     <div class="container-fluid">
         <div class="row">
             <div class="col-12">
-                <span class="state">
-                    <i class="fa-5x iconCmd#status_id#"></i>
+                <span class="state fa-stack fa-3x">
+                    <i class="fa fa-square-o fa-stack-2x"></i>
+                    <i class="fa-stack-1x iconCmd#status_id# cmd cmd-widget"></i>
                 </span>
             </div>
         </div>
-        <div class="row" id="groups">
-            <div class="col-12">
-                <table class="table" id="groupsTable">
-                </table>
+        <div class="row">
+            <div class="col-xs-10 text-left cmd cmd-widget" id="groupName">
+            </div>
+            <div class="col-xs-1 cmd cmd-widget state" id="groupStatus">
             </div>
         </div>
         <hr>
         <span style='font-weight: bold;font-size : 12px;'>Actions</span>
         <div class="row" id="actions">
-            <div class="btn-group" role="group">
+            <div class="col-xs-5 btn-group" role="group">
                     <button class="btn cmd action oundedLeft" data-cmd_id="#total_arm_id#" title="Armement Total" onclick="jeedom.cmd.execute({id: #total_arm_id#});"><i class="fa-black fa fa-lock"></i></button>
                     <button class="btn cmd action" data-cmd_id="#total_disarm_id#" title="Désarmement Total" onclick="jeedom.cmd.execute({id: #total_disarm_id#});"><i class="fa-black fa fa-unlock"></i></button>
                     <button class="btn cmd action roundedRight" data-cmd_id="#arm_presence_id#" title="Mode Presence" onclick="jeedom.cmd.execute({id: #arm_presence_id#});"><i class="fa-black fa fa-home"></i></button>
             </div>
-            <div class="cmd cmd-widget reportModeHidden partial_arm col-12" data-type="action" data-subtype="select" data-cmd_id="#arm_partial_id#" data-cmd_uid="cmd#arm_partial_id#partial" data-version="#version#" data-eqLogic_id="#arm_partial_id#">
+            <div class="cmd cmd-widget reportModeHidden partial_arm col-xs-7" data-type="action" data-subtype="select" data-cmd_id="#arm_partial_id#" data-cmd_uid="cmd#arm_partial_id#partial" data-version="#version#" data-eqLogic_id="#arm_partial_id#">
                 <select class="selectCmd action form-control form-control-lg" title="Activation Partielle">#arm_partial_listValue#</select>
                 <script>
                         $(".cmd[data-cmd_uid=cmd#arm_partial_id#partial] .selectCmd").on('change', function () {
@@ -44,7 +45,7 @@
         <hr>
         <span style='font-weight: bold;font-size : 12px;'>Scenarios</span>
         <div class="row" id="scenarios">
-            <div class="cmd cmd-widget reportModeHidden launch_scenario col-12" data-type="action" data-subtype="select" data-cmd_id="#launch_scenario_id#" data-cmd_uid="cmd#launch_scenario_id#Scenario" data-version="#version#" data-eqLogic_id="#launch_scenario_id#">
+            <div class="cmd cmd-widget reportModeHidden launch_scenario col-xs-12" data-type="action" data-subtype="select" data-cmd_id="#launch_scenario_id#" data-cmd_uid="cmd#launch_scenario_id#Scenario" data-version="#version#" data-eqLogic_id="#launch_scenario_id#">
                 <select class="selectCmd form-control form-control-lg" title="Scenarios">#launch_scenario_listValue#</select>
                 <script>
                         $(".cmd[data-cmd_uid=cmd#launch_scenario_id#Scenario] .selectCmd").on('change', function () {
@@ -78,24 +79,18 @@
         // FA for Groups
         if ('#status#' == 'off') {
             $( "#groups" ).hide();
-            $('.Diagral_eOne_widget').css('height', '330px');
         } else {
-            $('.Diagral_eOne_widget').css('height', '430px');
             $.getJSON("/plugins/Diagral_eOne/core/config/groups_#systemID#.json", function(groups_JSON) {
                 $.each(groups_JSON.groups, function (key, val) {
+                    $( "<span style='font-weight: bold;font-size : 12px;' class='groupName'>" + val.groupName + "<br /></span>" ).appendTo( "#groupName" );
                     var test = "#groups_enable#"
-                    var icon = "";
                     if (test != "") {
                         if (test.includes(val.groupName)) {
-                            icon = "<i class='fa fa-lock' style='color: red;'></i>";
+                            $( "<i class='fa fa-lock'></i>" ).appendTo( "#groupStatus" );
                         } else {
-                            icon = "<i class='fa fa-unlock' style='color: green;'></i>";
+                            $( "<i class='fa fa-unlock'></i>" ).appendTo( "#groupStatus" );
                         }
                     }
-                    $('<tr class="row text-center">').append(
-                        $('<td class="col-10 text-left">').text(val.groupName),
-                        $('<td class="col-2">').html(icon),
-                    ).appendTo("#groupsTable");                    
                 });
             });
         }

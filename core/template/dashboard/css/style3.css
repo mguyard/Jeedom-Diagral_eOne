@@ -1,14 +1,5 @@
-.Diagral_eOne_widget hr {
-    border-top: 1px solid;
-    margin : 10px 0px 10px 0px;
-}
-
 .Diagral_eOne_widget .container-fluid {
     margin-top: 20px;
-}
-
-.Diagral_eOne_widget #groups {
-    margin-top: 10px;
 }
 
 .Diagral_eOne_widget #actions {
@@ -25,13 +16,9 @@
 
 .Diagral_eOne_widget #actions .partial_arm {
     padding-left: 0px;
-    margin-top: 10px;
 }
 
 .Diagral_eOne_widget #actions i.fa-black {
     color: black;
 }
 
-.Diagral_eOne_widget .widget-name {
-    line-height: 20px;
-}

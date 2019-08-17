@@ -172,7 +172,15 @@ class Diagral_eOne extends eqLogic {
 
         $replace['#systemID#'] = $this->getConfiguration('systemid');
 
-        return $this->postToHtml($_version, template_replace($replace, getTemplate('core', $version, 'eqLogic', 'Diagral_eOne')));
+        // On defini le template a appliquer par rapport à la version Jeedom utilisée
+        if (version_compare(jeedom::version(), '4.0.0') >= 0) {
+            $template = 'eqLogic';
+        } else {
+            $template = 'eqLogic3';
+        }
+        $replace['#template#'] = $template;
+
+        return $this->postToHtml($_version, template_replace($replace, getTemplate('core', $version, $template, 'Diagral_eOne')));
     }
 
     /*
