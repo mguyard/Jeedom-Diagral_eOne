@@ -19,7 +19,7 @@ $eqLogics = eqLogic::byType($plugin->getId());
             </div>
             -->
             <div class="cursor eqLogicAction logoSecondary" data-action="synchronize">
-                <i class="fas fa-refresh"></i>
+                <i class="fas fa-sync"></i>
                 <br>
                 <span>{{Synchronisation}}</span>
             </div>

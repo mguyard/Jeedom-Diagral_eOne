@@ -59,49 +59,50 @@
     
     <script>
         
-        // FA for Status
-        switch('#status#') {
-            case 'off':
-                $('.iconCmd#status_id#').addClass('fa fa-unlock');
-                break;
-            case 'presence':
-            case 'group':
-                $('.iconCmd#status_id#').addClass('fa fa-lock');
-                break;
-            case 'tempogroup':
-                $('.iconCmd#status_id#').addClass('fa fa-clock');
-                break;
-            default:
-                $('.iconCmd#status_id#').addClass('fas fa-spinner fa-spin');
-                break;
-        }
+        jeedom.cmd.update['#status_id#'] = function(_options) {
+            // FA for Status
+            switch('#status#') {
+                case 'off':
+                    $('.iconCmd#status_id#').addClass('fa fa-unlock');
+                    break;
+                case 'presence':
+                case 'group':
+                    $('.iconCmd#status_id#').addClass('fa fa-lock');
+                    break;
+                case 'tempogroup':
+                    $('.iconCmd#status_id#').addClass('fa fa-clock');
+                    break;
+                default:
+                    $('.iconCmd#status_id#').addClass('fas fa-spinner fa-spin');
+                    break;
+            }
 
-        // FA for Groups
-        if ('#status#' == 'off') {
-            $( "#groups" ).hide();
-            $('.Diagral_eOne_widget').css('height', '380px');
-        } else {
-            $('.Diagral_eOne_widget').css('height', '480px');
-            $.getJSON("/plugins/Diagral_eOne/core/config/groups_#systemID#.json", function(groups_JSON) {
-                $.each(groups_JSON.groups, function (key, val) {
-                    var test = "#groups_enable#"
-                    var icon = "";
-                    if (test != "") {
-                        if (test.includes(val.groupName)) {
-                            icon = "<i class='fa fa-lock'></i>";
-                        } else {
-                            icon = "<i class='fa fa-unlock'></i>";
+            // FA for Groups
+            if ('#status#' == 'off') {
+                $( "#groups" ).hide();
+                $('.Diagral_eOne_widget').css('height', '380px');
+            } else {
+                $('.Diagral_eOne_widget').css('height', '480px');
+                $.getJSON("/plugins/Diagral_eOne/core/config/groups_#systemID#.json", function(groups_JSON) {
+                    $.each(groups_JSON.groups, function (key, val) {
+                        var test = "#groups_enable#"
+                        var icon = "";
+                        if (test != "") {
+                            if (test.includes(val.groupName)) {
+                                icon = "<i class='fa fa-lock'></i>";
+                            } else {
+                                icon = "<i class='fa fa-unlock'></i>";
+                            }
                         }
-                    }
-                    $('<tr class="row text-center">').append(
-                        $('<td class="col-10 text-left">').text(val.groupName),
-                        $('<td class="col-2">').html(icon),
-                    ).appendTo("#groupsTable");                    
+                        $('<tr class="row text-center">').append(
+                            $('<td class="col-10 text-left">').text(val.groupName),
+                            $('<td class="col-2">').html(icon),
+                        ).appendTo("#groupsTable");                    
+                    });
                 });
-            });
+            }
         }
-
-        // Exemple : http://blog.fontawesome.io/2014/05/19/stacking-text-and-icons/
+        jeedom.cmd.update['#status_id#']({display_value:'#status#'});
 
         
     </script>

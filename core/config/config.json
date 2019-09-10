@@ -5,7 +5,7 @@
         "subtype": "other",
         "isVisible": 1,
         "logicalId": "refresh",
-        "isDashboard": 0
+        "isDashboard": 1
     }, {
         "name": "Statut",
         "type": "info",
@@ -22,6 +22,38 @@
 		"isHistorized": 0,
 		"logicalId": "groups_enable",
         "isDashboard": 1
+    }, {
+        "name": "IMPORT - Dernier Message",
+        "type": "info",
+        "subtype": "string",
+        "isVisible": 0,
+		"isHistorized": 0,
+		"logicalId": "imported_last_message",
+        "isDashboard": 0
+    }, {
+        "name": "IMPORT - Derniere action",
+        "type": "info",
+        "subtype": "string",
+        "isVisible": 0,
+		"isHistorized": 0,
+		"logicalId": "imported_last_action",
+        "isDashboard": 0
+    }, {
+        "name": "IMPORT - Derniere methode",
+        "type": "info",
+        "subtype": "string",
+        "isVisible": 0,
+		"isHistorized": 0,
+		"logicalId": "imported_last_method",
+        "isDashboard": 0
+    }, {
+        "name": "IMPORT - Dernier utilisateur",
+        "type": "info",
+        "subtype": "string",
+        "isVisible": 0,
+		"isHistorized": 0,
+		"logicalId": "imported_last_user",
+        "isDashboard": 0
     }, {
         "name": "Désactivation Total",
         "type": "action",
@@ -66,6 +98,17 @@
         },
         "logicalId": "launch_scenario",
         "masterCodeNeed": 1,
+        "isDashboard": 0
+    }, {
+        "name": "Importer Message",
+        "type": "action",
+        "subtype": "message",
+        "isVisible": 1,
+        "display" : {
+            "title_placeholder" : "Options",
+            "message_placeholder" : "Message"
+        },
+        "logicalId": "import_message",
         "isDashboard": 0
     }, {
         "name": "Force Groups Refresh",

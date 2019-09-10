@@ -23,7 +23,7 @@
             </div>
         </div>
         <hr>
-        <span style='font-weight: bold;font-size : 12px;'>Actions</span>
+        <span class="cmd label cmdName">Actions</span>
         <div class="row" id="actions">
             <div class="btn-group" role="group">
                     <button class="btn cmd action oundedLeft" data-cmd_id="#total_arm_id#" title="Armement Total" onclick="jeedom.cmd.execute({id: #total_arm_id#});"><i class="fa-black fa fa-lock"></i></button>
@@ -42,7 +42,7 @@
             </div>
         </div>
         <hr>
-        <span style='font-weight: bold;font-size : 12px;'>Scenarios</span>
+        <span class="cmd label cmdName">Scenarios</span>
         <div class="row" id="scenarios">
             <div class="cmd cmd-widget reportModeHidden launch_scenario col-12" data-type="action" data-subtype="select" data-cmd_id="#launch_scenario_id#" data-cmd_uid="cmd#launch_scenario_id#Scenario" data-version="#version#" data-eqLogic_id="#launch_scenario_id#">
                 <select class="selectCmd form-control form-control-lg" title="Scenarios">#launch_scenario_listValue#</select>
@@ -59,49 +59,51 @@
     <script>
         
         // FA for Status
-        switch('#status#') {
-            case 'off':
-                $('.iconCmd#status_id#').addClass('fa fa-unlock');
-                break;
-            case 'presence':
-            case 'group':
-                $('.iconCmd#status_id#').addClass('fa fa-lock');
-                break;
-            case 'tempogroup':
-                $('.iconCmd#status_id#').addClass('fa fa-clock');
-                break;
-            default:
-                $('.iconCmd#status_id#').addClass('fas fa-spinner fa-spin');
-                break;
-        }
+        jeedom.cmd.update['#status_id#'] = function(_options) {
+            switch(_options.display_value) {
+                case 'off':
+                    $('.iconCmd#status_id#').addClass('fas fa-unlock');
+                    break;
+                case 'presence':
+                    $('.iconCmd#status_id#').addClass('fas fa-cloud-moon');
+                    break;
+                case 'group':
+                    $('.iconCmd#status_id#').addClass('fas fa-lock');
+                    break;
+                case 'tempogroup':
+                    $('.iconCmd#status_id#').addClass('fa fa-stopwatch');
+                    break;
+                default:
+                    $('.iconCmd#status_id#').addClass('fas fa-spinner fa-spin');
+                    break;
+            }
 
-        // FA for Groups
-        if ('#status#' == 'off') {
-            $( "#groups" ).hide();
-            $('.Diagral_eOne_widget').css('height', '330px');
-        } else {
-            $('.Diagral_eOne_widget').css('height', '430px');
-            $.getJSON("/plugins/Diagral_eOne/core/config/groups_#systemID#.json", function(groups_JSON) {
-                $.each(groups_JSON.groups, function (key, val) {
-                    var test = "#groups_enable#"
-                    var icon = "";
-                    if (test != "") {
-                        if (test.includes(val.groupName)) {
-                            icon = "<i class='fa fa-lock' style='color: red;'></i>";
-                        } else {
-                            icon = "<i class='fa fa-unlock' style='color: green;'></i>";
+            // FA for Groups
+            if (_options.display_value == 'off') {
+                $( "#groups" ).hide();
+                $('.Diagral_eOne_widget').css('height', '330px');
+            } else {
+                $('.Diagral_eOne_widget').css('height', '430px');
+                $.getJSON("/plugins/Diagral_eOne/core/config/groups_#systemID#.json", function(groups_JSON) {
+                    $.each(groups_JSON.groups, function (key, val) {
+                        var test = "#groups_enable#"
+                        var icon = "";
+                        if (test != "") {
+                            if (test.includes(val.groupName)) {
+                                icon = "<i class='fa fa-lock' style='color: red;'></i>";
+                            } else {
+                                icon = "<i class='fa fa-unlock' style='color: green;'></i>";
+                            }
                         }
-                    }
-                    $('<tr class="row text-center">').append(
-                        $('<td class="col-10 text-left">').text(val.groupName),
-                        $('<td class="col-2">').html(icon),
-                    ).appendTo("#groupsTable");                    
+                        $('<tr class="row text-center">').append(
+                            $('<td class="col-10 text-left">').text(val.groupName),
+                            $('<td class="col-2">').html(icon),
+                        ).appendTo("#groupsTable");                    
+                    });
                 });
-            });
+            }
         }
-
-        // Exemple : http://blog.fontawesome.io/2014/05/19/stacking-text-and-icons/
-
+        jeedom.cmd.update['#status_id#']({display_value:'#status#'});
         
     </script>
 </div>
