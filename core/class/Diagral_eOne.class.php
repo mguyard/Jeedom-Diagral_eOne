@@ -673,6 +673,94 @@ class Diagral_eOne extends eqLogic {
         log::add('Diagral_eOne', 'debug', 'setScenario::' . $this->getConfiguration('systemid') . '::Success ' . $listValue[$cmdValue]);
     }
 
+    /**
+     * Importation d'un message (Mail, SMS, etc..) dans la plugin pour ajouter des informations et/ou prendre des actions
+     * @param string $message
+     * @param array $options
+     */
+    public function importMessage($message, $options) {
+        log::add('Diagral_eOne', 'debug', 'importMessage::Message ' . $message);
+        log::add('Diagral_eOne', 'debug', 'importMessage::Options ' . var_export($options, true));
+        $matches = NULL;
+        $refreshNeed = FALSE;
+        // Si la source est bien indiqué
+        if (isset($options['source'])) {
+            switch ($options['source']) {
+                // Reception par email
+                case 'email':
+                    // Converti les caractères HTML et unicode en UTF8 + retire les balises HTML
+                    $message = strip_tags(html_entity_decode($message, ENT_QUOTES));
+                    log::add('Diagral_eOne', 'debug', 'importMessage::MessageAfterManipulation "' . $message. '"');
+                    if(isset($options['subject'])) {
+                        switch ($options['subject']) {
+                            // Le sujet correspond à un Arret/Marche
+                            case ( preg_match( '/Arrêt\/Marche/', $options['subject'] ) ? true : false ):
+                                $regex = '/Votre système d\\\'alarme Diagral sur le site «(.*)», vous signale : (.*) par (.*) \\((.*)\\)/m';
+                                preg_match($regex, $message, $matches);
+                                log::add('Diagral_eOne', 'debug', 'importMessage::MessageAfterManipulationRegex ' . var_export($matches, true));
+                                $formatedMsg = $matches[0];
+                                // Actuellement le AlarmName semble mal envoyé dans les mails
+                                $alarmName = $matches[1];
+                                log::add('Diagral_eOne', 'debug', 'importMessage::Message::alarmName ' . $alarmName);
+                                $mailContent = $matches[2];
+                                log::add('Diagral_eOne', 'debug', 'importMessage::Message::mailContent ' . $mailContent);
+                                $alarmMethod = $matches[3];
+                                log::add('Diagral_eOne', 'debug', 'importMessage::Message::alarmMethod ' . $alarmMethod);
+                                $alarmUser = $matches[4];
+                                log::add('Diagral_eOne', 'debug', 'importMessage::Message::alarmUser ' . $alarmUser);
+                                // Analyse le contenu du message pour définir si c'est une mise en marche ou mise à l'arrêt
+                                switch ($mailContent) {
+                                    case ( preg_match( '/mise à l\\\'arrêt/', $mailContent ) ? true : false ):
+                                        log::add('Diagral_eOne', 'info', 'importMessage::Message::mailContent Mise à l\'arrêt detectée');
+                                        $refreshNeed = TRUE;
+                                        break;
+                                    case ( preg_match( '/mise en marche/', $mailContent ) ? true : false ):
+                                        log::add('Diagral_eOne', 'info', 'importMessage::Message::mailContent Mise en marche detectée');
+                                        $refreshNeed = TRUE;
+                                        break;
+                                    default:
+                                        log::add('Diagral_eOne', 'warning', 'importMessage::Message::mailContent "'. $mailContent. '" ne correspond à aucun type de message connu');
+                                        break;
+                                }
+                                break;
+                            // Le sujet correspond à une Alarme
+                            case ( preg_match( '/Alarme/', $options['subject'] ) ? true : false ):
+                                // Besoin de plus de type de contenu pour gerer cette partie.
+                                $regex = '/Votre système d\\\'alarme Diagral sur le site «(.*)», vous signale : (.*)/m';
+                                preg_match($regex, $message, $matches);
+                                log::add('Diagral_eOne', 'info', 'importMessage::MessageAfterManipulationRegex NOT YET PARSED' . var_export($matches, true));
+                                // Objectif avec commande info qui specifie l'alarme en cours => Voir comment faire pour la 'unset' apres quelques minutes --> Voir si a la prochaine desactivation, si alarme = 1 alors passé à 0
+                                break;
+                            // Le sujet est invalide ou inconnu
+                            default:
+                                log::add('Diagral_eOne', 'warning', 'importMessage::subject "' . $options['subject']. '" non valide ou inconnu. Message : '.$message);
+                                break;
+                        }
+                    }
+                    break;
+                // Reception par SMS -- a integrer
+                case 'sms':
+                    log::add('Diagral_eOne', 'warning', 'importMessage::SMS "' . $message. '" non intégré.');
+                    break;
+                // Source invalide
+                default:
+                    log::add('Diagral_eOne', 'warning', 'importMessage::source "' . $options['source']. '" non valide.');
+                    break;
+            }
+        } else {
+            log::add('Diagral_eOne', 'warning', 'Impossible de parser le contenu sans connaitre la source (mail, sms, etc...)');
+        }
+
+        // Retourne les paramètres collectés
+        return array(
+            "originalMsg" => $formatedMsg,
+            "alarmName" => $alarmName,
+            "content" => $mailContent,
+            "method" => $alarmMethod,
+            "user" => $alarmUser,
+            "refresh" => $refreshNeed
+        );
+    }
 
 
     /*     * **********************Getteur Setteur*************************** */
@@ -705,7 +793,6 @@ class Diagral_eOneCmd extends cmd {
                 break;
             case 'total_disarm':
                 $eqLogic->setCompleteDesactivation();
-                ## TODO : Voir si on peut pas remplacer ces deux commandes par un appel de la commande refresh
                 list($status,$groups) = $eqLogic->getDiagralStatus();
                 $changed = $eqLogic->checkAndUpdateCmd('status', $status) || $changed;
                 $changed = $eqLogic->checkAndUpdateCmd('groups_enable', $groups) || $changed;
@@ -718,20 +805,37 @@ class Diagral_eOneCmd extends cmd {
                 break;
             case 'arm_presence':
                 $eqLogic->setPresenceActivation();
-                ## TODO : Voir si on peut pas remplacer ces deux commandes par un appel de la commande refresh
                 list($status,$groups) = $eqLogic->getDiagralStatus();
                 $changed = $eqLogic->checkAndUpdateCmd('status', $status) || $changed;
                 $changed = $eqLogic->checkAndUpdateCmd('groups_enable', $groups) || $changed;
                 break;
             case 'arm_partial':
                 $eqLogic->setPartialActivation($_options['select'], $this->getConfiguration('listValue'));
-                ## TODO : Voir si on peut pas remplacer ces deux commandes par un appel de la commande refresh
                 list($status,$groups) = $eqLogic->getDiagralStatus();
                 $changed = $eqLogic->checkAndUpdateCmd('status', $status) || $changed;
                 $changed = $eqLogic->checkAndUpdateCmd('groups_enable', $groups) || $changed;
                 break;
             case 'launch_scenario':
                 $eqLogic->setScenario($_options['select'], $this->getConfiguration('listValue'));
+                break;
+            case 'import_message':
+                $explodeOptions = explode('|', $_options['title']); // Explose les options pour recuperer le sujet dans la premiere partie separé par "|"
+                if (count($explodeOptions) > 1) { // Si on a plus d'une entrée dans le table, j'ai donc un sujet
+                    $options = arg2array($explodeOptions[1]);
+                    $options['subject'] = $explodeOptions[0];
+                } else { // Sinon je n'ai que les options
+                    $options = arg2array($explodeOptions[0]);
+                }
+                $contents = $eqLogic->importMessage($_options['message'], $options);
+                $eqLogic->checkAndUpdateCmd('imported_last_message', $contents['originalMsg']);
+                $eqLogic->checkAndUpdateCmd('imported_last_action', $contents['content']);
+                $eqLogic->checkAndUpdateCmd('imported_last_method', $contents['method']);
+                $eqLogic->checkAndUpdateCmd('imported_last_user', $contents['user']);
+                if($contents['refresh']) {
+                    list($status,$groups) = $eqLogic->getDiagralStatus();
+                    $changed = $eqLogic->checkAndUpdateCmd('status', $status) || $changed;
+                    $changed = $eqLogic->checkAndUpdateCmd('groups_enable', $groups) || $changed;
+                }
                 break;
             case 'force_groups_refresh_json':
                 $eqLogic->generateGroupJson();
