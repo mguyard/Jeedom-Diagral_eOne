@@ -152,6 +152,7 @@ A partir de là, vous pouvez identifier les soucis que vous pouvez rencontrer.
 # Roadmap
 
 - Ajout de nouveaux messages SMS/EMAIL.
+- Integration dans Homebridge
 - Ajout de la désactivation d'une zone spécifique.
 - Ajout d'un commande info si une mise à jour est disponible.
 
