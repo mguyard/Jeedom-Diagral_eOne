@@ -221,6 +221,7 @@ class Diagral_eOne extends eqLogic {
             if (! isset($command['masterCodeNeed']) || $command['masterCodeNeed'] === false || ! empty($this->getConfiguration('mastercode'))) {
                 $cmd->setOrder($key);
                 $cmd->setEqLogic_id($this->getId());
+                // Si un parametre function est fournit a la commande
                 if( isset($command['configuration']['function'])) {
                     list($fieldType, $fieldFunction)= explode("::", $command['configuration']['function']);
                     log::add('Diagral_eOne', 'debug', 'postSave::UpdateContent::' . $command['logicalId'] . ' ' . $fieldType . ' with function ' . $fieldFunction);
@@ -230,7 +231,7 @@ class Diagral_eOne extends eqLogic {
                         $parsedContent = "";
                         switch ($fieldType) {
                             case 'listValue':
-                                $parsedContent = $this->generatePossibilitiesSelect($contentField);
+                                $parsedContent = $this->generateSelect($contentField);
                                 break;
                         }
                         log::add('Diagral_eOne', 'debug', 'postSave::UpdateContent::GetReturnFunction ' . $parsedContent);
@@ -332,6 +333,9 @@ class Diagral_eOne extends eqLogic {
         $this->writeConfigFile($filename, json_encode(array('lastModified' => date("Y-m-d H:i:s"), 'groups' => $groupsJSON),JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT));
     }
 
+    /**
+     * Generation des scénarios dans un fichier JSON pour un objet specifique $this
+     */
     public function generateScenariosJson() {
         log::add('Diagral_eOne', 'debug', 'generateScenariosJson::Start');
         $filename = __ROOT__.'/core/config/scenarios_' . $this->getConfiguration('systemid') . '.json';
@@ -351,19 +355,44 @@ class Diagral_eOne extends eqLogic {
     /**
      * Genere une ListValue formaté a partir d'un tableau
      * @return string Liste formatée en select pour les actions
-     * @return $PossibilitiesSelect     String de liste select ListValue
+     * @return $listSelect     String de liste select ListValue
      */
-    private function generatePossibilitiesSelect($selectArray) {
-        log::add('Diagral_eOne', 'debug', 'generatePossibilitiesSelect::Start');
-        $PossibilitiesSelect = "";
-        log::add('Diagral_eOne', 'debug', 'generatePossibilitiesSelect::Return ' . var_export($selectArray, true));
-        foreach ($selectArray as $key => $Possibility) {
-            if ($key > 0) {
-                $PossibilitiesSelect .= ';';
+    private function generateSelect($selectArray) {
+        log::add('Diagral_eOne', 'debug', 'generateSelect::Start');
+        $listSelect = "";
+        log::add('Diagral_eOne', 'debug', 'generateSelect::Return ' . var_export($selectArray, true));
+        foreach ($selectArray as $key => $value) {
+            // Recupere la position de la clé dans le tableau
+            $position = array_search($key, array_keys($selectArray));
+            if ($position > 0) {
+                // Si la position est superieur à 0 (donc au moins la seconde position) alors on ajoute un ; comme séparateur avant le contenu
+                $listSelect .= ';';
             }
-            $PossibilitiesSelect .= $key . '|' . $Possibility;
+            $listSelect .= $key . '|' . $value;
         }
-        return $PossibilitiesSelect;
+        return $listSelect;
+    }
+
+    /**
+     * Genere un Liste des groupes de Zone possible
+     * @return array Tableau contenant un tableau pour chaque combinaison possible
+     */
+    private function generateGroupsList() {
+        log::add('Diagral_eOne', 'debug', 'generateGroupsList::Start');
+        $filename = __ROOT__.'/core/config/groups_' . $this->getConfiguration('systemid') . '.json';
+        // Si le fichier JSON des groupes n'existe pas, on le genère.
+        if ( file_exists($filename) === false ) {
+            $this->generateGroupJson();
+        }
+        // Recuperation de l'ensemble des groups avec leur nom et leur ID
+        $config = $this->loadConfigFile($filename, 'groups');
+        $groups = array();
+        foreach ($config['groups'] as $group) {
+            // Creation d'un tableau ou la clé = idgroup et contenu groupName
+            $groups[$group['groupID']] = $group['groupName'];
+        }
+        log::add('Diagral_eOne', 'debug', 'generateGroupsList::Content ' . var_export($groups, true));
+        return $groups;
     }
 
     /**
@@ -451,6 +480,9 @@ class Diagral_eOne extends eqLogic {
         $MyAlarm->setSystemId(intval($this->getConfiguration('systemid')));
         $MyAlarm->getConfiguration();
         $MyAlarm->connect($this->getConfiguration('mastercode'));
+        // Recupere le nombre de mise à jour disponible
+        $nbUpdates = $MyAlarm->getFirmwareUpdates();
+        $this->checkAndUpdateCmd('updates_available', $nbUpdates);
         return $MyAlarm;
         } else {
             throw new Exception("MasterCode cannot be empty. Please configure it in your device.");
@@ -643,6 +675,25 @@ class Diagral_eOne extends eqLogic {
     }
 
     /**
+     * Desactivation partielle de l'alarme (une seule zone à la fois)
+     * @param int $cmdValue  GroupID de la zone (ID teels que connu par Diagral)
+     * @return boolean du statut de l'action
+     */
+    public function setPartialDesactivation($cmdValue) {
+        log::add('Diagral_eOne', 'debug', 'setPartialDesactivation::cmdValue ' . $cmdValue);
+        $MyAlarm = $this->setDiagralEnv();
+        try {
+            $MyAlarm->partialDesactivation($cmdValue);
+        } catch (Exception $e) {
+            log::add('Diagral_eOne', 'error', 'setPartialDesactivation::' . $this->getConfiguration('systemid') . '::Failed for groupID ' . $cmdValue . '. Reason : ' . $e->getMessage());
+            return FALSE;
+        }
+        $MyAlarm->logout();
+        log::add('Diagral_eOne', 'debug', 'setPartialDesactivation::' . $this->getConfiguration('systemid') . '::Success for groupID ' . $cmdValue);
+        return TRUE;
+    }
+
+    /**
      * Lancement de scenarios
      * @param int $cmdValue         ID du listValue recu en parametre de l'execution de la commande
      * @param array $listValue      listValue configuré sur la commande
@@ -796,6 +847,14 @@ class Diagral_eOneCmd extends cmd {
                 list($status,$groups) = $eqLogic->getDiagralStatus();
                 $changed = $eqLogic->checkAndUpdateCmd('status', $status) || $changed;
                 $changed = $eqLogic->checkAndUpdateCmd('groups_enable', $groups) || $changed;
+                break;
+            case 'disarm_partial':
+                $status = $eqLogic->setPartialDesactivation($_options['select']);
+                if($status) {
+                    list($status,$groups) = $eqLogic->getDiagralStatus();
+                    $changed = $eqLogic->checkAndUpdateCmd('status', $status) || $changed;
+                    $changed = $eqLogic->checkAndUpdateCmd('groups_enable', $groups) || $changed;
+                }
                 break;
             case 'total_arm':
                 $eqLogic->setCompleteActivation();

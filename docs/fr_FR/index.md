@@ -107,6 +107,9 @@ Il existe actuellement plusieurs commandes qui sont décrites ci-dessous :
   
 -   __Désactivation Totale__ : Arrêt de l'alarme
 
+-   __Désactivation Partielle__ : Permet de désactiver un groupe de l'alarme
+    -   _La désactivation d'un groupe ne peut être effectuée que lorsque l'alarme est activée (à l'exclusion du mode présence)
+
 -   __Activation Mode Presence__ : Activation avec le mode spécial Présence
 
 -   __Activation Partielle__ : Activation de quelques groupes uniquement.
@@ -134,6 +137,7 @@ Il existe actuellement plusieurs commandes qui sont décrites ci-dessous :
     -   presence : Alarme en mode présence
     -   group : Alarme activé uniquement sur certains groupes
     -   tempogroup : Alarme en cours d'activation
+-   Mises à jour disponibles : Indique le nombre de mises à jour disponibles sur l'alarme
 -   Groupes Actifs : Liste des groupes actifs par leur nom (ex. Détecteur Ouverture Étage + Garage)
 -   IMPORT - Dernier Message : Dernier message reçu par message (mail ou sms)
 -   IMPORT - Derniere action : Dernière action reçue par message (mail ou sms)
@@ -141,6 +145,20 @@ Il existe actuellement plusieurs commandes qui sont décrites ci-dessous :
 -   IMPORT - Derniere methode : Dernière methode reçue par message (mail ou sms)
     -   _Exemple "code d'accès principal"_
 -   IMPORT - Dernier utilisateur : Dernière methode ayant intervenu sur l'alarme, reçue par message (mail ou sms)
+
+# Dashboard
+
+Le plugin inclus un dashboard qui permet de :
+-   Connaitre le statut de l'alarme
+-   Connaitre le nombre de mise à jour de l'alarme disponible
+-   Activation totale de l'alarme
+-   Activation partielle de l'alarme
+-   Activation du mode présence
+-   Désactivation totale de l'alarme
+-   Désactivation partielle de l'alarme
+-   Lancement d'un scénario
+
+![Dashboard](../assets/images/Dashboard.png)
 
 # Diagnostique
 
@@ -153,9 +171,8 @@ A partir de là, vous pouvez identifier les soucis que vous pouvez rencontrer.
 
 - Ajout de nouveaux messages SMS/EMAIL.
 - Integration dans Homebridge
-- Ajout de la désactivation d'une zone spécifique.
-- Ajout d'un commande info si une mise à jour est disponible.
 
 > C'est aussi vous qui aller donner la direction que prendra ce plugin, donc je suis à votre écoute
 > 
 > Plus une fonctionnalitée sera demandée (si elle est réalisable), plus elle sera prioritaire au developpement (pondéré par sa difficultée d'integration)
+> Vous pouvez faire votre demande par en créant une demande "enhancement" [GitHub](https://github.com/mguyard/Jeedom-Diagral_eOne/issues/new) mais cela me fera plaisir si vous passez d'abord m'en parler sur le forum Jeedom.

@@ -7,6 +7,9 @@
 		<span class="reportModeVisible state" style="font-size : 1.2em;display:none;">#name_display#</span>
 		<a href="#eqLink#" class="reportModeHidden" style="font-size : 1.2em;#hideEqLogicName#">#name_display#</a>
     </center>
+    <div id="updates">
+        <span><b>#updates_available#</b> mise à jour disponible(s)</span>
+    </div>
     
     <div class="container-fluid">
         <div class="row">
@@ -37,6 +40,16 @@
                         $(".cmd[data-cmd_uid=cmd#arm_partial_id#partial] .selectCmd").on('change', function () {
                             if ($(this).value() != "") {
                                 jeedom.cmd.execute({id: '#arm_partial_id#', value: {select: $(this).value()}});
+                            }
+                        });
+                </script>
+            </div>
+            <div class="cmd cmd-widget reportModeHidden partial_disarm col-12" data-type="action" data-subtype="select" data-cmd_id="#disarm_partial_id#" data-cmd_uid="cmd#disarm_partial_id#partial" data-version="#version#" data-eqLogic_id="#disarm_partial_id#">
+                <select class="selectCmd action form-control form-control-lg" title="Desactivation Partielle">#disarm_partial_listValue#</select>
+                <script>
+                        $(".cmd[data-cmd_uid=cmd#disarm_partial_id#partial] .selectCmd").on('change', function () {
+                            if ($(this).value() != "") {
+                                jeedom.cmd.execute({id: '#disarm_partial_id#', value: {select: $(this).value()}});
                             }
                         });
                 </script>
@@ -80,9 +93,9 @@
             // FA for Groups
             if ('#status#' == 'off') {
                 $( "#groups" ).hide();
-                $('.Diagral_eOne_widget').css('height', '380px');
+                $('.Diagral_eOne_widget').css('height', '440px');
             } else {
-                $('.Diagral_eOne_widget').css('height', '480px');
+                $('.Diagral_eOne_widget').css('height', '540px');
                 $.getJSON("/plugins/Diagral_eOne/core/config/groups_#systemID#.json", function(groups_JSON) {
                     $.each(groups_JSON.groups, function (key, val) {
                         var test = "#groups_enable#"
@@ -103,6 +116,13 @@
             }
         }
         jeedom.cmd.update['#status_id#']({display_value:'#status#'});
+
+        jeedom.cmd.update['#updates_available_id#'] = function(_options) {
+            if (_options.display_value == '0') {
+                $('#updates').hide();
+            }
+        }
+        jeedom.cmd.update['#updates_available_id#']({display_value:'#updates_available#'});
 
         
     </script>
