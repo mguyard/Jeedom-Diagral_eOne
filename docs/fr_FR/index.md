@@ -3,7 +3,7 @@
 # Présentation 
 
 Diagral est un constructeur français d'alarme, appartenant au groupe HAGER :
-[https://www.diagral.fr/qui-sommes-nous]
+[https://www.diagral.fr/qui-sommes-nous](https://www.diagral.fr/qui-sommes-nous)
 
 Les nouvelles alarmes Diagral sont sous l'appellation e-ONE.
 Par cette appellation, Diagral entre dans l'ère des alarmes connectés au travers d'une application portant le même nom.
