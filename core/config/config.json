@@ -1,0 +1,148 @@
+{
+    "commands":[{
+        "name": "Rafraichir",
+        "type": "action",
+        "subtype": "other",
+        "isVisible": 1,
+        "logicalId": "refresh",
+        "isDashboard": 1
+    }, {
+        "name": "Statut",
+        "type": "info",
+        "subtype": "string",
+        "isVisible": 1,
+		"isHistorized": 0,
+		"logicalId": "status",
+        "isDashboard": 1
+    }, {
+        "name": "Mises à jour disponibles",
+        "type": "info",
+        "subtype": "numeric",
+        "isVisible": 1,
+		"isHistorized": 0,
+		"logicalId": "updates_available",
+        "isDashboard": 1
+    }, {
+        "name": "Groupes Actifs",
+        "type": "info",
+        "subtype": "string",
+        "isVisible": 1,
+		"isHistorized": 0,
+		"logicalId": "groups_enable",
+        "isDashboard": 1
+    }, {
+        "name": "Désactivation Total",
+        "type": "action",
+        "subtype": "other",
+        "isVisible": 1,
+		"logicalId": "total_disarm",
+        "isDashboard": 1
+    }, {
+        "name": "Désactivation Partielle",
+        "type": "action",
+        "subtype": "select",
+        "isVisible": 1,
+        "configuration" : {
+            "listValue" : "1|FAKE;2|FAKE;3|FAKE",
+            "function" : "listValue::generateGroupsList"
+        },
+        "logicalId": "disarm_partial",
+        "masterCodeNeed": 1,
+        "isDashboard": 0
+    }, {
+        "name": "Activation Totale",
+        "type": "action",
+        "subtype": "other",
+        "isVisible": 1,
+        "logicalId": "total_arm",
+        "isDashboard": 1
+    }, {
+        "name": "Activation Mode Presence",
+        "type": "action",
+        "subtype": "other",
+        "isVisible": 1,
+        "logicalId": "arm_presence",
+        "isDashboard": 1
+    }, {
+        "name": "Activation Partielle",
+        "type": "action",
+        "subtype": "select",
+        "isVisible": 1,
+        "configuration" : {
+            "listValue" : "1|FAKE;2|FAKE;3|FAKE",
+            "function" : "listValue::generateGroupsPossibilities"
+        },
+        "logicalId": "arm_partial",
+        "masterCodeNeed": 1,
+        "isDashboard": 0
+    }, {
+        "name": "Lancement Scenario",
+        "type": "action",
+        "subtype": "select",
+        "isVisible": 1,
+        "configuration" : {
+            "listValue" : "1|FAKE;2|FAKE;3|FAKE",
+            "function" : "listValue::generateScenariosPossibilities"
+        },
+        "logicalId": "launch_scenario",
+        "masterCodeNeed": 1,
+        "isDashboard": 0
+    }, {
+        "name": "Importer Message",
+        "type": "action",
+        "subtype": "message",
+        "isVisible": 1,
+        "display" : {
+            "title_placeholder" : "Options",
+            "message_placeholder" : "Message"
+        },
+        "logicalId": "import_message",
+        "isDashboard": 0
+    }, {
+        "name": "IMPORT - Dernier Message",
+        "type": "info",
+        "subtype": "string",
+        "isVisible": 0,
+        "isHistorized": 0,
+        "logicalId": "imported_last_message",
+        "isDashboard": 0
+    }, {
+        "name": "IMPORT - Derniere action",
+        "type": "info",
+        "subtype": "string",
+        "isVisible": 0,
+        "isHistorized": 0,
+        "logicalId": "imported_last_action",
+        "isDashboard": 0
+    }, {
+        "name": "IMPORT - Derniere methode",
+        "type": "info",
+        "subtype": "string",
+        "isVisible": 0,
+        "isHistorized": 0,
+        "logicalId": "imported_last_method",
+        "isDashboard": 0
+    }, {
+        "name": "IMPORT - Dernier utilisateur",
+        "type": "info",
+        "subtype": "string",
+        "isVisible": 0,
+        "isHistorized": 0,
+        "logicalId": "imported_last_user",
+        "isDashboard": 0
+    }, {
+        "name": "Force Groups Refresh",
+        "type": "action",
+        "subtype": "other",
+        "isVisible": 0,
+        "logicalId": "force_groups_refresh_json",
+        "isDashboard": 0
+    }, {
+        "name": "Force Scenarios Refresh",
+        "type": "action",
+        "subtype": "other",
+        "isVisible": 0,
+        "logicalId": "force_scenarios_refresh_json",
+        "isDashboard": 0
+    }]
+}

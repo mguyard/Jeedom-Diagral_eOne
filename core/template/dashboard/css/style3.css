@@ -1,0 +1,24 @@
+.Diagral_eOne_widget .container-fluid {
+    margin-top: 20px;
+}
+
+.Diagral_eOne_widget #actions {
+    margin-top: 20px;
+}
+
+.Diagral_eOne_widget #scenarios {
+    margin-top: 20px;
+}
+
+.Diagral_eOne_widget #actions .btn-group {
+    padding-right: 0px;
+}
+
+.Diagral_eOne_widget #actions .partial_arm,.partial_disarm {
+    padding-left: 0px;
+}
+
+.Diagral_eOne_widget #actions i.fa-black {
+    color: black;
+}
+

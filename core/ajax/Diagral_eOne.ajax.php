@@ -34,6 +34,55 @@ try {
       }
     }
 
+    if (init('action') == 'postSave') {
+        //Called after a plugin configuration save
+        // Let's first check new configuration values
+    	try {
+    		Diagral_eOne::checkConfig();
+    	} catch (Exception $e) {
+    		//Invalid configuration.
+            //Let's firt set back the old values
+            config::save('email', init('email'), 'Diagral_eOne');
+            config::save('password', init('password'), 'Diagral_eOne');
+            config::save('retry', init('retry'), 'Diagral_eOne');
+            config::save('waitRetry', init('waitRetry'), 'Diagral_eOne');
+            config::save('polling_interval', init('polling_interval'), 'Diagral_eOne');
+    		//Let's then the error details
+    		ajax::error(displayExeption($e), $e->getCode());
+        }
+
+        // Default Value
+        if (empty(config::byKey('retry', 'Diagral_eOne'))) {
+            config::save('retry', init('default_retry'), 'Diagral_eOne');
+        }
+        if (empty(config::byKey('waitRetry', 'Diagral_eOne'))) {
+            config::save('waitRetry', init('default_waitRetry'), 'Diagral_eOne');
+        }
+        if (empty(config::byKey('polling_interval', 'Diagral_eOne'))) {
+            config::save('polling_interval', init('default_polling_interval'), 'Diagral_eOne');
+        }
+
+        //Configuration check OK
+        $cron = cron::byClassAndFunction('Diagral_eOne', 'pull');
+        if (!is_object($cron)) {
+            $cron = new cron();
+                $cron->setClass('Diagral_eOne');
+                $cron->setFunction('pull');
+                $cron->setEnable(1);
+                $cron->setDeamon(0);
+                $cron->setTimeout(2);
+                $cron->setSchedule('*/' . intval(config::byKey('polling_interval', 'Diagral_eOne')) . ' * * * *');
+                $cron->save();
+                log::add('Diagral_eOne', 'info', 'checkConfig::AjaxPull::Re-create cron for pull');
+        } else {
+            $cron->setSchedule('*/' . intval(config::byKey('polling_interval', 'Diagral_eOne')) . ' * * * *');
+            $cron->save();
+            log::add('Diagral_eOne', 'info', 'checkConfig::AjaxPull::Update cron for pull');
+
+        }
+        ajax::success();
+    }
+
 
     throw new Exception(__('Aucune méthode correspondante à : ', __FILE__) . init('action'));
     /*     * *********Catch exeption*************** */
