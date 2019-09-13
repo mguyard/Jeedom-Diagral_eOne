@@ -1,4 +1,4 @@
-![Logo](../assets/images/plugin_info/Diagral_eOne_icon.svg)
+![Logo](../assets/images/plugin_info/Diagral_eOne_icon.png)
 
 # Présentation 
 
