@@ -13,3 +13,6 @@ docs/.sass-cache/
 .remote-sync.json
 
 *.DS_Store
+
+core/config/groups_*\.json
+core/config/scenarios_*\.json
