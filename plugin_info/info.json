@@ -9,13 +9,13 @@
 	"hasDependency" : false,
 	"hasOwnDeamon" : false,
 	"maxDependancyInstallTime" : 0,
-	"changelog" : "https://github.com/mguyard/Jeedom-Diagral_eOne/#language#/changelog",
+	"changelog" : "https://mguyard.github.io/Jeedom-Diagral_eOne/#language#/changelog",
 	"issue" : "https://github.com/mguyard/Jeedom-Diagral_eOne/issues",
-	"documentation" : "https://github.com/mguyard/Jeedom-Diagral_eOne/#language#/",
+	"documentation" : "https://mguyard.github.io/Jeedom-Diagral_eOne/#language#/",
 	"link" : {
 		"forum":"",
 		"video" : ""
 	},
-	"language" : "",
-	"compatibility" : ""
+	"language" : ["fr_FR"],
+	"compatibility" : ["miniplus","smart","rpi","docker","diy"]
 }
