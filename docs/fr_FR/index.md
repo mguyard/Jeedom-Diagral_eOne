@@ -3,7 +3,7 @@
 # Présentation 
 
 Diagral est un constructeur français d'alarme, appartenant au groupe HAGER :
-(https://www.diagral.fr/qui-sommes-nous)
+[https://www.diagral.fr/qui-sommes-nous]
 
 Les nouvelles alarmes Diagral sont sous l'appellation e-ONE.
 Par cette appellation, Diagral entre dans l'ère des alarmes connectés au travers d'une application portant le même nom.
@@ -108,7 +108,7 @@ Il existe actuellement plusieurs commandes qui sont décrites ci-dessous :
 -   __Désactivation Totale__ : Arrêt de l'alarme
 
 -   __Désactivation Partielle__ : Permet de désactiver un groupe de l'alarme
-    -   _La désactivation d'un groupe ne peut être effectuée que lorsque l'alarme est activée (à l'exclusion du mode présence)
+    -   _La désactivation d'un groupe ne peut être effectuée que lorsque l'alarme est activée (à l'exclusion du mode présence)_
 
 -   __Activation Mode Presence__ : Activation avec le mode spécial Présence
 
