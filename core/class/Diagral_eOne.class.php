@@ -19,8 +19,8 @@
 /* * ***************************Includes********************************* */
 require_once __DIR__  . '/../../../../core/php/core.inc.php';
 
-define('__PLGBASE__', __DIR__.'/../../');
-require_once (__PLGBASE__.'3rparty/Diagral-eOne-API-PHP/class/Diagral/Diagral_eOne.class.php');
+define('__PLGBASE__', dirname(dirname(__DIR__)));
+require_once (__PLGBASE__.'/3rparty/Diagral-eOne-API-PHP/class/Diagral/Diagral_eOne.class.php');
 //use \Mguyard\Diagral\Diagral_eOne;
 
 class Diagral_eOne extends eqLogic {
