@@ -331,6 +331,8 @@ class Diagral_eOne extends eqLogic {
         }
         log::add('Diagral_eOne', 'debug', 'generateGroupJson::Result ' . var_export(json_encode($groupsJSON), true));
         $this->writeConfigFile($filename, json_encode(array('lastModified' => date("Y-m-d H:i:s"), 'groups' => $groupsJSON),JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT));
+        // Refresh des commandes pour s'assurer que les updates de groups sont pris en compte
+        $this->createCmd();
     }
 
     /**
@@ -346,6 +348,8 @@ class Diagral_eOne extends eqLogic {
         log::add('Diagral_eOne', 'debug', 'generateScenariosJson::ListScenarios' . var_export($scenarios, true));
         log::add('Diagral_eOne', 'debug', 'generateScenariosJson::' . $this->getConfiguration('systemid') . '::Success');
         $this->writeConfigFile($filename, json_encode(array('lastModified' => date("Y-m-d H:i:s"), 'scenarios' => $scenarios),JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT));
+        // Refresh des commandes pour s'assurer que les updates de scenarios sont pris en compte
+        $this->createCmd();
     }
 
 
