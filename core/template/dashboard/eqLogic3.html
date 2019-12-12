@@ -7,7 +7,7 @@
 		<span class="reportModeVisible state" style="font-size : 1.2em;display:none;">#name_display#</span>
 		<a href="#eqLink#" class="reportModeHidden" style="font-size : 1.2em;#hideEqLogicName#">#name_display#</a>
     </center>
-    <div id="updates">
+    <div id="updates" style="display: none;">
         <span><b>#updates_available#</b> mise à jour disponible(s)</span>
     </div>
     
@@ -55,25 +55,31 @@
                 </script>
             </div>
         </div>
-        <hr>
-        <span style='font-weight: bold;font-size : 12px;'>Scenarios</span>
-        <div class="row" id="scenarios">
-            <div class="cmd cmd-widget reportModeHidden launch_scenario col-xs-12" data-type="action" data-subtype="select" data-cmd_id="#launch_scenario_id#" data-cmd_uid="cmd#launch_scenario_id#Scenario" data-version="#version#" data-eqLogic_id="#launch_scenario_id#">
-                <select class="selectCmd form-control form-control-lg" title="Scenarios">#launch_scenario_listValue#</select>
-                <script>
-                        $(".cmd[data-cmd_uid=cmd#launch_scenario_id#Scenario] .selectCmd").on('change', function () {
-                            jeedom.cmd.execute({id: '#launch_scenario_id#', value: {select: $(this).value()}});
-                        });
-                </script>
+        <div id="globalScenario" style="display: none;"></div>
+            <hr>
+            <span style='font-weight: bold;font-size : 12px;'>Scenarios</span>
+            <div class="row" id="scenarios">
+                <div class="cmd cmd-widget reportModeHidden launch_scenario col-xs-12" data-type="action" data-subtype="select" data-cmd_id="#launch_scenario_id#" data-cmd_uid="cmd#launch_scenario_id#Scenario" data-version="#version#" data-eqLogic_id="#launch_scenario_id#">
+                    <select class="selectCmd form-control form-control-lg" id="cmd#launch_scenario_id#Scenario" title="Scenarios">#launch_scenario_listValue#</select>
+                    <script>
+                            $(".cmd[data-cmd_uid=cmd#launch_scenario_id#Scenario] .selectCmd").on('change', function () {
+                                jeedom.cmd.execute({id: '#launch_scenario_id#', value: {select: $(this).value()}});
+                            });
+                    </script>
+                </div>
             </div>
         </div>
     </div>
 
     
     <script>
-        
+        var default_widget_height = 340;
+        // FA for Status
         jeedom.cmd.update['#status_id#'] = function(_options) {
-            // FA for Status
+            // Force widget height with default value
+            $('.Diagral_eOne_widget').css('height', default_widget_height);
+            // Define widget_height with actual widget height
+            var widget_height = $('.Diagral_eOne_widget').height();
             switch('#status#') {
                 case 'off':
                     $('.iconCmd#status_id#').addClass('fa fa-unlock');
@@ -93,9 +99,11 @@
             // FA for Groups
             if ('#status#' == 'off') {
                 $( "#groups" ).hide();
-                $('.Diagral_eOne_widget').css('height', '440px');
             } else {
-                $('.Diagral_eOne_widget').css('height', '540px');
+                // Retrieve actual widget height
+                widget_height = $('.Diagral_eOne_widget').height();
+                // Add some pixels to widget height for Groups showing
+                $('.Diagral_eOne_widget').css('height', widget_height + 100);
                 $.getJSON("/plugins/Diagral_eOne/core/config/groups_#systemID#.json", function(groups_JSON) {
                     $.each(groups_JSON.groups, function (key, val) {
                         var test = "#groups_enable#"
@@ -114,12 +122,26 @@
                     });
                 });
             }
+
+            // Show Scenario when exist
+            // First real option need to have text to be considere as valid
+            if ( $('#cmd#launch_scenario_id#Scenario option').eq(1).text() != "") {
+                $( "#globalScenario" ).show();
+                // Retrieve actual widget height
+                widget_height = $('.Diagral_eOne_widget').height();
+                // Add some pixels to widget height for Scenarios showing
+                $('.Diagral_eOne_widget').css('height', widget_height + 80);
+            }
         }
         jeedom.cmd.update['#status_id#']({display_value:'#status#'});
 
         jeedom.cmd.update['#updates_available_id#'] = function(_options) {
-            if (_options.display_value == '0') {
-                $('#updates').hide();
+            // Define (not same function) and Retrieve actual widget height
+            var widget_height = $('.Diagral_eOne_widget').height();
+            if (_options.display_value > '0') {
+                $('#updates').show();
+                // Add some pixels to widget height for updates showing
+                $('.Diagral_eOne_widget').css('height', widget_height + 20);
             }
         }
         jeedom.cmd.update['#updates_available_id#']({display_value:'#updates_available#'});

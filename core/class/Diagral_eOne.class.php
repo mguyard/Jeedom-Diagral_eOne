@@ -19,8 +19,8 @@
 /* * ***************************Includes********************************* */
 require_once __DIR__  . '/../../../../core/php/core.inc.php';
 
-define('__ROOT__', dirname(dirname(dirname(__FILE__))));
-require_once (__ROOT__.'/3rparty/Diagral-eOne-API-PHP/class/Diagral/Diagral_eOne.class.php');
+define('__PLGBASE__', dirname(dirname(__DIR__)));
+require_once (__PLGBASE__.'/3rparty/Diagral-eOne-API-PHP/class/Diagral/Diagral_eOne.class.php');
 //use \Mguyard\Diagral\Diagral_eOne;
 
 class Diagral_eOne extends eqLogic {
@@ -205,7 +205,7 @@ class Diagral_eOne extends eqLogic {
      */
     private function createCmd() {
         // Definition et chargement du fichier de configuration globale qui inclus notament les commandes
-        $filename = __ROOT__.'/core/config/config.json';
+        $filename = __PLGBASE__.'/core/config/config.json';
         $config = $this->loadConfigFile($filename, 'commands');
 
         foreach ($config['commands'] as $key => $command) {
@@ -320,7 +320,7 @@ class Diagral_eOne extends eqLogic {
      */
     public function generateGroupJson() {
         log::add('Diagral_eOne', 'debug', 'generateGroupJson::Start');
-        $filename = __ROOT__.'/core/config/groups_' . $this->getConfiguration('systemid') . '.json';
+        $filename = __PLGBASE__.'/core/config/groups_' . $this->getConfiguration('systemid') . '.json';
         $MyAlarm = $this->setDiagralEnv();
         // Recuperation de l'ensemble des groupes
         $groups = $MyAlarm->getAllGroups();
@@ -331,6 +331,8 @@ class Diagral_eOne extends eqLogic {
         }
         log::add('Diagral_eOne', 'debug', 'generateGroupJson::Result ' . var_export(json_encode($groupsJSON), true));
         $this->writeConfigFile($filename, json_encode(array('lastModified' => date("Y-m-d H:i:s"), 'groups' => $groupsJSON),JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT));
+        // Refresh des commandes pour s'assurer que les updates de groups sont pris en compte
+        $this->createCmd();
     }
 
     /**
@@ -338,14 +340,16 @@ class Diagral_eOne extends eqLogic {
      */
     public function generateScenariosJson() {
         log::add('Diagral_eOne', 'debug', 'generateScenariosJson::Start');
-        $filename = __ROOT__.'/core/config/scenarios_' . $this->getConfiguration('systemid') . '.json';
+        $filename = __PLGBASE__.'/core/config/scenarios_' . $this->getConfiguration('systemid') . '.json';
         $MyAlarm = $this->setDiagralEnv();
         // Recuperation de l'ensemble des scenarios
         $scenarios = $MyAlarm->getScenarios();
         $MyAlarm->logout();
         log::add('Diagral_eOne', 'debug', 'generateScenariosJson::ListScenarios' . var_export($scenarios, true));
         log::add('Diagral_eOne', 'debug', 'generateScenariosJson::' . $this->getConfiguration('systemid') . '::Success');
-        $this->writeConfigFile($filename, json_encode(array('lastModified' => date("Y-m-d H:i:s"), 'scenarios' => $scenarios),JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT));
+        $this->writeConfigFile($filename, json_encode(array('lastModified' => date("Y-m-d H:i:s"), 'scenarios' => $scenarios),JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT|JSON_FORCE_OBJECT));
+        // Refresh des commandes pour s'assurer que les updates de scenarios sont pris en compte
+        $this->createCmd();
     }
 
 
@@ -379,7 +383,7 @@ class Diagral_eOne extends eqLogic {
      */
     private function generateGroupsList() {
         log::add('Diagral_eOne', 'debug', 'generateGroupsList::Start');
-        $filename = __ROOT__.'/core/config/groups_' . $this->getConfiguration('systemid') . '.json';
+        $filename = __PLGBASE__.'/core/config/groups_' . $this->getConfiguration('systemid') . '.json';
         // Si le fichier JSON des groupes n'existe pas, on le genère.
         if ( file_exists($filename) === false ) {
             $this->generateGroupJson();
@@ -401,7 +405,7 @@ class Diagral_eOne extends eqLogic {
      */
     private function generateGroupsPossibilities() {
         log::add('Diagral_eOne', 'debug', 'generateGroupsPossibilities::Start');
-        $filename = __ROOT__.'/core/config/groups_' . $this->getConfiguration('systemid') . '.json';
+        $filename = __PLGBASE__.'/core/config/groups_' . $this->getConfiguration('systemid') . '.json';
         // Si le fichier JSON des groupes n'existe pas, on le genère.
         if ( file_exists($filename) === false ) {
             $this->generateGroupJson();
@@ -439,7 +443,7 @@ class Diagral_eOne extends eqLogic {
      */
     private function generateScenariosPossibilities() {
         log::add('Diagral_eOne', 'debug', 'generateScenariosPossibilities::Start');
-        $filename = __ROOT__.'/core/config/scenarios_' . $this->getConfiguration('systemid') . '.json';
+        $filename = __PLGBASE__.'/core/config/scenarios_' . $this->getConfiguration('systemid') . '.json';
         // Si le fichier JSON des groupes n'existe pas, on le genère.
         if ( file_exists($filename) === false ) {
             $this->generateScenariosJson();
@@ -576,7 +580,7 @@ class Diagral_eOne extends eqLogic {
         $MyAlarm->logout();
         log::add('Diagral_eOne', 'debug', 'getDiagralStatus::' . $this->getConfiguration('systemid') . '::Result ' . var_export($MyAlarm->systemState, true) );
         if ( strcmp($MyAlarm->systemState, 'off') !== 0) {
-            $filename = __ROOT__.'/core/config/groups_' . $this->getConfiguration('systemid') . '.json';
+            $filename = __PLGBASE__.'/core/config/groups_' . $this->getConfiguration('systemid') . '.json';
             // Si le fichier JSON des groupes n'existe pas, on le genère.
             if ( file_exists($filename) === false ) {
                 $this->generateGroupJson();
@@ -640,7 +644,7 @@ class Diagral_eOne extends eqLogic {
     public function setPartialActivation($cmdValue, $listValue) {
         log::add('Diagral_eOne', 'debug', 'setPartialActivation::cmdValue ' . $cmdValue);
         log::add('Diagral_eOne', 'debug', 'setPartialActivation::ListValue ' . var_export($listValue, true));
-        $filename = __ROOT__.'/core/config/groups_' . $this->getConfiguration('systemid') . '.json';
+        $filename = __PLGBASE__.'/core/config/groups_' . $this->getConfiguration('systemid') . '.json';
         // Si le fichier JSON des groupes n'existe pas, on le genère.
         if ( file_exists($filename) === false ) {
             $this->generateGroupJson();
@@ -701,7 +705,7 @@ class Diagral_eOne extends eqLogic {
     public function setScenario($cmdValue, $listValue) {
         log::add('Diagral_eOne', 'debug', 'setScenario::cmdValue ' . $cmdValue);
         log::add('Diagral_eOne', 'debug', 'setScenario::ListValue ' . var_export($listValue, true));
-        $filename = __ROOT__.'/core/config/scenarios_' . $this->getConfiguration('systemid') . '.json';
+        $filename = __PLGBASE__.'/core/config/scenarios_' . $this->getConfiguration('systemid') . '.json';
         // Si le fichier JSON des scenarios n'existe pas, on le genère.
         if ( file_exists($filename) === false ) {
             $this->generateScenariosJson();

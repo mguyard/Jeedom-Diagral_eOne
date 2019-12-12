@@ -75,7 +75,7 @@ La commande utilisée pour recevoir le message est __Importer Message__
 Dans la commande, vous devez avoir :
 - dans __Options__
   - Le sujet du message (si vous n'en avez pas comme dans le cas d'un SMS ne pas le mettre)
-  - Un "|" qui sert de séparateur (_uniquement si j'ai un sujet avant_)
+  - Un "pipe ou barre verticale " qui sert de séparateur (_uniquement si j'ai un sujet avant_)
   - Les arguments
     - source (choix possible : email ou sms)
 - dans __Message__
@@ -91,6 +91,7 @@ Dans la commande, vous devez avoir :
 Afin d'eviter de trop requêter les serveurs Diagral, le plugin cache les informations suivantes :
 -   Les groupes configurés dans l'alarme
 -   Les scénarios configurés dans l'alarme
+
 Le cache est regénéré automatiquement tout les dimanches à une heure aleatoire (définie a l'installation au travers d'une CRON).
 
 Vous pouvez forcer la regéneration manuellement avec les commandes 
@@ -171,6 +172,7 @@ A partir de là, vous pouvez identifier les soucis que vous pouvez rencontrer.
 
 - Ajout de nouveaux messages SMS/EMAIL.
 - Integration dans Homebridge
+- Génération automatique du scénario sur utilisation de reception SMS ou Email.
 
 > C'est aussi vous qui aller donner la direction que prendra ce plugin, donc je suis à votre écoute
 > 
