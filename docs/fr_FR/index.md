@@ -25,7 +25,7 @@ Tout ce que le plugin peut récupérer via le Cloud Diagral est fait afin de vou
 Le plugin comporte une configuration générale.
 Vous y saissez les informations suivantes :
 
--   Identifiant : Adresse email utilisé sur l'application mobile Diagral e-ONE
+-   Identifiant : Adresse email utilisé sur l'application mobile Diagral e-ONE (de préférence le compte principal afin de pouvoir déconnecter les autres sessions)
 -   Mot de passe : Le mot de passe associé à l'identifiant
 -   Nombre de tentatives : Nombre de tentative en cas d'échec de connexion au Cloud Diagral (default : 1)
 -   Délai entre les tentatives : Délais entre les tentatives (en secondes)
