@@ -25,26 +25,26 @@ Tout ce que le plugin peut récupérer via le Cloud Diagral est fait afin de vou
 Le plugin comporte une configuration générale.
 Vous y saissez les informations suivantes :
 
--   Identifiant : adresse email utilisée sur l'application mobile Diagral e-ONE
--   Mot de passe : mot de passe associé à l'identifiant
--   Nombre de tentatives : nombre de tentatives en cas d'échec de connexion au Cloud Diagral (default : 1)
--   Délai entre les tentatives : délais entre les tentatives (en secondes)
--   Verbose : niveau de verbosité pour les requètes vers le Cloud Diagral (_Pas encore utilisable_)
+-   Identifiant : Adresse email utilisé sur l'application mobile Diagral e-ONE
+-   Mot de passe : Le mot de passe associé à l'identifiant
+-   Nombre de tentatives : Nombre de tentative en cas d'échec de connexion au Cloud Diagral (default : 1)
+-   Délai entre les tentatives : Délais entre les tentatives (en secondes)
+-   Verbose : Permettant de définir un niveau de verbosité pour les requètes vers le Cloud Diagral (_Pas encore utilisable_)
 
 ![Configuration Générale](../assets/images/ConfigurationGenerale.png)
 
 ## Configuration d'un équipement
 
-La création de l'équipement se fait de façon automatique. Il vous suffit de cliquer sur Synchronisation dans le plugin, pour que chacune des alarmes configurées et finalisées dans votre compte Diagral, soit créée. Elles sont automatiquement nommées telles que dans l'application Mobile Diagral.
+La création de l'équipement se fait de façon automatique. Il vous suffit de cliquer sur Synchronisation dans le plugin, pour que chacune des alarmes configurées et finalisées dans votre compte Diagral, soit créée. Elles sont automatiquement nommées tels que dans l'application Mobile Diagral.
 
-Une fois le/les alarmes créées, il faut entrer dans chacune d'elles afin de configurer :
+Une fois le/les alarmes créées, il faut entrée dans chacunes d'elles afin de configurer :
 -   le __Master Code__ (celui que vous utilisez pour vous connecter à votre alarme avec l'application Mobile Digral e-ONE).
 -   l'objet parent
 -   activer l'équipement
 
 ![Configuration Equipement](../assets/images/ConfigurationDevice.png)
 
-Lors de la sauvegarde, de nouvelles commandes vont se créer car elle nécessitent le MasterCode (ex : _Activation Partielle ou Lancement Scenario).
+Lors de la sauvegarde, de nouvelles commandes vont se créer car elle necessitent le MasterCode (ex : _Activation Partielle ou Lancement Scenario).
 
 Ces commandes sont en fait les commandes qui permettent d'avoir une liste déroulante dans les scénarios. Ainsi le plugin va personnaliser les listes déroulantes avec les informations présentes sur votre compte.
 
@@ -52,18 +52,18 @@ Ces commandes sont en fait les commandes qui permettent d'avoir une liste dérou
 
 ## Automatique
 
-Une tâche CRON est automatiquement créée sur base du délai entre les tentatives indiqué dans la configuration du plugin.
+Une CRON est automatiquement créé sur base du délai entre les tentatives indiqué dans la configuration du plugin.
 
 ![Configuration Générale](../assets/images/ConfigurationGenerale.png)
 
 ## Manuel
 
-Dans un scénario, vous pouvez utiliser la commande __Rafraichir__ afin de reforcer un refresh de l'alarme.
+Dans un scénario, vous pouvez utiliser la commande __Rafraichir__ afin de reforcer un refresh de l'alarme
 
-## A réception d'un Email ou SMS
+## A reception d'un Email ou SMS
 
-Le plugin permet de recevoir des informations non disponibles par l'API (utilisateur intervenu, déclenchement d'alarme, etc...) au travers d'Email ou SMS.
-Le plugin ne gère pas la collecte Email ou SMS. Il faut donc utiliser un autre plugin pour transmettre le message au plugin.
+Le plugin permet de recevoir des informations non disponibles par l'API (utilisateur intervenu, declenchement d'alarme, etc...) au travers d'Email ou SMS.
+Le plugin ne gère pas la collecte Email ou SMS. Il faut donc s'appuyer sur d'autre plugin qui vont transmettre le message au plugin.
 La commande utilisée pour recevoir le message est __Importer Message__
 
 > Actuellement, seul le plugin [Mail Listener](https://www.jeedom.com/market/index.php?v=d&p=market&author=lunarok&&name=Mail%20Listener) de Lunarok est validé comme compatible.
@@ -83,18 +83,18 @@ Dans la commande, vous devez avoir :
 
 > Actuellement la gestion des messages Email n'est pas complete
 > 
-> N'hésitez pas à participer en indiquant les messages non encore gérés afin de les integrer
-> Pour cela, il suffit de récupérer le message dans le log _Warning_ généré (cf. Diagnostique pour définir le niveau de log) et d'[ouvrir une demande sur le Github du plugin](https://github.com/mguyard/Jeedom-Diagral_eOne/issues/new?assignees=mguyard&labels=enhancement&template=message---ajout-du-support-d-un-nouveau-message.md&title=%5BMSG-ADD%5D)
+> N'hésitez pas à participer en indiquant les messages non encore gérés afin de les integrés
+> Pour cela, il suffit de récuperer le message dans le log _Warning_ généré (cf. Diagnostique pour définir le niveau de log) et d'[ouvrir une demande sur le Github du plugin](https://github.com/mguyard/Jeedom-Diagral_eOne/issues/new?assignees=mguyard&labels=enhancement&template=message---ajout-du-support-d-un-nouveau-message.md&title=%5BMSG-ADD%5D)
 
 # Caching
 
-Afin d'éviter de trop requêter les serveurs Diagral, le plugin met en cache les informations suivantes :
+Afin d'eviter de trop requêter les serveurs Diagral, le plugin cache les informations suivantes :
 -   Les groupes configurés dans l'alarme
 -   Les scénarios configurés dans l'alarme
 
-Le cache est regénéré - par une tâche CRON - automatiquement tous les dimanches à une heure définie aléatoirement lors de l'installation.
+Le cache est regénéré automatiquement tout les dimanches à une heure aleatoire (définie a l'installation au travers d'une CRON).
 
-Vous pouvez forcer la regénération manuellement avec les commandes 
+Vous pouvez forcer la regéneration manuellement avec les commandes 
 -   __Force Groups Refresh__ 
 -   __Force Scenarios Refresh__
 
@@ -119,24 +119,24 @@ Il existe actuellement plusieurs commandes qui sont décrites ci-dessous :
 
 -   __Importer Message__ : Collecte d'un message (mail ou SMS)
 
--   __Force Groups Refresh__ : Rafraichissement des fichiers de groupes
+-   __Force Groups Refresh__ : Rafraissement des fichiers de groupes
     -   _Le plugin génère des fichiers JSON (#pluginDirectory#/core/class/config/groups_*.json) afin d'éviter d'interroger très regulièrement le cloud Diagral et ainsi éviter de se faire Blacklister temporairement le compte.
     -   Un fichier JSON par équipement. Le * correspond au systemID indiqué sur chaque équipement
-    -   Une CRON Diagral_eOne/generateJsonAllDevices se lance tous les dimanches pour mettre à jour ces fichiers (l'heure est définie aléatoirement à l'installation pour éviter les effets de masse sur le Cloud Diagral).
+    -   Une CRON Diagral_eOne/generateJsonAllDevices se lance tout les dimanches pour mettre à jour ces fichiers (l'heure est défini aléatoirement à l'installation pour eviter les effets de masse sur le Cloud Diagral).
 
--   __Force Scenarios Refresh__ : Rafraichissement des fichiers de scénarios
+-   __Force Scenarios Refresh__ : Rafraissement des fichiers de scénarios
     -   _Le plugin génère des fichiers JSON (#pluginDirectory#/core/class/config/scenarios_*.json) afin d'éviter d'interroger très regulièrement le cloud Diagral et ainsi éviter de se faire Blacklister temporairement le compte.
     -   Un fichier JSON par équipement. Le * correspond au systemID indiqué sur chaque équipement
-    -   Une CRON Diagral_eOne/generateJsonAllDevices se lance tous les dimanches pour mettre à jour ces fichiers (l'heure est définie aléatoirement à l'installation pour éviter les effets de masse sur le Cloud Diagral).
+    -   Une CRON Diagral_eOne/generateJsonAllDevices se lance tout les dimanches pour mettre à jour ces fichiers (l'heure est défini aléatoirement à l'installation pour eviter les effets de masse sur le Cloud Diagral).
 
--   __Lancement Scenario__ : Exécute un scénario
+-   __Lancement Scenario__ : Execute un scénario
 
 ## Info
 
--   Statut : Statut de l'alarme
-    -   Off : Alarme désactivée
+-   Statut : Status de l'alarme
+    -   Off : Alarme désactivé
     -   presence : Alarme en mode présence
-    -   group : Alarme activée uniquement sur certains groupes
+    -   group : Alarme activé uniquement sur certains groupes
     -   tempogroup : Alarme en cours d'activation
 -   Mises à jour disponibles : Indique le nombre de mises à jour disponibles sur l'alarme
 -   Groupes Actifs : Liste des groupes actifs par leur nom (ex. Détecteur Ouverture Étage + Garage)
@@ -171,10 +171,10 @@ A partir de là, vous pouvez identifier les soucis que vous pouvez rencontrer.
 # Roadmap
 
 - Ajout de nouveaux messages SMS/EMAIL.
-- Intégration dans Homebridge
+- Integration dans Homebridge
 - Génération automatique du scénario sur utilisation de reception SMS ou Email.
 
 > C'est aussi vous qui aller donner la direction que prendra ce plugin, donc je suis à votre écoute
 > 
-> Plus une fonctionnalité sera demandée (si elle est réalisable), plus elle sera prioritaire au développement (pondéré par sa difficulté d'integration)
+> Plus une fonctionnalitée sera demandée (si elle est réalisable), plus elle sera prioritaire au developpement (pondéré par sa difficultée d'integration)
 > Vous pouvez faire votre demande par en créant une demande "enhancement" [GitHub](https://github.com/mguyard/Jeedom-Diagral_eOne/issues/new) mais cela me fera plaisir si vous passez d'abord m'en parler sur le forum Jeedom.
