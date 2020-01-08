@@ -55,7 +55,7 @@
                 </script>
             </div>
         </div>
-        <div id="globalScenario" style="display: none;"></div>
+        <div id="globalScenario" style="display: none;">
             <hr>
             <span style='font-weight: bold;font-size : 12px;'>Scenarios</span>
             <div class="row" id="scenarios">
@@ -125,7 +125,7 @@
 
             // Show Scenario when exist
             // First real option need to have text to be considere as valid
-            if ( $('#cmd#launch_scenario_id#Scenario option').eq(1).text() != "") {
+            if ( $('#cmd#launch_scenario_id#Scenario option').eq(1).text() != "" && '#launch_scenario_visible#' == '1') {
                 $( "#globalScenario" ).show();
                 // Retrieve actual widget height
                 widget_height = $('.Diagral_eOne_widget').height();

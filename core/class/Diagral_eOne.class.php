@@ -152,13 +152,16 @@ class Diagral_eOne extends eqLogic {
         $replace['#version#'] = $_version;
         $this->emptyCacheWidget(); //vide le cache. Pratique pour le développement
 
+        // Traitement des commandes infos
         foreach ($this->getCmd('info') as $cmd) {
 			$replace['#' . $cmd->getLogicalId() . '_id#'] = $cmd->getId();
 			$replace['#' . $cmd->getLogicalId() . '#'] = $cmd->execCmd();
         }
 
+        // Traitement des commandes actions
         foreach ($this->getCmd('action') as $cmd) {
             $replace['#' . $cmd->getLogicalId() . '_id#'] = $cmd->getId();
+            $replace['#' . $cmd->getLogicalId() . '_visible#'] = $cmd->getIsVisible();
             if ($cmd->getSubType() == 'select') {
                 $listValue = "<option value>" . $cmd->getName() . "</option>";
                 $listValueArray = explode(';', $cmd->getConfiguration('listValue'));
