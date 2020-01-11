@@ -487,8 +487,10 @@ class Diagral_eOne extends eqLogic {
         $MyAlarm->setSystemId(intval($this->getConfiguration('systemid')));
         $MyAlarm->getConfiguration();
         $MyAlarm->connect($this->getConfiguration('mastercode'));
-        // Recupere le nombre de mise à jour disponible
+        // Recupere le nombre de mises à jour disponibles
         $nbUpdates = $MyAlarm->getFirmwareUpdates();
+        log::add('Diagral_eOne', 'debug', 'setDiagralEnv::UpdateAvailable : '.$nbUpdates);
+        log::add('Diagral_eOne', 'debug', 'setDiagralEnv::getVersions : '.var_export($MyAlarm->versions, true));
         $this->checkAndUpdateCmd('updates_available', $nbUpdates);
         return $MyAlarm;
         } else {
