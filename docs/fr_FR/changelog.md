@@ -2,6 +2,16 @@
 
 __Lorsque aucunes informations ne sont disponibles sur le changelog, cela implique un changement de documentation uniquement__
 
+__Le changelog de la version de developpement se trouve [ici](https://github.com/mguyard/Jeedom-Diagral_eOne/blob/develop/docs/fr_FR/changelog.md)__
+
+# 2020-02-08
+
+- Amélioration du parsing des emails pour gérer les badges qui ne sont pas attaché à un utilisateur.
+
+# 2020-01-11
+
+- Correction de l'[issue #10](https://github.com/mguyard/Jeedom-Diagral_eOne/issues/10) qui remontait un nombre de mise à jour disponibles incorrect
+
 # 2020-01-05
 
 - Integration de la [feature #6](https://github.com/mguyard/Jeedom-Diagral_eOne/issues/6) afin de ne pas afficher les scénarios sur la tuile lorsque la commande n'est pas configuré en visible sur l'équipement
