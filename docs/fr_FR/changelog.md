@@ -1,6 +1,11 @@
 # Important à lire !
 
 __Lorsque aucunes informations ne sont disponibles sur le changelog, cela implique un changement de documentation uniquement__
+__Le changelog de la version de developpement se trouve [ici](https://github.com/mguyard/Jeedom-Diagral_eOne/blob/develop/docs/fr_FR/changelog.md)__
+
+# 2020-02-08
+
+- Amélioration du parsing des emails pour gérer les badges qui ne sont pas attaché à un utilisateur.
 
 # 2020-01-11
 

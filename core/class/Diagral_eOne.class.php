@@ -749,24 +749,24 @@ class Diagral_eOne extends eqLogic {
                 // Reception par email
                 case 'email':
                     // Converti les caractères HTML et unicode en UTF8 + retire les balises HTML
-                    $message = strip_tags(html_entity_decode($message, ENT_QUOTES));
+                    $message = trim(strip_tags(html_entity_decode($message, ENT_QUOTES)));
                     log::add('Diagral_eOne', 'debug', 'importMessage::MessageAfterManipulation "' . $message. '"');
                     if(isset($options['subject'])) {
                         switch ($options['subject']) {
                             // Le sujet correspond à un Arret/Marche
                             case ( preg_match( '/Arrêt\/Marche/', $options['subject'] ) ? true : false ):
-                                $regex = '/Votre système d\\\'alarme Diagral sur le site «(.*)», vous signale : (.*) par (.*) \\((.*)\\)/m';
+                                $regex = '/Votre système d\\\'alarme Diagral sur le site «(.*)», vous signale : (.*) par ([^(\\(|\\.)]+)\\s?([^\\.]+)?/m';
                                 preg_match($regex, $message, $matches);
                                 log::add('Diagral_eOne', 'debug', 'importMessage::MessageAfterManipulationRegex ' . var_export($matches, true));
                                 $formatedMsg = $matches[0];
                                 // Actuellement le AlarmName semble mal envoyé dans les mails
-                                $alarmName = $matches[1];
+                                $alarmName = trim($matches[1]);
                                 log::add('Diagral_eOne', 'debug', 'importMessage::Message::alarmName ' . $alarmName);
-                                $mailContent = $matches[2];
+                                $mailContent = trim($matches[2]);
                                 log::add('Diagral_eOne', 'debug', 'importMessage::Message::mailContent ' . $mailContent);
-                                $alarmMethod = $matches[3];
+                                $alarmMethod = trim($matches[3]);
                                 log::add('Diagral_eOne', 'debug', 'importMessage::Message::alarmMethod ' . $alarmMethod);
-                                $alarmUser = $matches[4];
+                                $alarmUser = trim($matches[4], " ()"); # Remove space and ()
                                 log::add('Diagral_eOne', 'debug', 'importMessage::Message::alarmUser ' . $alarmUser);
                                 // Analyse le contenu du message pour définir si c'est une mise en marche ou mise à l'arrêt
                                 switch ($mailContent) {
