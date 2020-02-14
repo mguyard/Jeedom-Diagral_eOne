@@ -44,6 +44,16 @@ Une fois le/les alarmes créées, il faut entrer dans chacune d'elles afin de co
 
 ![Configuration Equipement](../assets/images/ConfigurationDevice.png)
 
+
+> Une fonctionnalité de sécurisation du désarmement (SecureDisam) est disponible avec l'option __Sécurisation désarmement__.
+> 
+> Cette fonctionnalité permet si elle est activée (case cochée) d'empêcher le désarmement de l'alarme au travers de Jeedom.
+> Les commandes sont cependant toujours présente mais bloquée.
+> 
+> Cette fonctionnalité ne prend de sens que pour empêcher la désactivation de l'alarme à un compte _Utilisateur_ ou _Utilisateur limité_ Jeedom. Par exemple, pour une tablette qui déporte l'affichage de votre Jeedom. En tant qu'administrateur, même si la fonctionnalitée SecureDisarm est active, elle est outre-passée.
+> 
+> <span style="color:red">__FONCTIONNALITE UNIQUEMENT EN BETA POUR LE MOMENT__</span>
+
 Lors de la sauvegarde, de nouvelles commandes vont se créer car elle nécessitent le MasterCode (ex : _Activation Partielle ou Lancement Scenario).
 
 Ces commandes sont en fait les commandes qui permettent d'avoir une liste déroulante dans les scénarios. Ainsi le plugin va personnaliser les listes déroulantes avec les informations présentes sur votre compte.

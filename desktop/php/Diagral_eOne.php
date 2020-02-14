@@ -112,6 +112,12 @@ $eqLogics = eqLogic::byType($plugin->getId());
                             <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="systemid" placeholder="System ID" disabled/>
                         </div>
                     </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">{{Sécurisation désarmement}}</label>
+                        <div class="col-sm-3">
+                            <input type="checkbox" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="secureDisarm"/>
+                        </div>
+                    </div>
                 </fieldset>
             </form>
         </div>

@@ -642,6 +642,29 @@ class Diagral_eOne extends eqLogic {
     }
 
     /**
+     * Fonction de verification du mode SecureDisarm
+     * @return boolean True si SecureDisarm est activé sinon False
+     */
+    public function secureDisarm() {
+        $userIsAdmin = isConnect('admin');
+        $secureDisarm = $this->getConfiguration('secureDisarm') ?: 0;
+        // Si l'utilisateur est administrateur, alors ne pas bloquer le désarmement même si SecureDisarm est actif
+        if ($userIsAdmin) {
+            log::add('Diagral_eOne', 'debug', 'L\'utilisateur est administrateur. La fonctionnalité SecureDisarm (Statut actuel : '. var_export($secureDisarm, true) .') est outre-passée.');
+            return FALSE;
+        }
+        if ($secureDisarm) {
+            // La fonctionnalitée SecureDisarm est activée.
+            log::add('Diagral_eOne', 'error', 'La fonctionnalitée SecureDisarm est active (' . var_export($secureDisarm, true) . '). La désactivation de l\'alarme au travers de Jeedom est désactivée.');
+            return TRUE;
+        } else {
+            // La fonctionnalitée SecureDisarm est désactivée.
+            return FALSE;
+        }
+
+    }
+
+    /**
      * Activation partielle de l'alarme
      * @param int $cmdValue         ID du listValue recu en parametre de l'execution de la commande
      * @param array $listValue      listValue configuré sur la commande
@@ -852,17 +875,21 @@ class Diagral_eOneCmd extends cmd {
                 $changed = $eqLogic->checkAndUpdateCmd('groups_enable', $groups) || $changed; // On met à jour la commande avec le LogicalId "groups_enable" de l'eqlogic
                 break;
             case 'total_disarm':
-                $eqLogic->setCompleteDesactivation();
-                list($status,$groups) = $eqLogic->getDiagralStatus();
-                $changed = $eqLogic->checkAndUpdateCmd('status', $status) || $changed;
-                $changed = $eqLogic->checkAndUpdateCmd('groups_enable', $groups) || $changed;
-                break;
-            case 'disarm_partial':
-                $status = $eqLogic->setPartialDesactivation($_options['select']);
-                if($status) {
+                if ( ! $eqLogic->secureDisarm()) { // SecureDisarm n'est pas activée
+                    $eqLogic->setCompleteDesactivation();
                     list($status,$groups) = $eqLogic->getDiagralStatus();
                     $changed = $eqLogic->checkAndUpdateCmd('status', $status) || $changed;
                     $changed = $eqLogic->checkAndUpdateCmd('groups_enable', $groups) || $changed;
+                }
+                break;
+            case 'disarm_partial':
+                if ( ! $eqLogic->secureDisarm()) { // SecureDisarm n'est pas activée
+                    $status = $eqLogic->setPartialDesactivation($_options['select']);
+                    if($status) {
+                        list($status,$groups) = $eqLogic->getDiagralStatus();
+                        $changed = $eqLogic->checkAndUpdateCmd('status', $status) || $changed;
+                        $changed = $eqLogic->checkAndUpdateCmd('groups_enable', $groups) || $changed;
+                    }
                 }
                 break;
             case 'total_arm':

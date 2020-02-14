@@ -4,6 +4,10 @@ __Lorsque aucunes informations ne sont disponibles sur le changelog, cela impliq
 
 __Le changelog de la version de developpement se trouve [ici](https://github.com/mguyard/Jeedom-Diagral_eOne/blob/develop/docs/fr_FR/changelog.md)__
 
+# 2020-02-14
+
+- Integration de la fonctionnalité "SecureDisarm" pour bloquer le désarmement de l'alarme au travers de Jeedom pour les compte _Utilisateur_ et _Utilisateur Limité_ (cf. Documentation pour plus de détails)
+
 # 2020-02-08
 
 - Amélioration du parsing des emails pour gérer les badges qui ne sont pas attaché à un utilisateur.
