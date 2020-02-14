@@ -649,14 +649,15 @@ class Diagral_eOne extends eqLogic {
         $userIsAdmin = isConnect('admin');
         $secureDisarm = $this->getConfiguration('secureDisarm') ?: 0;
         // Si l'utilisateur est administrateur, alors ne pas bloquer le désarmement même si SecureDisarm est actif
-        if ($userIsAdmin) {
-            log::add('Diagral_eOne', 'debug', 'L\'utilisateur est administrateur. La fonctionnalité SecureDisarm (Statut actuel : '. var_export($secureDisarm, true) .') est outre-passée.');
-            return FALSE;
-        }
         if ($secureDisarm) {
             // La fonctionnalitée SecureDisarm est activée.
-            log::add('Diagral_eOne', 'error', 'La fonctionnalitée SecureDisarm est active (' . var_export($secureDisarm, true) . '). La désactivation de l\'alarme au travers de Jeedom est désactivée.');
-            return TRUE;
+            if ($userIsAdmin) {
+                log::add('Diagral_eOne', 'debug', 'L\'utilisateur est administrateur. La fonctionnalité SecureDisarm (Statut actuel : '. var_export($secureDisarm, true) .') est outre-passée.');
+                return FALSE;
+            } else {
+                log::add('Diagral_eOne', 'error', 'La fonctionnalitée SecureDisarm est active (' . var_export($secureDisarm, true) . '). La désactivation de l\'alarme au travers de Jeedom est désactivée.');
+                return TRUE;
+            }
         } else {
             // La fonctionnalitée SecureDisarm est désactivée.
             return FALSE;
