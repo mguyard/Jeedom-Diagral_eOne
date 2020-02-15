@@ -791,6 +791,20 @@ class Diagral_eOne extends eqLogic {
                                 $alarmMethod = trim($matches[3]);
                                 log::add('Diagral_eOne', 'debug', 'importMessage::Message::alarmMethod ' . $alarmMethod);
                                 $alarmUser = trim($matches[4], " ()"); # Remove space and ()
+                                // Verifie si alarmMethod correspond à un badge
+                                if (preg_match( '/Badge\\s(\\d)/', $alarmMethod, $badge)) {
+                                    log::add('Diagral_eOne', 'debug', 'importMessage::BadgeAlias Detection d\'un badge');
+                                    // On recupere l'alias du badge correspondant
+                                    $badgeAlias = $this->getConfiguration('badge' . $badge[1] . '-alias');
+                                    log::add('Diagral_eOne', 'debug', 'importMessage::BadgeAlias Badge' . var_export($badge[1], true) . ' détecté. Son alias est : ' . var_export($badgeAlias, true));
+                                    // Si l'alias de badge est non vide alors on le met dans alarmUser
+                                    if (! empty($badgeAlias)) {
+                                        log::add('Diagral_eOne', 'debug', 'importMessage::BadgeAlias Ajout de l\'alias du badge'. var_export($badge[1], true) .' dans le champs "IMPORT - Dernier utilisateur" ('. var_export($badgeAlias, true) .')');
+                                        $alarmUser = $badgeAlias;
+                                    } else {
+                                        log::add('Diagral_eOne', 'debug', 'importMessage::BadgeAlias Aucun alias défini pour le badge'. var_export($badge[1], true) .'. Le champs "IMPORT - Dernier utilisateur" reste vide.');
+                                    }
+                                }
                                 log::add('Diagral_eOne', 'debug', 'importMessage::Message::alarmUser ' . $alarmUser);
                                 // Analyse le contenu du message pour définir si c'est une mise en marche ou mise à l'arrêt
                                 switch ($mailContent) {

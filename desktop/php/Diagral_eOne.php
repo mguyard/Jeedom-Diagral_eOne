@@ -54,6 +54,7 @@ $eqLogics = eqLogic::byType($plugin->getId());
     <ul class="nav nav-tabs" role="tablist">
         <li role="presentation"><a href="#" class="eqLogicAction" aria-controls="home" role="tab" data-toggle="tab" data-action="returnToThumbnailDisplay"><i class="fa fa-arrow-circle-left"></i></a></li>
         <li role="presentation" class="active"><a href="#eqlogictab" aria-controls="home" role="tab" data-toggle="tab"><i class="fas fa-tachometer-alt"></i> {{Equipement}}</a></li>
+        <li role="presentation"><a href="#badges" aria-controls="badges" role="tab" data-toggle="tab"><i class="fa fa-id-badge"></i> {{Badges}}</a></li>
         <li role="presentation"><a href="#commandtab" aria-controls="profile" role="tab" data-toggle="tab"><i class="fa fa-list-alt"></i> {{Commandes}}</a></li>
     </ul>
     <div class="tab-content" style="height:calc(100% - 50px);overflow:auto;overflow-x: hidden;">
@@ -116,6 +117,61 @@ $eqLogics = eqLogic::byType($plugin->getId());
                         <label class="col-sm-3 control-label">{{Sécurisation désarmement}}</label>
                         <div class="col-sm-3">
                             <input type="checkbox" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="secureDisarm"/>
+                        </div>
+                    </div>
+                </fieldset>
+            </form>
+        </div>
+        <div role="tabpanel" class="tab-pane" id="badges">
+            <br/>
+            <form class="form-horizontal">
+                <fieldset>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">{{Badge 1 - Alias}}</label>
+                        <div class="col-sm-3">
+                            <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="badge1-alias" placeholder="Alias"/>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">{{Badge 2 - Alias}}</label>
+                        <div class="col-sm-3">
+                            <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="badge2-alias" placeholder="Alias"/>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">{{Badge 3 - Alias}}</label>
+                        <div class="col-sm-3">
+                            <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="badge3-alias" placeholder="Alias"/>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">{{Badge 4 - Alias}}</label>
+                        <div class="col-sm-3">
+                            <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="badge4-alias" placeholder="Alias"/>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">{{Badge 5 - Alias}}</label>
+                        <div class="col-sm-3">
+                            <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="badge5-alias" placeholder="Alias"/>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">{{Badge 6 - Alias}}</label>
+                        <div class="col-sm-3">
+                            <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="badge6-alias" placeholder="Alias"/>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">{{Badge 7 - Alias}}</label>
+                        <div class="col-sm-3">
+                            <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="badge7-alias" placeholder="Alias"/>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">{{Badge 8 - Alias}}</label>
+                        <div class="col-sm-3">
+                            <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="badge8-alias" placeholder="Alias"/>
                         </div>
                     </div>
                 </fieldset>

@@ -58,6 +58,14 @@ Lors de la sauvegarde, de nouvelles commandes vont se créer car elle nécessite
 
 Ces commandes sont en fait les commandes qui permettent d'avoir une liste déroulante dans les scénarios. Ainsi le plugin va personnaliser les listes déroulantes avec les informations présentes sur votre compte.
 
+# Alias de Badge
+
+Vous pouvez définir dans l'équipement (onglet Badges), des alias sur un maximum de 8 Badges.
+
+![Configuration des alias de badges](../assets/images/ConfigurationBadgesAlias.png)
+
+Lorsque vous recevez un email d'activation ou désactivation au travers d'un badge, il n'indique pas d'utilisateur. Afin de faciliter l'usage, cette fonctionnalité permet d'ajouter un alias à un badge qui sera positionné dans la commande __IMPORT - Dernier utilisateur__ au même titre que ce champs est rempli lorsque qu'un utilisateur active ou désactive l'alarme via l'application Diagral ou son code personnel.
+
 # Rafraichissement
 
 ## Automatique
