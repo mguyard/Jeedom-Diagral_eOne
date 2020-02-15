@@ -793,16 +793,16 @@ class Diagral_eOne extends eqLogic {
                                 $alarmUser = trim($matches[4], " ()"); # Remove space and ()
                                 // Verifie si alarmMethod correspond à un badge
                                 if (preg_match( '/Badge\\s(\\d)/', $alarmMethod, $badge)) {
-                                    log::add('Diagral_eOne', 'debug', 'importMessage::BadgeAlias Detection d\'un badge');
+                                    log::add('Diagral_eOne', 'debug', 'importMessage::BadgeAlias Détection d\'un badge');
                                     // On recupere l'alias du badge correspondant
                                     $badgeAlias = $this->getConfiguration('badge' . $badge[1] . '-alias');
-                                    log::add('Diagral_eOne', 'debug', 'importMessage::BadgeAlias Badge' . var_export($badge[1], true) . ' détecté. Son alias est : ' . var_export($badgeAlias, true));
+                                    log::add('Diagral_eOne', 'debug', 'importMessage::BadgeAlias Badge' . $badge[1] . ' détecté. Son alias est : ' . $badgeAlias);
                                     // Si l'alias de badge est non vide alors on le met dans alarmUser
                                     if (! empty($badgeAlias)) {
-                                        log::add('Diagral_eOne', 'debug', 'importMessage::BadgeAlias Ajout de l\'alias du badge'. var_export($badge[1], true) .' dans le champs "IMPORT - Dernier utilisateur" ('. var_export($badgeAlias, true) .')');
+                                        log::add('Diagral_eOne', 'debug', 'importMessage::BadgeAlias Ajout de l\'alias du badge'. $badge[1] .' dans le champs "IMPORT - Dernier utilisateur" ('. $badgeAlias .')');
                                         $alarmUser = $badgeAlias;
                                     } else {
-                                        log::add('Diagral_eOne', 'debug', 'importMessage::BadgeAlias Aucun alias défini pour le badge'. var_export($badge[1], true) .'. Le champs "IMPORT - Dernier utilisateur" reste vide.');
+                                        log::add('Diagral_eOne', 'debug', 'importMessage::BadgeAlias Aucun alias défini pour le badge'. $badge[1] .'. Le champs "IMPORT - Dernier utilisateur" reste vide.');
                                     }
                                 }
                                 log::add('Diagral_eOne', 'debug', 'importMessage::Message::alarmUser ' . $alarmUser);
