@@ -15,7 +15,7 @@
 		"logicalId": "status",
         "isDashboard": 1
     }, {
-        "name": "Alarme déclenchée",
+        "name": "Alarme declenchee",
         "type": "info",
         "subtype": "binary",
         "Value": 0,
