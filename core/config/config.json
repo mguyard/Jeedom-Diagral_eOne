@@ -18,7 +18,6 @@
         "name": "Alarme declenchee",
         "type": "info",
         "subtype": "binary",
-        "Value": 0,
         "isVisible": 1,
         "isHistorized": 1,
         "logicalId": "alarm",
