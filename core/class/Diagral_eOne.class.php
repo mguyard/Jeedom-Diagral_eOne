@@ -219,7 +219,7 @@ class Diagral_eOne extends eqLogic {
             if (!is_object($cmd)) {
                 $newCmd = true;
                 log::add('Diagral_eOne', 'debug', '***DEBUG NEW COMMAND' . $command['logicalId'] . 'with name ' . $command['name']);
-                $cmd->setName(__($command['name'], __FILE__));
+                $cmd->setName($command['name']);
             }
             // Le parametre JSON masterCodeNeed n'existe pas ou est à false ou bien que le MasterCode est rempli
             if (! isset($command['masterCodeNeed']) || $command['masterCodeNeed'] === false || ! empty($this->getConfiguration('mastercode'))) {
