@@ -29,7 +29,7 @@ function Diagral_eOne_update() {
     $eqLogics = eqLogic::byType('Diagral_eOne');
     log::add('Diagral_eOne', 'info', 'DEBUG : ' . var_export($eqLogics, true));
     foreach (eqLogic::byType('Diagral_eOne') as $eqLogic) {
-        $eqLogic->createCmd();
+        $eqLogic->save();
         log::add('Diagral_eOne', 'info', 'Mise à jour effectuée pour l\'équipement '. $eqLogic->getHumanName());
     }
     Diagral_eOne_Cron_Pull('update');
