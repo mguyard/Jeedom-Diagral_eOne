@@ -6,7 +6,7 @@ __Le changelog de la version de developpement se trouve [ici](https://github.com
 
 # 2020-04-01
 
-- Integration d'une synchronisation d'information pour gérer la base installée des plugins Diagral-eOne (cf. Doc)
+- Integration de la [feature #14](https://github.com/mguyard/Jeedom-Diagral_eOne/issues/14) permettant la synchronisation d'information pour gérer la base installée des plugins Diagral-eOne (cf. Doc)
 
 # 2020-03-27
 
