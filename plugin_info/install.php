@@ -26,7 +26,7 @@ function Diagral_eOne_install() {
 
 function Diagral_eOne_update() {
     log::add('Diagral_eOne', 'info', 'Mise à jour des commandes du Plugin Diagral_eOne');
-    foreach (eqLogic::byType('Diagral_eOne', true) as $eqLogic) {
+    foreach (eqLogic::byType('Diagral_eOne') as $eqLogic) {
         $eqLogic->createCmd();
         log::add('Diagral_eOne', 'info', 'Mise à jour effectuée pour l\'équipement '. $eqLogic->getHumanName());
     }
