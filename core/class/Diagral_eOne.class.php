@@ -218,6 +218,7 @@ class Diagral_eOne extends eqLogic {
             // Si la commande n'existe pas deja
             if (!is_object($cmd)) {
                 $newCmd = true;
+                $cmd = new Diagral_eOneCmd();
                 $cmd->setName(__($command['name'], __FILE__));
             }
             // Le parametre JSON masterCodeNeed n'existe pas ou est à false ou bien que le MasterCode est rempli
