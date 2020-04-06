@@ -62,7 +62,54 @@ if (!isConnect()) {
                 <input class="configKey form-control" data-l1key="polling_interval" type="number" min="1" placeholder="10"/>
             </div>
         </div>
-        </fieldset>
+    </fieldset>
+    <fieldset>
+        <legend>
+			<i class="fa fa-list-alt"></i> {{Communication par le developpeur}}
+		</legend>
+        <div class="alert alert-info">
+            Ce plugin étant gratuit, Jeedom ne propose pas au developpeur le suivi des installations de son plugin.<br/>
+            Ce plugin inclut un système de suivi des installations ayant pour objectif :
+            <ul>
+                <li>Suivre le nombre d'installation du plugin (à titre purement informatif pour le developpeur)</li>
+                <li>Avoir un moyen de communication avec les utilisateurs du plugin (envoi de mail ou message privée sur Community)</li>
+            </ul>
+            <br/>
+            Concernant les communications en provenance du développeur, elle seront <b>faibles</b> et avec <b>objectif de pouvoir échanger sur les nouveautés et évolutions à venir</b>.
+            <br/>
+            Afin d'assurer une totale transparence sur les données collectées, elle s'affiche ci-dessous :
+        </div>
+        <div class="form-group">
+            <label class="col-lg-4 control-label">{{Activation de l'envoi des informations}}</label>
+            <div class="col-lg-2">
+                <input type="checkbox" class="configKey form-control" data-l1key="InstallBaseStatus" checked="1"/>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-lg-4 control-label">{{Envoi d'information anonymisée uniquement}}</label>
+            <div class="col-lg-2">
+                <input type="checkbox" class="configKey form-control" data-l1key="InstallBaseAnonymousOnly" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-lg-4 control-label">{{Clé unique de votre installation Jeedom}}</label>
+            <div class="col-lg-4">
+                <span class="label label-info"><?php echo jeedom::getHardwareKey() ?></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-lg-4 control-label">{{Votre login Jeedom::Market}}</label>
+            <div class="col-lg-4">
+                <span class="label label-info"><?php echo config::byKey('market::username') ?></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-lg-4 control-label">{{Adresse Email}}</label>
+            <div class="col-lg-4">
+                <input class="configKey form-control" data-l1key="InstallBaseEmailAddr" type="email" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$" placeholder="Saisissez votre email si vous souhaitez recevoir les communications du developpeur"/>
+            </div>
+        </div>
+    </fieldset>
     <fieldset>
         <legend>
 			<i class="fa fa-list-alt"></i> {{Debug}}
@@ -93,6 +140,8 @@ if (!isConnect()) {
                     default_waitRetry: "5",
                     polling_interval: "<?php echo config::byKey('polling_interval', 'Diagral_eOne',10); ?>",
                     default_polling_interval: "10",
+                    InstallBaseStatus: "<?php echo config::byKey('InstallBaseStatus', 'Diagral_eOne',1); ?>",
+                    InstallBaseEmailAddr: "<?php echo config::byKey('InstallBaseEmailAddr', 'Diagral_eOne'); ?>",
                 },
                 dataType: 'json',
                 error: function (request, status, error) {

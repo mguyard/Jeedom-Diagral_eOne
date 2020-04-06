@@ -21,17 +21,26 @@ require_once dirname(__FILE__) . '/../../../core/php/core.inc.php';
 function Diagral_eOne_install() {
     Diagral_eOne_Cron_Pull('create');
     Diagral_eOne_Cron_JSON('create');
+    message::add('Diagral_eOne', 'Merci pour l\'installation de ce plugin, consultez les notes de version (https://community.jeedom.com/t/plugin-diagral-eone/10909) avant utilisation svp');
 }
 
 function Diagral_eOne_update() {
+    log::add('Diagral_eOne', 'info', 'Mise à jour des commandes du Plugin Diagral_eOne');
+    foreach (eqLogic::byType('Diagral_eOne', true) as $eqLogic) {
+        $eqLogic->createCmd();
+    }
     Diagral_eOne_Cron_Pull('update');
     Diagral_eOne_Cron_JSON('update');
+    config::save('InstallBaseStatus', 1, 'Diagral_eOne'); // Active le mode de communication par defaut -- A retirer plus tard car reactivera ceux qui ont désactivé entre 2 updates
+    message::add('Diagral_eOne', 'La mise à jour a (re)activer la communication avec le developpeur. Voir la documentation pour des compléments d\'informations'); // A retirer plus tard avec la ligne de code du dessus
+    message::add('Diagral_eOne', 'Merci pour la mise à jour de ce plugin, consultez les notes de version (https://community.jeedom.com/t/plugin-diagral-eone/10909) avant utilisation svp');
 }
 
 
 function Diagral_eOne_remove() {
     Diagral_eOne_Cron_Pull('remove');
     Diagral_eOne_Cron_JSON('remove');
+    log::add('Diagral_eOne', 'warn', 'Suppression du Plugin Diagral_eOne');
 }
 
 function Diagral_eOne_Cron_Pull($action) {

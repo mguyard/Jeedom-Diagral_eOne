@@ -47,6 +47,9 @@ try {
             config::save('retry', init('retry'), 'Diagral_eOne');
             config::save('waitRetry', init('waitRetry'), 'Diagral_eOne');
             config::save('polling_interval', init('polling_interval'), 'Diagral_eOne');
+            config::save('InstallBaseStatus', init('InstallBaseStatus'), 'Diagral_eOne');
+            config::save('InstallBaseAnonymousOnly', init('InstallBaseAnonymousOnly'), 'Diagral_eOne');
+            config::save('InstallBaseEmailAddr', init('InstallBaseEmailAddr'), 'Diagral_eOne');
     		//Let's then the error details
     		ajax::error(displayExeption($e), $e->getCode());
         }

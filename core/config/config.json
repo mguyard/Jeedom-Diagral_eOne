@@ -15,6 +15,15 @@
 		"logicalId": "status",
         "isDashboard": 1
     }, {
+        "name": "Alarme déclenchée",
+        "type": "info",
+        "subtype": "binary",
+        "Value": 0,
+        "isVisible": 1,
+        "isHistorized": 1,
+        "logicalId": "alarm",
+        "isDashboard": 1
+    }, {
         "name": "Mises à jour disponibles",
         "type": "info",
         "subtype": "numeric",

@@ -29,9 +29,11 @@ Vous y saissez les informations suivantes :
 -   Mot de passe : Le mot de passe associé à l'identifiant
 -   Nombre de tentatives : nombre de tentatives en cas d'échec de connexion au Cloud Diagral (default : 1)
 -   Délai entre les tentatives : délais entre les tentatives (en secondes)
+-   Communication avec le developpeur (cf chapitre dédié)
 -   Verbose : Permettant de définir un niveau de verbosité pour les requètes vers le Cloud Diagral (_Pas encore utilisable_)
 
 ![Configuration Générale](../assets/images/ConfigurationGenerale.png)
+
 
 ## Configuration d'un équipement
 
@@ -57,6 +59,23 @@ Une fois le/les alarmes créées, il faut entrer dans chacune d'elles afin de co
 Lors de la sauvegarde, de nouvelles commandes vont se créer car elle nécessitent le MasterCode (ex : _Activation Partielle ou Lancement Scenario).
 
 Ces commandes sont en fait les commandes qui permettent d'avoir une liste déroulante dans les scénarios. Ainsi le plugin va personnaliser les listes déroulantes avec les informations présentes sur votre compte.
+
+# Déclenchement d'alarme
+
+Le plugin peut détecter un déclenchement d'alarme a condition qu'il recoivent l'information par MAIL ou SMS (cf chapitre dédié à la reception des mail ou sms Diagral)
+
+> <span style="color:red">__FONCTIONNALITE UNIQUEMENT EN BETA POUR LE MOMENT__</span>
+> 
+> <span style="color:red">__FONCTIONNALITE DISPONIBLE UNIQUEMENT POUR LES RECPETIONS EMAILS__</span>
+
+Une commande info binaire ("Alarme déclenchée") existe pour récuperer le statut de l'alarme. Vous pouvez ainsi l'utiliser dans un scénario pour lancer des actions (notification ou baisser les volets par exemple).
+Cette commande info à 2 valeurs possibles :
+-   0 : Aucune alarme déclenchée
+-   1 : Une alarme en cours
+
+Le statut de l'alarme repasse à 0 automatiquement lorsque le plugin detecte soit que :
+-   l'alarme est désormais désactivée
+-   l'alarme n'est plus active pour la zone qui a déclenché l'alerte (armement partiel)
 
 # Alias de Badge
 
@@ -156,6 +175,7 @@ Il existe actuellement plusieurs commandes qui sont décrites ci-dessous :
     -   presence : Alarme en mode présence
     -   group : Alarme activée uniquement sur certains groupes
     -   tempogroup : Alarme en cours d'activation
+-   Alarme déclenchée : 1 correspond à une alarme en cours. 0 dans les autres cas
 -   Mises à jour disponibles : Indique le nombre de mises à jour disponibles sur l'alarme
 -   Groupes Actifs : Liste des groupes actifs par leur nom (ex. Détecteur Ouverture Étage + Garage)
 -   IMPORT - Dernier Message : Dernier message reçu par message (mail ou sms)
@@ -168,7 +188,7 @@ Il existe actuellement plusieurs commandes qui sont décrites ci-dessous :
 # Dashboard
 
 Le plugin inclus un dashboard qui permet de :
--   Connaitre le statut de l'alarme
+-   Connaitre le statut de l'alarme (y compris si une alarme est en cours)
 -   Connaitre le nombre de mise à jour de l'alarme disponible
 -   Activation totale de l'alarme
 -   Activation partielle de l'alarme
@@ -185,6 +205,32 @@ Le plugin inclus beaucoup de verbosité en mode DEBUG, il suffit alors de la con
 A partir de là, vous pouvez identifier les soucis que vous pouvez rencontrer.
 
 ![Debug Logs](../assets/images/DebugLogs.png)
+
+# Communication avec le developpeur
+
+> Dans le cadre des plugins gratuit, Jeedom ne trace pas les installations ou tout du moins pas les utilisateurs du plugin.
+>
+> Cependant, à plusieurs reprise ces informations m'ont manqué car j'aurais voulu pouvoir faire un sondage rapide aux utilisateurs du plugin, ou envoyer une information.
+> 
+> Par conséquent, voulant avoir un moyen de contacter les utilisateurs du plugin, deux choix s'offrait à moi :
+> -   passer le plugin payant
+> -   développer un système me permettant de palier à ce manque
+> 
+> Vous l'aurez compris, j'ai pris le choix **Numero 2**.
+
+Les informations envoyées au developpeur sont :
+-   Clé unique de votre installation Jeedom (code généré par Jeedom)
+-   Votre login market
+-   Votre adresse email (uniquement si vous la saisissez)
+
+Vous pouvez choisir de désactiver l'envoi des informations ou bien n'envoyer que les informations anonymisées (clé unique Jeedom)
+
+Le login market permet de pouvoir vous contacter par [Community](https://community.jeedom.com) si besoin.
+
+> <span style="color:red">__VOUS POUVEZ DEMANDER LA SUPRESSION DES INFORMATIONS SUR SIMPLE DEMANDE PAR MESSAGE PRIVEE SUR [COMMUNITY](https://community.jeedom.com)__</span>
+> 
+> <span style="color:red">__FONCTIONNALITE UNIQUEMENT EN BETA POUR LE MOMENT__</span>
+
 
 # Roadmap
 

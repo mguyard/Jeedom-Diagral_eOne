@@ -4,6 +4,14 @@ __Lorsque aucunes informations ne sont disponibles sur le changelog, cela impliq
 
 __Le changelog de la version de developpement se trouve [ici](https://github.com/mguyard/Jeedom-Diagral_eOne/blob/develop/docs/fr_FR/changelog.md)__
 
+# 2020-04-01
+
+- Integration d'une synchronisation d'information pour gérer la base installée des plugins Diagral-eOne (cf. Doc)
+
+# 2020-03-27
+
+- Integration de la [feature #13](https://github.com/mguyard/Jeedom-Diagral_eOne/issues/13) "Gestion de déclenchement d'alarme"
+
 # 2020-02-15
 
 - Intégration de la fonctionnalité "Badge Alias" qui permet de définir un alias pour les badges afin d'être mis dans la commande "IMPORT - Dernier utilisateur" lors de la réception d'emails Diagral
