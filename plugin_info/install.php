@@ -115,13 +115,13 @@ function Diagral_eOne_Cron_JSON($action) {
 
 // Fonction pour recuperer la version du plugin (Human Version)
 function Diagral_eOne_setVersion() {
-    log::add('Diagral_eOne', 'debug', 'Chemin : '.getcwd());
+    log::add('Diagral_eOne', 'debug', 'Chemin : '.dirname(__FILE__));
     $pluginVersion = 'Error';
 
-    if (!file_exists(dirname(__FILE__) . 'info.json')) {
+    if (!file_exists(dirname(__FILE__) . '/info.json')) {
         log::add('Diagral_eOne', 'warning', 'Unable to read plugin info.json');
     }
-    $data = json_decode(file_get_contents(dirname(__FILE__) . 'info.json'), true);
+    $data = json_decode(file_get_contents(dirname(__FILE__) . '/info.json'), true);
     log::add('Diagral_eOne', 'debug', 'Data : '.var_export($data, True));
     if (!is_array($data)) {
         log::add('Diagral_eOne', 'warning', 'Unable to decode plugin file info.json');
