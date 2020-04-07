@@ -120,6 +120,7 @@ function Diagral_eOne_setVersion() {
         log::add('Diagral_eOne', 'warning', 'Unable to read plugin info.json');
     }
     $data = json_decode(file_get_contents(dirname(__FILE__) . 'info.json'), true);
+    log::add('Diagral_eOne', 'debug', 'Data : '.var_export($data, True));
     if (!is_array($data)) {
         log::add('Diagral_eOne', 'warning', 'Unable to decode plugin file info.json');
     }
@@ -129,6 +130,7 @@ function Diagral_eOne_setVersion() {
         log::add('Diagral_eOne', 'warning', 'Unable to retreive plugin version.');
     }
     config::save('plugin_version', $pluginVersion, 'Diagral_eOne');
+    log::add('Diagral_eOne', 'debug', 'Version du plugin : '.$pluginVersion);
     return $pluginVersion;
 }
 
