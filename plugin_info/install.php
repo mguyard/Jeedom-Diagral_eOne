@@ -115,7 +115,6 @@ function Diagral_eOne_Cron_JSON($action) {
 
 // Fonction pour recuperer la version du plugin (Human Version)
 function Diagral_eOne_setVersion() {
-    log::add('Diagral_eOne', 'debug', 'Chemin : '.dirname(__FILE__));
     $pluginVersion = 'Error';
 
     if (!file_exists(dirname(__FILE__) . '/info.json')) {
