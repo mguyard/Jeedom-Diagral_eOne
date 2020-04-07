@@ -516,7 +516,7 @@ class Diagral_eOne extends eqLogic {
             }
         }
         // Send data informations for installation follow
-        Diagral_eOne::sendDataInstallBase();
+        Diagral_eOne::installTracking();
     }
 
 
@@ -957,10 +957,15 @@ class Diagral_eOne extends eqLogic {
         );
     }
 
+
+    /* ------------------------------ Tracking d'installation ------------------------------ */
+
+
     /**
      * Send information to install database to follow number of installations and communication list
+     * @param bool $delete (1 if delete action need. Default : 0)
      */
-    public function sendDataInstallBase() {
+    public function installTracking($delete=0) {
         log::add('Diagral_eOne', 'debug', 'isEnable::Status ' . config::byKey('InstallBaseStatus', 'Diagral_eOne'));
         log::add('Diagral_eOne', 'debug', 'isAnonymous::Status ' . config::byKey('InstallBaseAnonymousOnly', 'Diagral_eOne'));
         log::add('Diagral_eOne', 'debug', 'emailAddr::Status ' . config::byKey('InstallBaseEmailAddr', 'Diagral_eOne'));
@@ -969,61 +974,138 @@ class Diagral_eOne extends eqLogic {
         // Configuration Request
         $baseURL = "https://jeedom-e061.restdb.io/rest/diagral-eone-installation-base";
         $apiKey = "5e8459ecf96f9f072a0b0bd7";
-        // Si l'envoi d'information est actif
-        if (config::byKey('InstallBaseStatus', 'Diagral_eOne')) {
-            // Si l'envoi d'information anonyme uniquement est actif
-            $getURL = $baseURL . '?q={"productKey":"' . jeedom::getHardwareKey() . '"}';
-            $requestUID = \Httpful\Request::get($getURL)
-                ->expectsJson()
-                ->timeoutIn(5)
-                ->addHeaders(array(
-                    'x-apikey' => $apiKey,
-                    'content-type' => 'application/json',
-                ))
-                ->send();
-            // Recuperation de l'UID
-            $uid = $requestUID->body[0]->_id;
-            log::add('Diagral_eOne', 'debug', 'sendDataInstallBase UID:' . $uid);
-            // Ajoute les données Anonymes
-            $info2push = array(
-                'productKey' => jeedom::getHardwareKey(),
-                'id' => '',
-                'email' => ''
-            );
-            // Verifie si on peut envoyer les informations non anonyme
-            if (! config::byKey('InstallBaseAnonymousOnly', 'Diagral_eOne')) {
-                $info2push['id'] = config::byKey('market::username');
-                $info2push['email'] = config::byKey('InstallBaseEmailAddr', 'Diagral_eOne');
+        // Si c'est une demande de suppression de données
+        if ($delete) {
+            // Lance la suppression des données de tracking de cette installation
+            Diagral_eOne::deleteInstallBase($baseURL,$apiKey);
+        } else { // Sinon
+            // Si l'envoi d'information est actif
+            if (config::byKey('InstallBaseStatus', 'Diagral_eOne')) {
+                // Lance la creation ou la mise à jour des données
+                Diagral_eOne::createUpdateInstallBase($baseURL,$apiKey);
+            } else {
+                log::add('Diagral_eOne', 'debug', 'installTracking Mise à jour désactivée.');
             }
-            log::add('Diagral_eOne', 'debug', 'sendDataInstallBase CONTENT : ' . var_export($info2push, true));
-            // Aucune entrée existe dans la base -> creation
-            if (empty($uid)) {
-                log::add('Diagral_eOne', 'debug', 'sendDataInstallBase Aucune entrée existante.');
-                $callMethod = "POST";
-            } else { // Une entrée existe deja
-                log::add('Diagral_eOne', 'debug', 'sendDataInstallBase JSON : ' . json_encode($info2push));
-                $callMethod = "PUT";
-                $baseURL = $baseURL.'/'.$uid;
-            }
-            // Insertion/Update des données
-            $insertDB = \Httpful\Request::post($baseURL)
-                ->expectsJson()
-                ->timeoutIn(5)
-                ->addHeaders(array(
-                    'x-apikey' => $apiKey,
-                    'content-type' => 'application/json',
-                    'X-HTTP-Method-Override' => $callMethod,
-                ))
-                ->body(json_encode($info2push))
-                ->send();
-                // Affichage des messages si le code de retour n'est pas 200
-                if (strpos($insertDB->code, '2') === 0) {
-                    log::add('Diagral_eOne', 'debug', 'sendDataInstallBase Données envoyées (HTTP '. $insertDB->code .')');
-                } else {
-                    log::add('Diagral_eOne', 'warning', 'sendDataInstallBase Erreur '. $insertDB->code .' avec le serveur de suivi des installations (' . $insertDB->body->message . ') : ' . var_export($insertDB->body, True));
-                }
         }
     }
+
+    /**
+     * get database UID for this Jeedom Installation
+     * @param string $getURL url to request data
+     * @param string $apiKey apikey for request
+     * @return string data uid
+     */
+    public function getUIDDataInstallBase($url, $apiKey) {
+        $urlArgs = $url . '?q={"productKey":"' . jeedom::getHardwareKey() . '"}';
+        $requestUID = \Httpful\Request::get($urlArgs)
+            ->expectsJson()
+            ->timeoutIn(5)
+            ->addHeaders(array(
+                'x-apikey' => $apiKey,
+                'content-type' => 'application/json',
+            ))
+            ->send();
+            // Recuperation de l'UID
+            $uid = $requestUID->body[0]->_id;
+            log::add('Diagral_eOne', 'debug', 'installTracking UID:' . $uid);
+            return $uid;
+    }
+
+    /**
+     * Generate data to send to Install Tracking
+     * @return array $data data to send
+     */
+    public function generateDataInstallBase() {
+        // Defini les données anonymisées
+        $data = array(
+            'productKey' => jeedom::getHardwareKey(),
+            'id' => '',
+            'email' => '',
+            'pluginVersion' => config::byKey('plugin_version', 'Diagral_eOne'),
+            'jeedomVersion' => jeedom::version()
+        );
+        // Verifie si on peut envoyer les informations non anonyme
+        if (! config::byKey('InstallBaseAnonymousOnly', 'Diagral_eOne')) {
+            $data['id'] = config::byKey('market::username');
+            $data['email'] = config::byKey('InstallBaseEmailAddr', 'Diagral_eOne');
+        }
+        log::add('Diagral_eOne', 'debug', 'installTracking CONTENT : ' . var_export($data, true));
+        return $data;
+    }
+
+    /**
+     * Create or update data
+     * @param string $url
+     * @param string $apiKey
+     */
+    public function createUpdateInstallBase($url,$apiKey) {
+        // Récuperation de l'UID d'installation
+        $uid = Diagral_eOne::getUIDDataInstallBase($url, $apiKey);
+        // Genere les data a envoyer
+        $data = Diagral_eOne::generateDataInstallBase();
+        // Si aucun UID existe (aucune entrée existante en base)
+        if (empty($uid)) {
+            log::add('Diagral_eOne', 'info', 'installTracking Aucune entrée existante. Creation d\'une nouvelle.');
+            Diagral_eOne::sendDataInstallBase($url,$apiKey,'POST',$data);
+        } else { // Une entrée existe deja
+            $url = $url . '/' . $uid;
+            log::add('Diagral_eOne', 'debug', 'installTracking Mise à jour de l\'entrée.');
+            Diagral_eOne::sendDataInstallBase($url,$apiKey,'PUT',$data);
+        }
+    }
+
+    /**
+     * Delete install base
+     * @param string $url
+     * @param string $apiKey
+     */
+    public function deleteInstallBase($url,$apiKey) {
+        // Récuperation de l'UID d'installation
+        $uid = Diagral_eOne::getUIDDataInstallBase($url, $apiKey);
+        // Si l'entrée existe bien
+        if ( ! empty($uid)) {
+            $url = $url . '/' . $uid;
+            // Je supprime l'entrée
+            $returnCode = Diagral_eOne::sendDataInstallBase($url,$apiKey,'DELETE');
+            if (strpos($returnCode, '2') === 0) {
+                log::add('Diagral_eOne', 'info', 'installTracking Suppression de votre installation dans la base de Tracking.');
+                // Je désactive le tracking
+                config::save('InstallBaseStatus', 0, 'Diagral_eOne');
+                log::add('Diagral_eOne', 'info', 'installTracking Désactivation du tracking.');
+            } else {
+                log::add('Diagral_eOne', 'error', 'installTracking Erreur de suppression des données de tracking.');
+            }
+        }
+    }
+
+    /**
+     * Call API to Database
+     * @param string $url
+     * @param string $apiKey
+     * @param string $method
+     * @param array $data
+     * @return string HTTP return code
+     */
+    public function sendDataInstallBase($url,$apiKey,$method,$data=array()) {
+        $request = \Httpful\Request::post($url)
+            ->expectsJson()
+            ->timeoutIn(5)
+            ->addHeaders(array(
+                'x-apikey' => $apiKey,
+                'content-type' => 'application/json',
+                'X-HTTP-Method-Override' => $method,
+                'cache-control' => 'no-cache',
+            ))
+            ->body(json_encode($data))
+            ->send();
+        // Affichage des messages si le code de retour n'est pas 200
+        if (strpos($request->code, '2') === 0) {
+            log::add('Diagral_eOne', 'debug', 'installTracking Données envoyées (HTTP '. $request->code .')');
+        } else {
+            log::add('Diagral_eOne', 'warning', 'installTracking Erreur '. $request->code .' avec le serveur de suivi des installations (' . $request->body->message . ') : ' . var_export($request->body, True));
+        }
+        return $request->code;
+}
 
     /*     * **********************Getteur Setteur*************************** */
 }

@@ -25,6 +25,7 @@ try {
     }
 
     ajax::init();
+    // Lancement de la synchronisation des equipements
     if (init('action') == 'synchronize') {
       try {
 		    Diagral_eOne::synchronize();
@@ -33,6 +34,17 @@ try {
         ajax::error(displayExeption($e), $e->getCode());
       }
     }
+
+    //Lancement de la suppression des données de tracking
+    if (init('action') == 'delete_remote_datainfo') {
+        try {
+              Diagral_eOne::installTracking(1);
+              ajax::success();
+        } catch (Exception $e) {
+          ajax::error(displayExeption($e), $e->getCode());
+        }
+    }
+
 
     if (init('action') == 'postSave') {
         //Called after a plugin configuration save

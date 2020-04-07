@@ -29,7 +29,7 @@ Vous y saissez les informations suivantes :
 -   Mot de passe : Le mot de passe associé à l'identifiant
 -   Nombre de tentatives : nombre de tentatives en cas d'échec de connexion au Cloud Diagral (default : 1)
 -   Délai entre les tentatives : délais entre les tentatives (en secondes)
--   Communication avec le developpeur (cf chapitre dédié)
+-   Suivi d'installation (cf chapitre dédié)
 -   Verbose : Permettant de définir un niveau de verbosité pour les requètes vers le Cloud Diagral (_Pas encore utilisable_)
 
 ![Configuration Générale](../assets/images/ConfigurationGenerale.png)
@@ -206,7 +206,7 @@ A partir de là, vous pouvez identifier les soucis que vous pouvez rencontrer.
 
 ![Debug Logs](../assets/images/DebugLogs.png)
 
-# Communication avec le developpeur
+# Suivi d'installation
 
 > Dans le cadre des plugins gratuit, Jeedom ne trace pas les installations ou tout du moins pas les utilisateurs du plugin.
 >
@@ -225,10 +225,10 @@ Les informations envoyées au developpeur sont :
 
 Vous pouvez choisir de désactiver l'envoi des informations ou bien n'envoyer que les informations anonymisées (clé unique Jeedom)
 
+Vous avez aussi la possibilité de supprimer les informations stockés (action automatique à la désinstallation) en cliquant sur le bouton reservé à cet effet. Cette action désactive automatiquement l'envoi des données à venir.
+
 Le login market permet de pouvoir vous contacter par [Community](https://community.jeedom.com) si besoin.
 
-> <span style="color:red">__VOUS POUVEZ DEMANDER LA SUPRESSION DES INFORMATIONS SUR SIMPLE DEMANDE PAR MESSAGE PRIVEE SUR [COMMUNITY](https://community.jeedom.com)__</span>
-> 
 > <span style="color:red">__FONCTIONNALITE UNIQUEMENT EN BETA POUR LE MOMENT__</span>
 
 

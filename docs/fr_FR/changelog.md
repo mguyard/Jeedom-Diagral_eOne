@@ -4,6 +4,10 @@ __Lorsque aucunes informations ne sont disponibles sur le changelog, cela impliq
 
 __Le changelog de la version de developpement se trouve [ici](https://github.com/mguyard/Jeedom-Diagral_eOne/blob/develop/docs/fr_FR/changelog.md)__
 
+# 2020-04-07
+
+- Amélioration de la [feature #14](https://github.com/mguyard/Jeedom-Diagral_eOne/issues/14) en permettant la suppression de ses données de suivie.
+
 # 2020-04-01
 
 - Integration de la [feature #14](https://github.com/mguyard/Jeedom-Diagral_eOne/issues/14) permettant la synchronisation d'information pour gérer la base installée des plugins Diagral-eOne (cf. Doc)
