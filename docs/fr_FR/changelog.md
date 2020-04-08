@@ -4,7 +4,12 @@ __Lorsque aucunes informations ne sont disponibles sur le changelog, cela impliq
 
 __Le changelog de la version de developpement se trouve [ici](https://github.com/mguyard/Jeedom-Diagral_eOne/blob/develop/docs/fr_FR/changelog.md)__
 
-# 2020-04-07
+# 2020-04-08 - v1.1.0
+
+- Amélioration de la [feature #14](https://github.com/mguyard/Jeedom-Diagral_eOne/issues/14) en ajoutant l'envoi de la plateforme Jeedom.
+- Ajustement de la configuration
+
+# 2020-04-07 - v1.0.0
 
 - Amélioration de la [feature #14](https://github.com/mguyard/Jeedom-Diagral_eOne/issues/14) en permettant la suppression de ses données de suivie.
 

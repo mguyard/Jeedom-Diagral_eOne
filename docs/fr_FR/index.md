@@ -220,7 +220,10 @@ A partir de là, vous pouvez identifier les soucis que vous pouvez rencontrer.
 
 Les informations envoyées au developpeur sont :
 -   Clé unique de votre installation Jeedom (code généré par Jeedom)
+-   Votre type de plateforme Jeedom
 -   Votre login market
+-   La version Jeedom
+-   La [version](#numerotation-des-versions) du plugin Diagral-eOne
 -   Votre adresse email (uniquement si vous la saisissez)
 
 Vous pouvez choisir de désactiver l'envoi des informations ou bien n'envoyer que les informations anonymisées (clé unique Jeedom)
@@ -231,6 +234,12 @@ Le login market permet de pouvoir vous contacter par [Community](https://communi
 
 > <span style="color:red">__FONCTIONNALITE UNIQUEMENT EN BETA POUR LE MOMENT__</span>
 
+# Numerotation des versions
+
+La numérotation des versions est effectuée ainsi pour le moment :
+- Premier chiffre : La version majeure du plugin (modification importante)
+- Second chiffre : La version mineur du plugin (ajout de petite fonctionnalitées)
+- Troisième chiffre : La version correctrice du plugin (résolution de bug)
 
 # Roadmap
 

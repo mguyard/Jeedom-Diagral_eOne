@@ -1019,6 +1019,7 @@ class Diagral_eOne extends eqLogic {
         // Defini les données anonymisées
         $data = array(
             'productKey' => jeedom::getHardwareKey(),
+            'hardware' => jeedom::getHardwareName(),
             'id' => '',
             'email' => '',
             'pluginVersion' => config::byKey('plugin_version', 'Diagral_eOne'),

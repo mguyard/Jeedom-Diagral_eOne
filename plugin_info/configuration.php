@@ -94,6 +94,12 @@ if (empty($plugin_version)) {
             </div>
         </div>
         <div class="form-group">
+            <label class="col-lg-4 control-label">{{Plateforme Jeedom}}</label>
+            <div class="col-lg-4">
+                <span class="label label-info"><?php echo jeedom::getHardwareName() ?></span>
+            </div>
+        </div>
+        <div class="form-group">
             <label class="col-lg-4 control-label">{{Votre login Market}}</label>
             <div class="col-lg-4">
                 <span class="label label-info"><?php echo config::byKey('market::username') ?></span>
