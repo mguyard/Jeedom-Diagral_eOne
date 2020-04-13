@@ -123,7 +123,7 @@ Dans l'équipement il existe un onglet "Notifications Diagral" qui permet de con
 
 ![Configuration pour Scénario de réception Diagral](../assets/images/NotificationScenarioCreation.png)
 
-> __Vous devez sauvegarder le choix du plugin et la commande de reception avant de lancer l'éxecution de génération/modification du scénario__
+> __Vous devez sauvegarder le choix du plugin et la commande de reception avant de lancer l'éxecution de génération/modification du scénario. Il est possible parfois que le bouton de génération ne s'affiche pas après une sauvegarde, il suffit dans ce cas de changer d'onglet et revenir sur l'onglet de notification.__
 
 Une fois le scénario créé, le nom du scénario existant et la capacité de le modifier/supprimer vous est proposé (__uniquement si il a était créé par le plugin et non manuellement__).
 
