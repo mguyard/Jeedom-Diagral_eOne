@@ -5,6 +5,12 @@ if (!isConnect('admin')) {
 $plugin = plugin::byId('Diagral_eOne');
 sendVarToJS('eqType', $plugin->getId());
 $eqLogics = eqLogic::byType($plugin->getId());
+
+// Liste des plugins de Notification compatible
+$pluginCompatible = array(
+    'maillistener' => 'Mail Listener'
+);
+
 ?>
 
 <div class="row row-overflow">
@@ -55,6 +61,7 @@ $eqLogics = eqLogic::byType($plugin->getId());
         <li role="presentation"><a href="#" class="eqLogicAction" aria-controls="home" role="tab" data-toggle="tab" data-action="returnToThumbnailDisplay"><i class="fa fa-arrow-circle-left"></i></a></li>
         <li role="presentation" class="active"><a href="#eqlogictab" aria-controls="home" role="tab" data-toggle="tab"><i class="fas fa-tachometer-alt"></i> {{Equipement}}</a></li>
         <li role="presentation"><a href="#badges" aria-controls="badges" role="tab" data-toggle="tab"><i class="fa fa-id-badge"></i> {{Badges}}</a></li>
+        <li role="presentation"><a href="#notificationDiagral" aria-controls="notificationDiagral" role="tab" data-toggle="tab"><i class="fas fa-envelope-open-text"></i></i> {{Notifications Diagral}}</a></li>
         <li role="presentation"><a href="#commandtab" aria-controls="profile" role="tab" data-toggle="tab"><i class="fa fa-list-alt"></i> {{Commandes}}</a></li>
     </ul>
     <div class="tab-content" style="height:calc(100% - 50px);overflow:auto;overflow-x: hidden;">
@@ -87,9 +94,9 @@ $eqLogics = eqLogic::byType($plugin->getId());
                         <div class="col-sm-9">
                             <?php
                                 foreach (jeedom::getConfiguration('eqLogic:category') as $key => $value) {
-                                echo '<label class="checkbox-inline">';
-                                echo '<input type="checkbox" class="eqLogicAttr" data-l1key="category" data-l2key="' . $key . '" />' . $value['name'];
-                                echo '</label>';
+                                    echo '<label class="checkbox-inline">';
+                                    echo '<input type="checkbox" class="eqLogicAttr" data-l1key="category" data-l2key="' . $key . '" />' . $value['name'];
+                                    echo '</label>';
                                 }
                             ?>
                         </div>
@@ -121,6 +128,73 @@ $eqLogics = eqLogic::byType($plugin->getId());
                     </div>
                 </fieldset>
             </form>
+        </div>
+        <div role="tabpanel" class="tab-pane" id="notificationDiagral">
+            <br/>
+            <form class="form-horizontal col-sm-6">
+                <fieldset>
+                    <div class="form-group">
+                        <label class="col-sm-6 control-label">{{Choix du plugin de notification}}</label>
+                        <div class="col-sm-6">
+                            <select class="eqLogicAttr form-control" id="notificationPlugin" data-l1key="configuration" data-l2key="notificationPlugin">
+                                <option disabled selected value="FAKEPLUGINTOBLOCKLIST"> -- {{Choisissez un plugin compatible}} -- </option>
+                                <?php
+                                // Generation de la liste des plugins compatibles
+                                foreach ($pluginCompatible as $pluginID => $pluginName) {
+                                    print "<option value='" . $pluginID . "'" . $fieldSelected . ">" . $pluginName . "</option>";
+                                }
+                                ?>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-6 control-label">{{Commande de réception de notification}}</label>
+                        <div class="col-sm-6 input-group">
+                            <input class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="notificationEqLogic"/>
+                            <span class="input-group-btn">
+                                <a class="btn btn-default cursor" title="Rechercher l'équipement de notification" id="notificationEqLogic"><i class="fas fa-list-alt"></i></a>
+                            </span>
+                        </div>
+                    </div>
+                    <div id="divNotificationScenarioName" class='form-group' hidden>
+                        <label class='col-sm-6 control-label'>{{Nom du scénario de réception de notification}}</label>
+                        <div id='notificationScenarioName' class='col-sm-6'>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-6"></div>
+                            <div id="notificationButtonCreate" class="col-sm-6" hidden>
+                                <br/>
+                                <button type='button' id='notificationGenerateScenario' class='btn btn-success btn-lg'>Génération automatique du scénario</button>
+                            </div>
+                            <div id="notificationButtonUpdate" class="col-sm-6" hidden>
+                                <br/>
+                                <div class='col-sm-4'><button type='button' id='notificationUpdateScenario' class='btn btn-warning btn-lg'>Mise à jour du scénario</button></div>
+                                <div class='col-sm-4'><button type='button' id='notificationDeleteScenario' class='btn btn-danger btn-lg'>Suppression du scénario</button></div>
+                            </div>
+                    </div>
+                </fieldset>
+            </form>
+            <div class="alert alert-info col-sm-6">
+                Afin d'éviter de requêter trop regulièrement le Cloud Diagral, le plugin peut recevoir les notifications de Diagral.<br/>
+                Les notifications peuvent être de types :
+                <ul>
+                    <li>Activation/Désactivation d'alarme - qui lancera une action de refresh sur le plugin</li>
+                    <li>Détection d'intrusion - qui activera la commande "Alarme déclenchée"</li>
+                </ul>
+                <br/>
+                Actuellement seul les plugins suivants sont officiellement supportés pour recevoir de façon automatisée les alertes (au travers du bouton "Génération du scénario" ci-dessous).
+                <ul>
+                    <?php
+                    foreach ($pluginCompatible as $pluginID => $pluginName) {
+                        print "<li><a href='https://market.jeedom.com/index.php?v=d&p=market&type=plugin&&name=" . urlencode($pluginName) . "'>". $pluginName . "</a></li>";
+                    }
+                    ?>
+                </ul>
+                <i>Pour supporter d'autres plugins n'hésitez pas à contacter le developpeur <a href="https://github.com/mguyard/Jeedom-Diagral_eOne/issues/new">en ouvrant une "Demande d'evolution" sur le Github du plugin</a></i>
+                <br/><br/>
+                Se référer à la <a target="_blank" href="https://mguyard.github.io/Jeedom-Diagral_eOne/fr_FR/">documentation</a> pour plus de détails.
+            </div>
         </div>
         <div role="tabpanel" class="tab-pane" id="badges">
             <br/>
@@ -193,6 +267,7 @@ $eqLogics = eqLogic::byType($plugin->getId());
 
 </div>
 </div>
+
 
 <?php include_file('desktop', 'Diagral_eOne', 'js', 'Diagral_eOne');?>
 <?php include_file('core', 'plugin.template', 'js');?>

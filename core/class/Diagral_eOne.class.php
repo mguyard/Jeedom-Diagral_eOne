@@ -999,7 +999,7 @@ class Diagral_eOne extends eqLogic {
         $urlArgs = $url . '?q={"productKey":"' . jeedom::getHardwareKey() . '"}';
         $requestUID = \Httpful\Request::get($urlArgs)
             ->expectsJson()
-            ->timeoutIn(5)
+            ->timeoutIn(30)
             ->addHeaders(array(
                 'x-apikey' => $apiKey,
                 'content-type' => 'application/json',
@@ -1090,7 +1090,7 @@ class Diagral_eOne extends eqLogic {
     public function sendDataInstallBase($url,$apiKey,$method,$data=array()) {
         $request = \Httpful\Request::post($url)
             ->expectsJson()
-            ->timeoutIn(5)
+            ->timeoutIn(30)
             ->addHeaders(array(
                 'x-apikey' => $apiKey,
                 'content-type' => 'application/json',

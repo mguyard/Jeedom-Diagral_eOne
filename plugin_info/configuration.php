@@ -194,9 +194,10 @@ if (empty($plugin_version)) {
                         $('#div_alert').showAlert({message: data.result, level: 'danger'});
                         return;
                     }
-                    //$('#ul_plugin .li_plugin[data-plugin_id=Diagral_eOne]').click();
-                    // Recharge la page après execution
-                    location.reload(true);
+                    $('#div_alert').showAlert({message: '{{Données de suivi d\'instalaltion supprimée avec succès}}', level: 'success'});
+                    setTimeout( function() {
+                        location.reload();
+                    }, 2000);
                 }
             });
         });

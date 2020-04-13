@@ -103,9 +103,33 @@ Le plugin permet de recevoir des informations non disponibles par l'API (utilisa
 Le plugin ne gère pas la collecte Email ou SMS. Il faut donc utiliser un autre plugin pour transmettre le message au plugin.
 La commande utilisée pour recevoir le message est __Importer Message__
 
-> Actuellement, seul le plugin [Mail Listener](https://www.jeedom.com/market/index.php?v=d&p=market&author=lunarok&&name=Mail%20Listener) de Lunarok est validé comme compatible.
+> Actuellement, seul les plugins suivants sont officillement supportés :
+> - [Mail Listener](https://www.jeedom.com/market/index.php?v=d&p=market&author=lunarok&&name=Mail%20Listener) de Lunarok.
 > 
-> Mais il n'y a pas de raison que cela ne fonctionne pas avec d'autres plugins.
+> Si vous validez le fonctionnement avec d'autre plugin, n'hésitez pas à m'en informer par [Github](https://github.com/mguyard/Jeedom-Diagral_eOne/issues/new) ou sur [Community](https://community.jeedom.com/) en ouvrant un new topic taggé avec le plugin.
+
+> Actuellement la gestion des messages Email n'est pas complete
+> 
+> N'hésitez pas à participer en indiquant les messages non encore gérés afin de les integrer
+> Pour cela, il suffit de récupérer le message dans le log _Warning_ généré (cf. Diagnostique pour définir le niveau de log) et d'[ouvrir une demande sur le Github du plugin](https://github.com/mguyard/Jeedom-Diagral_eOne/issues/new?assignees=mguyard&labels=enhancement&template=message---ajout-du-support-d-un-nouveau-message.md&title=%5BMSG-ADD%5D)
+
+### Génération automatique du scénario
+
+> <span style="color:red">__FONCTIONNALITE UNIQUEMENT EN BETA POUR LE MOMENT__</span>
+> 
+> <span style="color:red">_Fonctionne uniquement avec les plugins officiellement supportés (cf. ci-dessus)_</span>
+
+Dans l'équipement il existe un onglet "Notifications Diagral" qui permet de confiugurer les informations essentielles à la génération du scénario de reception des notifications Diagral.
+
+![Configuration pour Scénario de réception Diagral](../assets/images/NotificationScenarioCreation.png)
+
+> __Vous devez sauvegarder le choix du plugin et la commande de reception avant de lancer l'éxecution de génération/modification du scénario__
+
+Une fois le scénario créé, le nom du scénario existant et la capacité de le modifier/supprimer vous est proposé (__uniquement si il a était créé par le plugin et non manuellement__).
+
+![Modification/Suppression pour Scénario de réception Diagral](../assets/images/NotificationScenarioModifSupp.png)
+
+### Génération manuelle du scénario
 
 ![Exemple de scénario avec le plugin Mail Listener](../assets/images/ScenarioImporterMessage.png)
 
@@ -118,10 +142,7 @@ Dans la commande, vous devez avoir :
 - dans __Message__
   - Le message reçu
 
-> Actuellement la gestion des messages Email n'est pas complete
-> 
-> N'hésitez pas à participer en indiquant les messages non encore gérés afin de les integrer
-> Pour cela, il suffit de récupérer le message dans le log _Warning_ généré (cf. Diagnostique pour définir le niveau de log) et d'[ouvrir une demande sur le Github du plugin](https://github.com/mguyard/Jeedom-Diagral_eOne/issues/new?assignees=mguyard&labels=enhancement&template=message---ajout-du-support-d-un-nouveau-message.md&title=%5BMSG-ADD%5D)
+> Si vous avez utilisé la méthode de génération manuelle du scénario, je vous invite a le supprimer et utiliser la méthode de génération automatique. Cela vous permettra dans l'avenir d'avoir la possibilité de le mettre à jour (dans le cas où la release note indiquerait une évolution du scénario)
 
 # Caching
 
@@ -243,9 +264,8 @@ La numérotation des versions est effectuée ainsi pour le moment :
 
 # Roadmap
 
-- Ajout de nouveaux messages SMS/EMAIL.
+- Ajout de nouveaux messages SMS/EMAIL
 - Intégration dans Homebridge
-- Génération automatique du scénario sur utilisation de reception SMS ou Email.
 
 > C'est aussi vous qui aller donner la direction que prendra ce plugin, donc je suis à votre écoute
 > 
