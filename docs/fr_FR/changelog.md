@@ -6,6 +6,7 @@ __Le changelog de la version de developpement se trouve [ici](https://github.com
 
 # 2020-04-19 - v1.2.1
 
+- __Passage de la version en STABLE__
 - Ajout de la branche du plugin dans les données de suivi d'installation
 
 # 2020-04-13 - v1.2.0
