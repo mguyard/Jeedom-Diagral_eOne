@@ -114,7 +114,7 @@ if (empty($plugin_version)) {
         <div class="form-group">
             <label class="col-lg-4 control-label">{{Version du plugin}}</label>
             <div class="col-lg-4">
-                <span class="label label-info"><?php echo config::byKey('plugin_version', 'Diagral_eOne') ?></span>
+                <span class="label label-info"><?php echo config::byKey('plugin_version', 'Diagral_eOne')."(".Diagral_eOne::getPluginBranch().")" ?></span>
             </div>
         </div>
         <div class="form-group">

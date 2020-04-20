@@ -1012,6 +1012,16 @@ class Diagral_eOne extends eqLogic {
     }
 
     /**
+     * get Plugin branch (stable or beta)
+     * @return string $pluginbranch
+     */
+    public function getPluginBranch() {
+        $update = update::byLogicalId('Diagral_eOne');
+        $pluginbranch = $update->getConfiguration('version');
+        return $pluginbranch;
+    }
+
+    /**
      * Generate data to send to Install Tracking
      * @return array $data data to send
      */
@@ -1023,6 +1033,7 @@ class Diagral_eOne extends eqLogic {
             'id' => '',
             'email' => '',
             'pluginVersion' => config::byKey('plugin_version', 'Diagral_eOne'),
+            'pluginBranch' => Diagral_eOne::getPluginBranch(),
             'jeedomVersion' => jeedom::version()
         );
         // Verifie si on peut envoyer les informations non anonyme

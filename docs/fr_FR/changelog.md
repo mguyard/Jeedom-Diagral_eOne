@@ -4,6 +4,10 @@ __Lorsque aucunes informations ne sont disponibles sur le changelog, cela impliq
 
 __Le changelog de la version de developpement se trouve [ici](https://github.com/mguyard/Jeedom-Diagral_eOne/blob/develop/docs/fr_FR/changelog.md)__
 
+# 2020-04-19 - v1.2.1
+
+- Ajout de la branche du plugin dans les données de suivi d'installation
+
 # 2020-04-13 - v1.2.0
 
 - Intégration de la fonctionalité de génération de scénario pour les réceptions de notification Diagral
