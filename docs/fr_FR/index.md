@@ -1,5 +1,10 @@
 ![Logo](../assets/images/Diagral_eOne_icon.png)
 
+
+> 
+> La documentation de la version __BETA__ se trouve [ici](https://github.com/mguyard/Jeedom-Diagral_eOne/blob/develop/docs/fr_FR/index.md)
+> 
+
 # Présentation 
 
 Diagral est un constructeur français d'alarme, appartenant au groupe HAGER :
@@ -53,8 +58,6 @@ Une fois le/les alarmes créées, il faut entrer dans chacune d'elles afin de co
 > Les commandes sont cependant toujours présente mais bloquée.
 > 
 > Cette fonctionnalité ne prend de sens que pour empêcher la désactivation de l'alarme à un compte _Utilisateur_ ou _Utilisateur limité_ Jeedom. Par exemple, pour une tablette qui déporte l'affichage de votre Jeedom. En tant qu'administrateur, même si la fonctionnalitée SecureDisarm est active, elle est outre-passée.
-> 
-> <span style="color:red">__FONCTIONNALITE UNIQUEMENT EN BETA POUR LE MOMENT__</span>
 
 Lors de la sauvegarde, de nouvelles commandes vont se créer car elle nécessitent le MasterCode (ex : _Activation Partielle ou Lancement Scenario).
 
@@ -64,8 +67,6 @@ Ces commandes sont en fait les commandes qui permettent d'avoir une liste dérou
 
 Le plugin peut détecter un déclenchement d'alarme a condition qu'il recoivent l'information par MAIL ou SMS (cf chapitre dédié à la reception des mail ou sms Diagral)
 
-> <span style="color:red">__FONCTIONNALITE UNIQUEMENT EN BETA POUR LE MOMENT__</span>
-> 
 > <span style="color:red">__FONCTIONNALITE DISPONIBLE UNIQUEMENT POUR LES RECPETIONS EMAILS__</span>
 
 Une commande info binaire ("Alarme déclenchée") existe pour récuperer le statut de l'alarme. Vous pouvez ainsi l'utiliser dans un scénario pour lancer des actions (notification ou baisser les volets par exemple).
@@ -115,8 +116,6 @@ La commande utilisée pour recevoir le message est __Importer Message__
 
 ### Génération automatique du scénario
 
-> <span style="color:red">__FONCTIONNALITE UNIQUEMENT EN BETA POUR LE MOMENT__</span>
-> 
 > <span style="color:red">_Fonctionne uniquement avec les plugins officiellement supportés (cf. ci-dessus)_</span>
 
 Dans l'équipement il existe un onglet "Notifications Diagral" qui permet de confiugurer les informations essentielles à la génération du scénario de reception des notifications Diagral.
@@ -252,8 +251,6 @@ Vous pouvez choisir de désactiver l'envoi des informations ou bien n'envoyer qu
 Vous avez aussi la possibilité de supprimer les informations stockés (action automatique à la désinstallation) en cliquant sur le bouton reservé à cet effet. Cette action désactive automatiquement l'envoi des données à venir.
 
 Le login market permet de pouvoir vous contacter par [Community](https://community.jeedom.com) si besoin.
-
-> <span style="color:red">__FONCTIONNALITE UNIQUEMENT EN BETA POUR LE MOMENT__</span>
 
 # Numerotation des versions
 
