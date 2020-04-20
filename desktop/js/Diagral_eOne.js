@@ -82,3 +82,100 @@ $('.eqLogicAction[data-action=synchronize]').on('click', function (e) {
 
   });
 });
+
+
+// Recherche d'équipement pour les notifications
+$('#notificationEqLogic').on('click', function () {
+    var plugin = document.getElementById("notificationPlugin").value;
+    jeedom.eqLogic.getSelectModal({eqLogic: {eqType_name: plugin}}, function (result) {
+        $('.eqLogicAttr[data-l1key=configuration][data-l2key=notificationEqLogic]').value(result.human);
+    });
+});
+
+// S'execute quand on entre dans l'onglet de Notification Diagral
+$(window).on('hashchange load', function() {
+    if (location.hash === "#notificationDiagral") {
+        var urlParams = new URLSearchParams(window.location.search);
+        var eqId = urlParams.getAll('id').toString();
+        $.ajax({// fonction permettant de faire de l'ajax
+            type: "POST", // methode de transmission des données au fichier php
+            url: "plugins/Diagral_eOne/core/ajax/Diagral_eOne.ajax.php", // url du fichier php
+            data: {
+                action: "notificationVerifyScenario",
+                eqID: eqId,
+            },
+            dataType: 'json',
+            error: function (request, status, error) {
+                handleAjaxError(request, status, error);
+            },
+            success: function (data) { // si l'appel a bien fonctionné
+                var JSONreturn = JSON.parse(data.result);
+                if(JSONreturn['scenarioExist']) {
+                    $( "#notificationButtonUpdate" ).show();
+                    $( "#divNotificationScenarioName" ).show();
+                    $( "#notificationScenarioName" ).empty();
+                    $( "#notificationScenarioName" ).append( "<span class='label label-info'><a target='_blank' href='/index.php?v=d&p=scenario&id=" + JSONreturn['scenarioID'] +"'>" + JSONreturn['scenarioName'] + "</a></span>" )
+                } else {
+                    $( "#notificationButtonCreate" ).show();
+                }
+            }
+        });
+    }
+});
+
+
+// Genere ou met à jour le scénario de Notification
+$('#notificationGenerateScenario, #notificationUpdateScenario').click( function() {
+    var urlParams = new URLSearchParams(window.location.search);
+    var eqId = urlParams.getAll('id').toString();
+    $.ajax({// fonction permettant de faire de l'ajax
+        type: "POST", // methode de transmission des données au fichier php
+        url: "plugins/Diagral_eOne/core/ajax/Diagral_eOne.ajax.php", // url du fichier php
+        data: {
+            action: "notificationGenerateUpdateScenario",
+            eqID: eqId,
+        },
+        dataType: 'json',
+        error: function (request, status, error) {
+            handleAjaxError(request, status, error);
+        },
+        success: function (data) { // si l'appel a bien fonctionné
+            if (data.state != 'ok') {
+                $('#div_alert').showAlert({message: data.result, level: 'danger'});
+                return;
+            }
+            $('#div_alert').showAlert({message: '{{Création/Modification du scénario de notification Diagral réalisée avec succès}}', level: 'success'});
+            setTimeout( function() {
+                location.reload();
+            }, 2000);
+        }
+    });
+});
+
+// Supprime le scénario de notification
+$('#notificationDeleteScenario').click( function() {
+    var urlParams = new URLSearchParams(window.location.search);
+    var eqId = urlParams.getAll('id').toString();
+    $.ajax({// fonction permettant de faire de l'ajax
+        type: "POST", // methode de transmission des données au fichier php
+        url: "plugins/Diagral_eOne/core/ajax/Diagral_eOne.ajax.php", // url du fichier php
+        data: {
+            action: "notificationDeleteScenario",
+            EqId: eqId,
+        },
+        dataType: 'json',
+        error: function (request, status, error) {
+            handleAjaxError(request, status, error);
+        },
+        success: function (data) { // si l'appel a bien fonctionné
+            if (data.state != 'ok') {
+                $('#div_alert').showAlert({message: data.result, level: 'danger'});
+                return;
+            }
+            $('#div_alert').showAlert({message: '{{Suppression du scénario de notification Diagral réalisée avec succès}}', level: 'success'});
+            setTimeout( function() {
+                location.reload();
+            }, 2000);
+        }
+    });
+});

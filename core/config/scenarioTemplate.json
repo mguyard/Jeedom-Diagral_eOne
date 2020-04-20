@@ -1,0 +1,86 @@
+{
+    "name": "Notification Diagral",
+    "isActive": "1",
+    "group": "",
+    "mode": "provoke",
+    "schedule": "",
+    "trigger": [
+        "#TRIGGER#"
+    ],
+    "timeout": "0",
+    "isVisible": "0",
+    "display": {
+        "name": "",
+        "icon": "<i class=\"icon divers-mailbox15\"><\/i>"
+    },
+    "order": "9999",
+    "description": "",
+    "configuration": {
+        "timeDependency": 0,
+        "has_return": 0,
+        "logmode": "default",
+        "allowMultiInstance": "0",
+        "syncmode": "0",
+        "timeline::enable": "0"
+    },
+    "state": "stop",
+    "elements": [
+        {
+            "name": null,
+            "type": "if",
+            "options": [],
+            "order": "0",
+            "subElements": [
+                {
+                    "name": null,
+                    "type": "if",
+                    "subtype": "condition",
+                    "options": {
+                        "enable": "1",
+                        "allowRepeatCondition": "0",
+                        "collapse": "0"
+                    },
+                    "order": "0",
+                    "expressions": [
+                        {
+                            "type": "condition",
+                            "subtype": null,
+                            "expression": "#MAIL-TO# == 'no_reply@diagral-services.fr' ",
+                            "options": [],
+                            "order": "0"
+                        }
+                    ]
+                },
+                {
+                    "name": null,
+                    "type": "then",
+                    "subtype": "action",
+                    "options": [],
+                    "order": "1",
+                    "expressions": [
+                        {
+                            "type": "action",
+                            "subtype": null,
+                            "expression": "#IMPORTCMD#",
+                            "options": {
+                                "enable": "1",
+                                "background": "0",
+                                "title": "#MAIL-SUBJECT# | source=email",
+                                "message": "#MAIL-HTML#"
+                            },
+                            "order": "0"
+                        }
+                    ]
+                },
+                {
+                    "name": null,
+                    "type": "else",
+                    "subtype": "action",
+                    "options": [],
+                    "order": "2",
+                    "expressions": []
+                }
+            ]
+        }
+    ]
+}

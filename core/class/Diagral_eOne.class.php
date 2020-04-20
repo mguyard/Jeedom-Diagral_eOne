@@ -21,6 +21,7 @@ require_once __DIR__  . '/../../../../core/php/core.inc.php';
 
 define('__PLGBASE__', dirname(dirname(__DIR__)));
 require_once (__PLGBASE__.'/3rparty/Diagral-eOne-API-PHP/class/Diagral/Diagral_eOne.class.php');
+include(__PLGBASE__.'/3rparty/HTTPFul/httpful.phar');
 //use \Mguyard\Diagral\Diagral_eOne;
 
 class Diagral_eOne extends eqLogic {
@@ -382,7 +383,7 @@ class Diagral_eOne extends eqLogic {
 
     /**
      * Genere un Liste des groupes de Zone possible
-     * @return array Tableau contenant un tableau pour chaque combinaison possible
+     * @return array Tableau contenant l'ensemble des zones Diagral de l'alarme
      */
     private function generateGroupsList() {
         log::add('Diagral_eOne', 'debug', 'generateGroupsList::Start');
@@ -514,6 +515,8 @@ class Diagral_eOne extends eqLogic {
 				}
             }
         }
+        // Send data informations for installation follow
+        Diagral_eOne::installTracking();
     }
 
 
@@ -569,6 +572,17 @@ class Diagral_eOne extends eqLogic {
         } else {
             log::add('Diagral_eOne', 'debug', 'checkConfig::polling_interval Default Value');
         }
+        // Checking InstallBaseEmailAddr
+        log::add('Diagral_eOne', 'debug', 'checkConfig::InstallBaseEmailAddr::Start');
+        if ( ! empty(config::byKey('InstallBaseEmailAddr', 'Diagral_eOne'))) {
+            if(!filter_var(config::byKey('InstallBaseEmailAddr', 'Diagral_eOne'), FILTER_VALIDATE_EMAIL)){
+                throw new Exception(__('L\'adresse email utilisé pour les communication à un format invalide.', __FILE__));
+            } else {
+                log::add('Diagral_eOne', 'debug', 'checkConfig::InstallBaseEmailAddr OK with value ' . config::byKey('InstallBaseEmailAddr', 'Diagral_eOne'));
+            }
+        } else {
+            log::add('Diagral_eOne', 'debug', 'checkConfig::InstallBaseEmailAddr Default Value');
+        }
     }
 
     /**
@@ -576,6 +590,8 @@ class Diagral_eOne extends eqLogic {
      * @return string statut de l'état de l'alarme
      */
     public function getDiagralStatus() {
+        // Stock l'actuelle valeur du status pour pouvoir le comparer avec le nouveau statut plus tard
+        $lastStatus = $this->getCmd(null, 'status')->execCmd();
         log::add('Diagral_eOne', 'debug', 'getDiagralStatus::' . $this->getConfiguration('systemid') . '::Starting Request');
         $MyAlarm = $this->setDiagralEnv();
         // Si nous n'avons pas d'information sur l'état de l'alarme (session existante), on demande les informations
@@ -601,8 +617,29 @@ class Diagral_eOne extends eqLogic {
             }
             $groups = implode(' + ', $MyAlarm->groups);
             log::add('Diagral_eOne', 'debug', 'getDiagralStatus::GroupsEnable ' . var_export($MyAlarm->groups, true));
+            // Si une alarme est active
+            if ($this->isAlarmActive()) {
+                // On compare la zone declencheur de l'alarme et les zone actives
+                $trigger = $this->getAlarmTrigger();
+                if (! empty($trigger['zone'])) {
+                    $zoneMatch = array_search(strtolower($trigger['zone']), array_map('strtolower', $MyAlarm->groups));
+                    // Si la zone declencheur de l'alarme est toujours active, alors on conserve le status de l'alarme sur "alarm"
+                    if ($zoneMatch !== false) {
+                        log::add('Diagral_eOne', 'debug', 'getDiagralStatus::AlarmTrigger Alarme Trigger zone (' . $trigger['zone'] . ') is enable. Conserve alarm status');
+                        $MyAlarm->systemState = "alarm";
+                    }
+                } else {
+                    log::add('Diagral_eOne', 'debug', 'getDiagralStatus::AlarmTrigger Alarm is enable but no trigger detected. It seens to be a false positive. Reset alarm to 0');
+                    $this->checkAndUpdateCmd('alarm', 0);
+                }
+            }
         } else {
             $groups = "";
+            // Si une alarme est active et que le dernier statut de l'alarme est off, on repasse supprime l'alarme active
+            if ($this->isAlarmActive()) {
+                $this->checkAndUpdateCmd('alarm', 0);
+                log::add('Diagral_eOne', 'debug', 'getDiagralStatus::Alarm set to 0 due to complete desactivation following an alarm alert');
+            }
         }
         return array($MyAlarm->systemState, $groups);
     }
@@ -616,6 +653,11 @@ class Diagral_eOne extends eqLogic {
         $MyAlarm->completeDesactivation();
         $MyAlarm->logout();
         log::add('Diagral_eOne', 'debug', 'setCompleteDesactivation::' . $this->getConfiguration('systemid') . '::Success');
+        // Si une alarme est en cours
+        if ($this->isAlarmActive()) {
+            $this->checkAndUpdateCmd('alarm', 0);
+            log::add('Diagral_eOne', 'debug', 'setCompleteDesactivation::Alarm set to 0 due to complete desactivation following an alarm alert');
+        }
     }
 
     /**
@@ -639,6 +681,30 @@ class Diagral_eOne extends eqLogic {
         $MyAlarm->presenceActivation();
         $MyAlarm->logout();
         log::add('Diagral_eOne', 'debug', 'setPresenceActivation::' . $this->getConfiguration('systemid') . '::Success');
+    }
+
+    /**
+     * Fonction de verification du mode SecureDisarm
+     * @return boolean True si SecureDisarm est activé sinon False
+     */
+    public function secureDisarm() {
+        $userIsAdmin = isConnect('admin');
+        $secureDisarm = $this->getConfiguration('secureDisarm') ?: 0;
+        // Si l'utilisateur est administrateur, alors ne pas bloquer le désarmement même si SecureDisarm est actif
+        if ($secureDisarm) {
+            // La fonctionnalitée SecureDisarm est activée.
+            if ($userIsAdmin) {
+                log::add('Diagral_eOne', 'debug', 'L\'utilisateur est administrateur. La fonctionnalité SecureDisarm (Statut actuel : '. var_export($secureDisarm, true) .') est outre-passée.');
+                return FALSE;
+            } else {
+                log::add('Diagral_eOne', 'error', 'La fonctionnalitée SecureDisarm est active (' . var_export($secureDisarm, true) . '). La désactivation de l\'alarme au travers de Jeedom est désactivée.');
+                return TRUE;
+            }
+        } else {
+            // La fonctionnalitée SecureDisarm est désactivée.
+            return FALSE;
+        }
+
     }
 
     /**
@@ -685,7 +751,7 @@ class Diagral_eOne extends eqLogic {
 
     /**
      * Desactivation partielle de l'alarme (une seule zone à la fois)
-     * @param int $cmdValue  GroupID de la zone (ID teels que connu par Diagral)
+     * @param int $cmdValue  GroupID de la zone (ID tels que connu par Diagral)
      * @return boolean du statut de l'action
      */
     public function setPartialDesactivation($cmdValue) {
@@ -699,6 +765,20 @@ class Diagral_eOne extends eqLogic {
         }
         $MyAlarm->logout();
         log::add('Diagral_eOne', 'debug', 'setPartialDesactivation::' . $this->getConfiguration('systemid') . '::Success for groupID ' . $cmdValue);
+        // Si une alarme est en cours
+        if ($this->isAlarmActive()) {
+            $trigger = $this->getAlarmTrigger();
+            // Recuperation de la liste des zones existante
+            $listAlarmZone = $this->generateGroupsList();
+            $zoneNameDisabled = $listAlarmZone[$cmdValue];
+            // Comparaison de la zone d'alarme et de la zone qui vient d'être désactivé
+            $result = strpos(strtolower($trigger['zone']), strtolower($zoneNameDisabled));
+            // La Zone d'alarme correspond à la zone desactivé
+            if ($result !== false) {
+                $this->checkAndUpdateCmd('alarm', 0);
+                log::add('Diagral_eOne', 'debug', 'setPartialDesactivation::Alarm set to 0. Alarm was triggered by "' . $trigger['zone'] . '" and this zone is now disable (' . $zoneNameDisabled . ')');
+            }
+        }
         return TRUE;
     }
 
@@ -767,6 +847,20 @@ class Diagral_eOne extends eqLogic {
                                 $alarmMethod = trim($matches[3]);
                                 log::add('Diagral_eOne', 'debug', 'importMessage::Message::alarmMethod ' . $alarmMethod);
                                 $alarmUser = trim($matches[4], " ()"); # Remove space and ()
+                                // Verifie si alarmMethod correspond à un badge
+                                if (preg_match( '/Badge\\s(\\d)/', $alarmMethod, $badge)) {
+                                    log::add('Diagral_eOne', 'debug', 'importMessage::BadgeAlias Détection d\'un badge');
+                                    // On recupere l'alias du badge correspondant
+                                    $badgeAlias = $this->getConfiguration('badge' . $badge[1] . '-alias');
+                                    log::add('Diagral_eOne', 'debug', 'importMessage::BadgeAlias Badge' . $badge[1] . ' détecté. Son alias est : ' . $badgeAlias);
+                                    // Si l'alias de badge est non vide alors on le met dans alarmUser
+                                    if (! empty($badgeAlias)) {
+                                        log::add('Diagral_eOne', 'debug', 'importMessage::BadgeAlias Ajout de l\'alias du badge'. $badge[1] .' dans le champs "IMPORT - Dernier utilisateur" ('. $badgeAlias .')');
+                                        $alarmUser = $badgeAlias;
+                                    } else {
+                                        log::add('Diagral_eOne', 'debug', 'importMessage::BadgeAlias Aucun alias défini pour le badge'. $badge[1] .'. Le champs "IMPORT - Dernier utilisateur" reste vide.');
+                                    }
+                                }
                                 log::add('Diagral_eOne', 'debug', 'importMessage::Message::alarmUser ' . $alarmUser);
                                 // Analyse le contenu du message pour définir si c'est une mise en marche ou mise à l'arrêt
                                 switch ($mailContent) {
@@ -786,9 +880,21 @@ class Diagral_eOne extends eqLogic {
                             // Le sujet correspond à une Alarme
                             case ( preg_match( '/Alarme/', $options['subject'] ) ? true : false ):
                                 // Besoin de plus de type de contenu pour gerer cette partie.
-                                $regex = '/Votre système d\\\'alarme Diagral sur le site «(.*)», vous signale : (.*)/m';
+                                $regex = '/Votre système d\\\'alarme Diagral sur le site «(.*)», vous signale : \\S+\\s?(.*) déclenchée par :?l?[e|a]?(.*)./m';
                                 preg_match($regex, $message, $matches);
                                 log::add('Diagral_eOne', 'info', 'importMessage::MessageAfterManipulationRegex NOT YET PARSED' . var_export($matches, true));
+                                $formatedMsg = $matches[0];
+                                // Actuellement le AlarmName semble mal envoyé dans les mails
+                                $alarmName = trim($matches[1]);
+                                log::add('Diagral_eOne', 'debug', 'importMessage::Message::alarmName ' . $alarmName);
+                                $mailContent = trim($matches[2]); # Correspond au type d'alarme
+                                log::add('Diagral_eOne', 'debug', 'importMessage::Message::mailContent ' . $mailContent);
+                                $alarmMethod = trim($matches[3]); # Correspond au declencheur de l'alarme
+                                log::add('Diagral_eOne', 'debug', 'importMessage::Message::alarmMethod ' . $alarmMethod);
+                                $alarmUser = ""; # Contenu non necessaire pour la gestion des alarmes
+                                $this->checkAndUpdateCmd('status', "alarm");
+                                $this->checkAndUpdateCmd('alarm', 1);
+                                log::add('Diagral_eOne', 'debug', 'Update::status Changement du statut en mode ALARM suite à la reception d\'un email de déclenchement d\'alarme');
                                 // Objectif avec commande info qui specifie l'alarme en cours => Voir comment faire pour la 'unset' apres quelques minutes --> Voir si a la prochaine desactivation, si alarme = 1 alors passé à 0
                                 break;
                             // Le sujet est invalide ou inconnu
@@ -822,6 +928,196 @@ class Diagral_eOne extends eqLogic {
         );
     }
 
+    /**
+     * Return if alarm is in progress (0 : No Alarm / 1 : Alarm)
+     * @return boolean
+     */
+    public function isAlarmActive() {
+        $cmdAlarm = $this->getCmd(null, 'alarm')->execCmd();
+        log::add('Diagral_eOne', 'debug', 'isAlarmActive::Status ' . $cmdAlarm);
+        return $cmdAlarm;
+    }
+
+    /**
+     * Get information about alarm trigger
+     * @return array with detector and zone who trigger alarm
+     */
+    public function getAlarmTrigger() {
+        $cmdTrigger = $this->getCmd(null, 'imported_last_method')->execCmd();
+        if (preg_match( '/.*\\s\\((.*)\\)\\s.*\\((.*)\\)/', $cmdTrigger, $trigger)) {
+            $triggerDetector = $trigger[1];
+            log::add('Diagral_eOne', 'debug', 'getAlarmTrigger::Detector ' . $triggerDetector);
+            $triggerZone = $trigger[2];
+            log::add('Diagral_eOne', 'debug', 'getAlarmTrigger::Zone ' . $triggerZone);
+        }
+        // Retourne les paramètres collectés
+        return array(
+            "detector" => $triggerDetector,
+            "zone" => $triggerZone
+        );
+    }
+
+
+    /* ------------------------------ Tracking d'installation ------------------------------ */
+
+
+    /**
+     * Send information to install database to follow number of installations and communication list
+     * @param bool $delete (1 if delete action need. Default : 0)
+     */
+    public function installTracking($delete=0) {
+        log::add('Diagral_eOne', 'debug', 'isEnable::Status ' . config::byKey('InstallBaseStatus', 'Diagral_eOne'));
+        log::add('Diagral_eOne', 'debug', 'isAnonymous::Status ' . config::byKey('InstallBaseAnonymousOnly', 'Diagral_eOne'));
+        log::add('Diagral_eOne', 'debug', 'emailAddr::Status ' . config::byKey('InstallBaseEmailAddr', 'Diagral_eOne'));
+        log::add('Diagral_eOne', 'debug', 'jeedomKey::Status ' . jeedom::getHardwareKey());
+        log::add('Diagral_eOne', 'debug', 'marketLogin::Status ' . config::byKey('market::username'));
+        // Configuration Request
+        $baseURL = "https://jeedom-e061.restdb.io/rest/diagral-eone-installation-base";
+        $apiKey = "5e8459ecf96f9f072a0b0bd7";
+        // Si c'est une demande de suppression de données
+        if ($delete) {
+            // Lance la suppression des données de tracking de cette installation
+            Diagral_eOne::deleteInstallBase($baseURL,$apiKey);
+        } else { // Sinon
+            // Si l'envoi d'information est actif
+            if (config::byKey('InstallBaseStatus', 'Diagral_eOne')) {
+                // Lance la creation ou la mise à jour des données
+                Diagral_eOne::createUpdateInstallBase($baseURL,$apiKey);
+            } else {
+                log::add('Diagral_eOne', 'debug', 'installTracking Mise à jour désactivée.');
+            }
+        }
+    }
+
+    /**
+     * get database UID for this Jeedom Installation
+     * @param string $getURL url to request data
+     * @param string $apiKey apikey for request
+     * @return string data uid
+     */
+    public function getUIDDataInstallBase($url, $apiKey) {
+        $urlArgs = $url . '?q={"productKey":"' . jeedom::getHardwareKey() . '"}';
+        $requestUID = \Httpful\Request::get($urlArgs)
+            ->expectsJson()
+            ->timeoutIn(30)
+            ->addHeaders(array(
+                'x-apikey' => $apiKey,
+                'content-type' => 'application/json',
+            ))
+            ->send();
+            // Recuperation de l'UID
+            $uid = $requestUID->body[0]->_id;
+            log::add('Diagral_eOne', 'debug', 'installTracking UID:' . $uid);
+            return $uid;
+    }
+
+    /**
+     * get Plugin branch (stable or beta)
+     * @return string $pluginbranch
+     */
+    public function getPluginBranch() {
+        $update = update::byLogicalId('Diagral_eOne');
+        $pluginbranch = $update->getConfiguration('version');
+        return $pluginbranch;
+    }
+
+    /**
+     * Generate data to send to Install Tracking
+     * @return array $data data to send
+     */
+    public function generateDataInstallBase() {
+        // Defini les données anonymisées
+        $data = array(
+            'productKey' => jeedom::getHardwareKey(),
+            'hardware' => jeedom::getHardwareName(),
+            'id' => '',
+            'email' => '',
+            'pluginVersion' => config::byKey('plugin_version', 'Diagral_eOne'),
+            'pluginBranch' => Diagral_eOne::getPluginBranch(),
+            'jeedomVersion' => jeedom::version()
+        );
+        // Verifie si on peut envoyer les informations non anonyme
+        if (! config::byKey('InstallBaseAnonymousOnly', 'Diagral_eOne')) {
+            $data['id'] = config::byKey('market::username');
+            $data['email'] = config::byKey('InstallBaseEmailAddr', 'Diagral_eOne');
+        }
+        log::add('Diagral_eOne', 'debug', 'installTracking CONTENT : ' . var_export($data, true));
+        return $data;
+    }
+
+    /**
+     * Create or update data
+     * @param string $url
+     * @param string $apiKey
+     */
+    public function createUpdateInstallBase($url,$apiKey) {
+        // Récuperation de l'UID d'installation
+        $uid = Diagral_eOne::getUIDDataInstallBase($url, $apiKey);
+        // Genere les data a envoyer
+        $data = Diagral_eOne::generateDataInstallBase();
+        // Si aucun UID existe (aucune entrée existante en base)
+        if (empty($uid)) {
+            log::add('Diagral_eOne', 'info', 'installTracking Aucune entrée existante. Creation d\'une nouvelle.');
+            Diagral_eOne::sendDataInstallBase($url,$apiKey,'POST',$data);
+        } else { // Une entrée existe deja
+            $url = $url . '/' . $uid;
+            log::add('Diagral_eOne', 'debug', 'installTracking Mise à jour de l\'entrée.');
+            Diagral_eOne::sendDataInstallBase($url,$apiKey,'PUT',$data);
+        }
+    }
+
+    /**
+     * Delete install base
+     * @param string $url
+     * @param string $apiKey
+     */
+    public function deleteInstallBase($url,$apiKey) {
+        // Récuperation de l'UID d'installation
+        $uid = Diagral_eOne::getUIDDataInstallBase($url, $apiKey);
+        // Si l'entrée existe bien
+        if ( ! empty($uid)) {
+            $url = $url . '/' . $uid;
+            // Je supprime l'entrée
+            $returnCode = Diagral_eOne::sendDataInstallBase($url,$apiKey,'DELETE');
+            if (strpos($returnCode, '2') === 0) {
+                log::add('Diagral_eOne', 'info', 'installTracking Suppression de votre installation dans la base de Tracking.');
+                // Je désactive le tracking
+                config::save('InstallBaseStatus', 0, 'Diagral_eOne');
+                log::add('Diagral_eOne', 'info', 'installTracking Désactivation du tracking.');
+            } else {
+                log::add('Diagral_eOne', 'error', 'installTracking Erreur de suppression des données de tracking.');
+            }
+        }
+    }
+
+    /**
+     * Call API to Database
+     * @param string $url
+     * @param string $apiKey
+     * @param string $method
+     * @param array $data
+     * @return string HTTP return code
+     */
+    public function sendDataInstallBase($url,$apiKey,$method,$data=array()) {
+        $request = \Httpful\Request::post($url)
+            ->expectsJson()
+            ->timeoutIn(30)
+            ->addHeaders(array(
+                'x-apikey' => $apiKey,
+                'content-type' => 'application/json',
+                'X-HTTP-Method-Override' => $method,
+                'cache-control' => 'no-cache',
+            ))
+            ->body(json_encode($data))
+            ->send();
+        // Affichage des messages si le code de retour n'est pas 200
+        if (strpos($request->code, '2') === 0) {
+            log::add('Diagral_eOne', 'debug', 'installTracking Données envoyées (HTTP '. $request->code .')');
+        } else {
+            log::add('Diagral_eOne', 'warning', 'installTracking Erreur '. $request->code .' avec le serveur de suivi des installations (' . $request->body->message . ') : ' . var_export($request->body, True));
+        }
+        return $request->code;
+}
 
     /*     * **********************Getteur Setteur*************************** */
 }
@@ -852,17 +1148,21 @@ class Diagral_eOneCmd extends cmd {
                 $changed = $eqLogic->checkAndUpdateCmd('groups_enable', $groups) || $changed; // On met à jour la commande avec le LogicalId "groups_enable" de l'eqlogic
                 break;
             case 'total_disarm':
-                $eqLogic->setCompleteDesactivation();
-                list($status,$groups) = $eqLogic->getDiagralStatus();
-                $changed = $eqLogic->checkAndUpdateCmd('status', $status) || $changed;
-                $changed = $eqLogic->checkAndUpdateCmd('groups_enable', $groups) || $changed;
-                break;
-            case 'disarm_partial':
-                $status = $eqLogic->setPartialDesactivation($_options['select']);
-                if($status) {
+                if ( ! $eqLogic->secureDisarm()) { // SecureDisarm n'est pas activée
+                    $eqLogic->setCompleteDesactivation();
                     list($status,$groups) = $eqLogic->getDiagralStatus();
                     $changed = $eqLogic->checkAndUpdateCmd('status', $status) || $changed;
                     $changed = $eqLogic->checkAndUpdateCmd('groups_enable', $groups) || $changed;
+                }
+                break;
+            case 'disarm_partial':
+                if ( ! $eqLogic->secureDisarm()) { // SecureDisarm n'est pas activée
+                    $status = $eqLogic->setPartialDesactivation($_options['select']);
+                    if($status) {
+                        list($status,$groups) = $eqLogic->getDiagralStatus();
+                        $changed = $eqLogic->checkAndUpdateCmd('status', $status) || $changed;
+                        $changed = $eqLogic->checkAndUpdateCmd('groups_enable', $groups) || $changed;
+                    }
                 }
                 break;
             case 'total_arm':
