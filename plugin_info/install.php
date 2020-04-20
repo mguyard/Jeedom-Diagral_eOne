@@ -21,6 +21,8 @@ require_once dirname(__FILE__) . '/../../../core/php/core.inc.php';
 function Diagral_eOne_install() {
     // Set la version du plugin
     $pluginVersion = Diagral_eOne_setVersion();
+    // Active le mode de communication par defaut
+    config::save('InstallBaseStatus', 1, 'Diagral_eOne');
     // Crée les CRON
     Diagral_eOne_Cron_Pull('create');
     Diagral_eOne_Cron_JSON('create');
