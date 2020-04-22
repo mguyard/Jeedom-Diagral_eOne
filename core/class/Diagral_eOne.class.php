@@ -984,7 +984,7 @@ class Diagral_eOne extends eqLogic {
                 // Lance la creation ou la mise à jour des données
                 Diagral_eOne::createUpdateInstallBase($baseURL,$apiKey);
             } else {
-                log::add('Diagral_eOne', 'debug', 'installTracking Mise à jour désactivée.');
+                log::add('Diagral_eOne', 'debug', 'installTracking La mise à jour des données de suivi d\'installation est actuellement désactivée.');
             }
         }
     }
@@ -993,10 +993,18 @@ class Diagral_eOne extends eqLogic {
      * get database UID for this Jeedom Installation
      * @param string $getURL url to request data
      * @param string $apiKey apikey for request
-     * @return string data uid
+     * @return array with uid and success of request
      */
-    public function getUIDDataInstallBase($url, $apiKey) {
+    public function getUIDDataInstallBase($url, $apiKey, $waitingTime=0) {
+        log::add('Diagral_eOne', 'debug', 'installTracking Récupération de l\'UID de tracking...');
         $urlArgs = $url . '?q={"productKey":"' . jeedom::getHardwareKey() . '"}';
+        $success = FALSE;
+        $uid = "";
+        // Ajout d'une temporisation pour eviter les requetes dans les même secondes
+        if ($waitingTime > 0) {
+            sleep ( $waitingTime );
+        }
+        // Execution de la requete de récupération de l'UID
         $requestUID = \Httpful\Request::get($urlArgs)
             ->expectsJson()
             ->timeoutIn(30)
@@ -1005,10 +1013,23 @@ class Diagral_eOne extends eqLogic {
                 'content-type' => 'application/json',
             ))
             ->send();
+
+        // Affichage des messages si le code de retour n'est pas 200
+        if (strpos($requestUID->code, '2') === 0) {
+            log::add('Diagral_eOne', 'debug', 'installTracking Données reçu (HTTP '. $requestUID->code .')');
             // Recuperation de l'UID
             $uid = $requestUID->body[0]->_id;
+            $success = TRUE;
             log::add('Diagral_eOne', 'debug', 'installTracking UID:' . $uid);
-            return $uid;
+        } else {
+            log::add('Diagral_eOne', 'warning', 'installTracking Erreur '. $requestUID->code .' avec le serveur de suivi des installations (' . $requestUID->body->message . ') : ' . var_export($requestUID->body, True));
+        }
+
+        // Retourne les paramètres collectés
+        return array(
+            "uid" => $uid,
+            "success" => $success
+        );
     }
 
     /**
@@ -1026,6 +1047,7 @@ class Diagral_eOne extends eqLogic {
      * @return array $data data to send
      */
     public function generateDataInstallBase() {
+        log::add('Diagral_eOne', 'debug', 'installTracking Génération des données avant envoi de suivi d\'installation...');
         // Defini les données anonymisées
         $data = array(
             'productKey' => jeedom::getHardwareKey(),
@@ -1051,18 +1073,22 @@ class Diagral_eOne extends eqLogic {
      * @param string $apiKey
      */
     public function createUpdateInstallBase($url,$apiKey) {
+        log::add('Diagral_eOne', 'debug', 'installTracking Lancement de la mise à jour.');
+        // Attente aleatoire entre 2 et 10 secondes pour répartir les requètes
+        $waitingTime = rand (2, 10);
         // Récuperation de l'UID d'installation
-        $uid = Diagral_eOne::getUIDDataInstallBase($url, $apiKey);
+        $uidResponse = Diagral_eOne::getUIDDataInstallBase($url, $apiKey, $waitingTime);
         // Genere les data a envoyer
         $data = Diagral_eOne::generateDataInstallBase();
+        $waitingTime = rand (2, 10);
         // Si aucun UID existe (aucune entrée existante en base)
-        if (empty($uid)) {
+        if ( empty($uidResponse['uid']) && $uidResponse['success'] ) {
             log::add('Diagral_eOne', 'info', 'installTracking Aucune entrée existante. Creation d\'une nouvelle.');
-            Diagral_eOne::sendDataInstallBase($url,$apiKey,'POST',$data);
+            Diagral_eOne::sendDataInstallBase($url,$apiKey,'POST',$data,$waitingTime);
         } else { // Une entrée existe deja
-            $url = $url . '/' . $uid;
+            $url = $url . '/' . $uidResponse['uid'];
             log::add('Diagral_eOne', 'debug', 'installTracking Mise à jour de l\'entrée.');
-            Diagral_eOne::sendDataInstallBase($url,$apiKey,'PUT',$data);
+            Diagral_eOne::sendDataInstallBase($url,$apiKey,'PUT',$data,$waitingTime);
         }
     }
 
@@ -1072,21 +1098,24 @@ class Diagral_eOne extends eqLogic {
      * @param string $apiKey
      */
     public function deleteInstallBase($url,$apiKey) {
+        log::add('Diagral_eOne', 'debug', 'Suppression de votre installation dans la base de Tracking en cours...');
         // Récuperation de l'UID d'installation
-        $uid = Diagral_eOne::getUIDDataInstallBase($url, $apiKey);
+        $uidResponse = Diagral_eOne::getUIDDataInstallBase($url, $apiKey);
         // Si l'entrée existe bien
-        if ( ! empty($uid)) {
-            $url = $url . '/' . $uid;
+        if ( ! empty($uidResponse['uid']) && $uidResponse['success']) {
+            $url = $url . '/' . $uidResponse['uid'];
             // Je supprime l'entrée
             $returnCode = Diagral_eOne::sendDataInstallBase($url,$apiKey,'DELETE');
             if (strpos($returnCode, '2') === 0) {
-                log::add('Diagral_eOne', 'info', 'installTracking Suppression de votre installation dans la base de Tracking.');
+                log::add('Diagral_eOne', 'info', 'installTracking Suppression de votre installation dans la base de Tracking effectuée.');
                 // Je désactive le tracking
                 config::save('InstallBaseStatus', 0, 'Diagral_eOne');
                 log::add('Diagral_eOne', 'info', 'installTracking Désactivation du tracking.');
             } else {
                 log::add('Diagral_eOne', 'error', 'installTracking Erreur de suppression des données de tracking.');
             }
+        } else {
+            og::add('Diagral_eOne', 'error', 'installTracking Erreur de suppression des données de tracking. L\'UID n\'a pas était trouvé.');
         }
     }
 
@@ -1098,7 +1127,13 @@ class Diagral_eOne extends eqLogic {
      * @param array $data
      * @return string HTTP return code
      */
-    public function sendDataInstallBase($url,$apiKey,$method,$data=array()) {
+    public function sendDataInstallBase($url,$apiKey,$method,$data=array(),$waitingTime=0) {
+        log::add('Diagral_eOne', 'debug', 'installTracking Transmission des données...');
+        // Ajout d'une temporisation pour eviter les requetes dans les même secondes
+        if ($waitingTime > 0) {
+            sleep ( $waitingTime );
+        }
+        // Execution des envois d'informations
         $request = \Httpful\Request::post($url)
             ->expectsJson()
             ->timeoutIn(30)
