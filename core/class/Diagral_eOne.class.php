@@ -993,13 +993,18 @@ class Diagral_eOne extends eqLogic {
      * get database UID for this Jeedom Installation
      * @param string $getURL url to request data
      * @param string $apiKey apikey for request
-     * @return string data uid
+     * @return array with uid and success of request
      */
-    public function getUIDDataInstallBase($url, $apiKey) {
+    public function getUIDDataInstallBase($url, $apiKey,$sleep=0) {
         log::add('Diagral_eOne', 'debug', 'installTracking Récupération de l\'UID de tracking...');
         $urlArgs = $url . '?q={"productKey":"' . jeedom::getHardwareKey() . '"}';
         $success = FALSE;
         $uid = "";
+        // Ajout d'une temporisation pour eviter les requetes dans les même secondes
+        if ($sleep > 0) {
+            sleep ( $sleep );
+        }
+        // Execution de la requete de récupération de l'UID
         $requestUID = \Httpful\Request::get($urlArgs)
             ->expectsJson()
             ->timeoutIn(30)
@@ -1069,14 +1074,16 @@ class Diagral_eOne extends eqLogic {
      */
     public function createUpdateInstallBase($url,$apiKey) {
         log::add('Diagral_eOne', 'debug', 'installTracking Lancement de la mise à jour.');
+        // Attente aleatoire entre 2 et 10 secondes pour répartir les requètes
+        $waitingTime = sleep ( rand ( 2, 10));
         // Récuperation de l'UID d'installation
-        $uidResponse = Diagral_eOne::getUIDDataInstallBase($url, $apiKey);
+        $uidResponse = Diagral_eOne::getUIDDataInstallBase($url, $apiKey, $waitingTime);
         // Genere les data a envoyer
         $data = Diagral_eOne::generateDataInstallBase();
         // Si aucun UID existe (aucune entrée existante en base)
-        if ( empty($uidResponse['uid']) || ! $uidResponse['success'] ) {
+        if ( empty($uidResponse['uid']) && $uidResponse['success'] ) {
             log::add('Diagral_eOne', 'info', 'installTracking Aucune entrée existante. Creation d\'une nouvelle.');
-            Diagral_eOne::sendDataInstallBase($url,$apiKey,'POST',$data);
+            Diagral_eOne::sendDataInstallBase($url,$apiKey,'POST',$data,$waitingTime);
         } else { // Une entrée existe deja
             $url = $url . '/' . $uidResponse['uid'];
             log::add('Diagral_eOne', 'debug', 'installTracking Mise à jour de l\'entrée.');
@@ -1119,8 +1126,13 @@ class Diagral_eOne extends eqLogic {
      * @param array $data
      * @return string HTTP return code
      */
-    public function sendDataInstallBase($url,$apiKey,$method,$data=array()) {
+    public function sendDataInstallBase($url,$apiKey,$method,$data=array(),$sleep=0) {
         log::add('Diagral_eOne', 'debug', 'installTracking Transmission des données...');
+        // Ajout d'une temporisation pour eviter les requetes dans les même secondes
+        if ($sleep > 0) {
+            sleep ( $sleep );
+        }
+        // Execution des envois d'informations
         $request = \Httpful\Request::post($url)
             ->expectsJson()
             ->timeoutIn(30)
