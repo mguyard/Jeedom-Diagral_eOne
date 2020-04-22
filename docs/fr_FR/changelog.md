@@ -4,6 +4,15 @@ __Lorsque aucunes informations ne sont disponibles sur le changelog, cela impliq
 
 __Le changelog de la version de developpement se trouve [ici](https://github.com/mguyard/Jeedom-Diagral_eOne/blob/develop/docs/fr_FR/changelog.md)__
 
+# 2020-04-22 - v1.2.3
+
+- __Passage de la version en STABLE__
+
+# 2020-04-22 - v1.2.2
+
+- Ajout de plus de logs sur les suivi d'installation [issue #14](https://github.com/mguyard/Jeedom-Diagral_eOne/issues/17)
+- Intégration d'une latence aleatoire entre 2 et 10 secondes pour les requêtes du suivi d'installation afin d'eviter que les requêtes ne soient trop en simultanées (aucun impact sur les refresh de l'alarme même si c'est la même CRON)
+
 # 2020-04-19 - v1.2.1
 
 - __Passage de la version en STABLE__
