@@ -996,6 +996,7 @@ class Diagral_eOne extends eqLogic {
      * @return string data uid
      */
     public function getUIDDataInstallBase($url, $apiKey) {
+        log::add('Diagral_eOne', 'debug', 'installTracking Récupération de l\'UID de tracking...');
         $urlArgs = $url . '?q={"productKey":"' . jeedom::getHardwareKey() . '"}';
         $requestUID = \Httpful\Request::get($urlArgs)
             ->expectsJson()
@@ -1005,10 +1006,16 @@ class Diagral_eOne extends eqLogic {
                 'content-type' => 'application/json',
             ))
             ->send();
-            // Recuperation de l'UID
-            $uid = $requestUID->body[0]->_id;
-            log::add('Diagral_eOne', 'debug', 'installTracking UID:' . $uid);
-            return $uid;
+            // Affichage des messages si le code de retour n'est pas 200
+            if (strpos($request->code, '2') === 0) {
+                log::add('Diagral_eOne', 'debug', 'installTracking Données reçu (HTTP '. $request->code .')');
+                // Recuperation de l'UID
+                $uid = $requestUID->body[0]->_id;
+                log::add('Diagral_eOne', 'debug', 'installTracking UID:' . $uid);
+                return $uid;
+            } else {
+                log::add('Diagral_eOne', 'warning', 'installTracking Erreur '. $request->code .' avec le serveur de suivi des installations (' . $request->body->message . ') : ' . var_export($request->body, True));
+            }
     }
 
     /**
@@ -1016,8 +1023,10 @@ class Diagral_eOne extends eqLogic {
      * @return string $pluginbranch
      */
     public function getPluginBranch() {
+        log::add('Diagral_eOne', 'debug', 'installTracking Récupération de la branche du plugin...');
         $update = update::byLogicalId('Diagral_eOne');
         $pluginbranch = $update->getConfiguration('version');
+        log::add('Diagral_eOne', 'debug', 'installTracking Branche du plugin : ' . $pluginbranch);
         return $pluginbranch;
     }
 
@@ -1026,6 +1035,7 @@ class Diagral_eOne extends eqLogic {
      * @return array $data data to send
      */
     public function generateDataInstallBase() {
+        log::add('Diagral_eOne', 'debug', 'installTracking Génération des données avant envoi de suivi d\'installation...');
         // Defini les données anonymisées
         $data = array(
             'productKey' => jeedom::getHardwareKey(),
@@ -1051,6 +1061,7 @@ class Diagral_eOne extends eqLogic {
      * @param string $apiKey
      */
     public function createUpdateInstallBase($url,$apiKey) {
+        log::add('Diagral_eOne', 'debug', 'installTracking Lancement de la mise à jour.');
         // Récuperation de l'UID d'installation
         $uid = Diagral_eOne::getUIDDataInstallBase($url, $apiKey);
         // Genere les data a envoyer
@@ -1072,6 +1083,7 @@ class Diagral_eOne extends eqLogic {
      * @param string $apiKey
      */
     public function deleteInstallBase($url,$apiKey) {
+        log::add('Diagral_eOne', 'debug', 'Suppression de votre installation dans la base de Tracking en cours...');
         // Récuperation de l'UID d'installation
         $uid = Diagral_eOne::getUIDDataInstallBase($url, $apiKey);
         // Si l'entrée existe bien
@@ -1080,7 +1092,7 @@ class Diagral_eOne extends eqLogic {
             // Je supprime l'entrée
             $returnCode = Diagral_eOne::sendDataInstallBase($url,$apiKey,'DELETE');
             if (strpos($returnCode, '2') === 0) {
-                log::add('Diagral_eOne', 'info', 'installTracking Suppression de votre installation dans la base de Tracking.');
+                log::add('Diagral_eOne', 'info', 'installTracking Suppression de votre installation dans la base de Tracking effectuée.');
                 // Je désactive le tracking
                 config::save('InstallBaseStatus', 0, 'Diagral_eOne');
                 log::add('Diagral_eOne', 'info', 'installTracking Désactivation du tracking.');
@@ -1099,6 +1111,7 @@ class Diagral_eOne extends eqLogic {
      * @return string HTTP return code
      */
     public function sendDataInstallBase($url,$apiKey,$method,$data=array()) {
+        log::add('Diagral_eOne', 'debug', 'installTracking Transmission des données...');
         $request = \Httpful\Request::post($url)
             ->expectsJson()
             ->timeoutIn(30)
