@@ -1007,14 +1007,14 @@ class Diagral_eOne extends eqLogic {
             ))
             ->send();
             // Affichage des messages si le code de retour n'est pas 200
-            if (strpos($request->code, '2') === 0) {
-                log::add('Diagral_eOne', 'debug', 'installTracking Données reçu (HTTP '. $request->code .')');
+            if (strpos($requestUID->code, '2') === 0) {
+                log::add('Diagral_eOne', 'debug', 'installTracking Données reçu (HTTP '. $requestUID->code .')');
                 // Recuperation de l'UID
                 $uid = $requestUID->body[0]->_id;
                 log::add('Diagral_eOne', 'debug', 'installTracking UID:' . $uid);
                 return $uid;
             } else {
-                log::add('Diagral_eOne', 'warning', 'installTracking Erreur '. $request->code .' avec le serveur de suivi des installations (' . $request->body->message . ') : ' . var_export($request->body, True));
+                log::add('Diagral_eOne', 'warning', 'installTracking Erreur '. $requestUID->code .' avec le serveur de suivi des installations (' . $requestUID->body->message . ') : ' . var_export($requestUID->body, True));
             }
     }
 
