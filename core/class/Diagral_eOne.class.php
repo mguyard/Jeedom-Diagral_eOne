@@ -1078,17 +1078,20 @@ class Diagral_eOne extends eqLogic {
         $waitingTime = rand (2, 10);
         // Récuperation de l'UID d'installation
         $uidResponse = Diagral_eOne::getUIDDataInstallBase($url, $apiKey, $waitingTime);
-        // Genere les data a envoyer
-        $data = Diagral_eOne::generateDataInstallBase();
-        $waitingTime = rand (2, 10);
-        // Si aucun UID existe (aucune entrée existante en base)
-        if ( empty($uidResponse['uid']) && $uidResponse['success'] ) {
-            log::add('Diagral_eOne', 'info', 'installTracking Aucune entrée existante. Creation d\'une nouvelle.');
-            Diagral_eOne::sendDataInstallBase($url,$apiKey,'POST',$data,$waitingTime);
-        } else { // Une entrée existe deja
-            $url = $url . '/' . $uidResponse['uid'];
-            log::add('Diagral_eOne', 'debug', 'installTracking Mise à jour de l\'entrée.');
-            Diagral_eOne::sendDataInstallBase($url,$apiKey,'PUT',$data,$waitingTime);
+        // Verifie que la requete d'UID est un succes (qu'un UID existe ou non). Se base uniquement sur le statut de la requete (2xx)
+        if ($uidResponse['success']) {
+            // Genere les data a envoyer
+            $data = Diagral_eOne::generateDataInstallBase();
+            $waitingTime = rand (2, 10);
+            // Si aucun UID existe (aucune entrée existante en base)
+            if ( empty($uidResponse['uid']) && $uidResponse['success'] ) {
+                log::add('Diagral_eOne', 'info', 'installTracking Aucune entrée existante. Creation d\'une nouvelle.');
+                Diagral_eOne::sendDataInstallBase($url,$apiKey,'POST',$data,$waitingTime);
+            } else { // Une entrée existe deja
+                $url = $url . '/' . $uidResponse['uid'];
+                log::add('Diagral_eOne', 'debug', 'installTracking Mise à jour de l\'entrée.');
+                Diagral_eOne::sendDataInstallBase($url,$apiKey,'PUT',$data,$waitingTime);
+            }
         }
     }
 
@@ -1115,7 +1118,7 @@ class Diagral_eOne extends eqLogic {
                 log::add('Diagral_eOne', 'error', 'installTracking Erreur de suppression des données de tracking.');
             }
         } else {
-            og::add('Diagral_eOne', 'error', 'installTracking Erreur de suppression des données de tracking. L\'UID n\'a pas était trouvé.');
+            log::add('Diagral_eOne', 'error', 'installTracking Erreur de suppression des données de tracking. L\'UID n\'a pas était trouvé.');
         }
     }
 
