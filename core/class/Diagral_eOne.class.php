@@ -995,14 +995,15 @@ class Diagral_eOne extends eqLogic {
      * @param string $apiKey apikey for request
      * @return array with uid and success of request
      */
-    public function getUIDDataInstallBase($url, $apiKey,$sleep=0) {
+    public function getUIDDataInstallBase($url, $apiKey,$waitingTime=0) {
         log::add('Diagral_eOne', 'debug', 'installTracking Récupération de l\'UID de tracking...');
         $urlArgs = $url . '?q={"productKey":"' . jeedom::getHardwareKey() . '"}';
         $success = FALSE;
         $uid = "";
         // Ajout d'une temporisation pour eviter les requetes dans les même secondes
-        if ($sleep > 0) {
-            sleep ( $sleep );
+        if ($waitingTime > 0) {
+            log::add('Diagral_eOne', 'debug', 'Ajout d\'une temporisation de ' . $waitingTime);
+            sleep ( $waitingTime );
         }
         // Execution de la requete de récupération de l'UID
         $requestUID = \Httpful\Request::get($urlArgs)
@@ -1126,11 +1127,12 @@ class Diagral_eOne extends eqLogic {
      * @param array $data
      * @return string HTTP return code
      */
-    public function sendDataInstallBase($url,$apiKey,$method,$data=array(),$sleep=0) {
+    public function sendDataInstallBase($url,$apiKey,$method,$data=array(),$waitingTime=0) {
         log::add('Diagral_eOne', 'debug', 'installTracking Transmission des données...');
         // Ajout d'une temporisation pour eviter les requetes dans les même secondes
-        if ($sleep > 0) {
-            sleep ( $sleep );
+        if ($waitingTime > 0) {
+            log::add('Diagral_eOne', 'debug', 'Ajout d\'une temporisation de ' . $waitingTime);
+            sleep ( $waitingTime );
         }
         // Execution des envois d'informations
         $request = \Httpful\Request::post($url)
