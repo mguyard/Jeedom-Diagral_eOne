@@ -995,7 +995,7 @@ class Diagral_eOne extends eqLogic {
      * @param string $apiKey apikey for request
      * @return array with uid and success of request
      */
-    public function getUIDDataInstallBase($url, $apiKey,$waitingTime=0) {
+    public function getUIDDataInstallBase($url, $apiKey,$waitingTime) {
         log::add('Diagral_eOne', 'debug', 'installTracking Récupération de l\'UID de tracking...');
         $urlArgs = $url . '?q={"productKey":"' . jeedom::getHardwareKey() . '"}';
         $success = FALSE;
@@ -1100,12 +1100,12 @@ class Diagral_eOne extends eqLogic {
     public function deleteInstallBase($url,$apiKey) {
         log::add('Diagral_eOne', 'debug', 'Suppression de votre installation dans la base de Tracking en cours...');
         // Récuperation de l'UID d'installation
-        $uidResponse = Diagral_eOne::getUIDDataInstallBase($url, $apiKey);
+        $uidResponse = Diagral_eOne::getUIDDataInstallBase($url, $apiKey, 0);
         // Si l'entrée existe bien
         if ( ! empty($uidResponse['uid']) && $uidResponse['success']) {
             $url = $url . '/' . $uidResponse['uid'];
             // Je supprime l'entrée
-            $returnCode = Diagral_eOne::sendDataInstallBase($url,$apiKey,'DELETE');
+            $returnCode = Diagral_eOne::sendDataInstallBase($url,$apiKey,'DELETE', '', 0);
             if (strpos($returnCode, '2') === 0) {
                 log::add('Diagral_eOne', 'info', 'installTracking Suppression de votre installation dans la base de Tracking effectuée.');
                 // Je désactive le tracking
@@ -1127,7 +1127,7 @@ class Diagral_eOne extends eqLogic {
      * @param array $data
      * @return string HTTP return code
      */
-    public function sendDataInstallBase($url,$apiKey,$method,$data=array(),$waitingTime=0) {
+    public function sendDataInstallBase($url,$apiKey,$method,$data=array(),$waitingTime) {
         log::add('Diagral_eOne', 'debug', 'installTracking Transmission des données...');
         // Ajout d'une temporisation pour eviter les requetes dans les même secondes
         if ($waitingTime > 0) {
