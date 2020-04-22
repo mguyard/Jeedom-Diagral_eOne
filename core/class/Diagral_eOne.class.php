@@ -984,7 +984,7 @@ class Diagral_eOne extends eqLogic {
                 // Lance la creation ou la mise à jour des données
                 Diagral_eOne::createUpdateInstallBase($baseURL,$apiKey);
             } else {
-                log::add('Diagral_eOne', 'debug', 'installTracking Mise à jour désactivée.');
+                log::add('Diagral_eOne', 'debug', 'installTracking La mise à jour des données de suivi d\'installation est actuellement désactivée.');
             }
         }
     }
@@ -1032,10 +1032,8 @@ class Diagral_eOne extends eqLogic {
      * @return string $pluginbranch
      */
     public function getPluginBranch() {
-        log::add('Diagral_eOne', 'debug', 'installTracking Récupération de la branche du plugin...');
         $update = update::byLogicalId('Diagral_eOne');
         $pluginbranch = $update->getConfiguration('version');
-        log::add('Diagral_eOne', 'debug', 'installTracking Branche du plugin : ' . $pluginbranch);
         return $pluginbranch;
     }
 
