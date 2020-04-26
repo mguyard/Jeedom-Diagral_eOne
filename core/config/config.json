@@ -9,10 +9,18 @@
     }, {
         "name": "Statut",
         "type": "info",
+        "subtype": "binary",
+        "isVisible": 1,
+        "isHistorized": 1,
+        "logicalId": "status",
+        "isDashboard": 1
+    }, {
+        "name": "Mode",
+        "type": "info",
         "subtype": "string",
         "isVisible": 1,
-		"isHistorized": 0,
-		"logicalId": "status",
+        "isHistorized": 1,
+        "logicalId": "mode",
         "isDashboard": 1
     }, {
         "name": "Alarme déclenchée",
@@ -27,23 +35,23 @@
         "type": "info",
         "subtype": "numeric",
         "isVisible": 1,
-		"isHistorized": 0,
-		"logicalId": "updates_available",
+        "isHistorized": 0,
+        "logicalId": "updates_available",
         "isDashboard": 1
     }, {
         "name": "Groupes Actifs",
         "type": "info",
         "subtype": "string",
         "isVisible": 1,
-		"isHistorized": 0,
-		"logicalId": "groups_enable",
+        "isHistorized": 0,
+        "logicalId": "groups_enable",
         "isDashboard": 1
     }, {
         "name": "Désactivation Total",
         "type": "action",
         "subtype": "other",
         "isVisible": 1,
-		"logicalId": "total_disarm",
+        "logicalId": "total_disarm",
         "isDashboard": 1
     }, {
         "name": "Désactivation Partielle",
