@@ -203,6 +203,8 @@ class Diagral_eOne extends eqLogic {
 
 
 
+    /* ------------------------------ Creations des commandes Jeedom ------------------------------ */
+
 
     /**
      * Creation des commandes pour l'equipement
@@ -262,7 +264,7 @@ class Diagral_eOne extends eqLogic {
 
 
 
-    /* ------------------------------ Generate JSON ------------------------------ */
+    /* ------------------------------ Generate des JSON ------------------------------ */
 
 
     /**
@@ -357,7 +359,7 @@ class Diagral_eOne extends eqLogic {
     }
 
 
-    /* ------------------------------ Generate ListValue ------------------------------ */
+    /* ------------------------------ Generation des ListValue ------------------------------ */
 
 
     /**
@@ -464,62 +466,13 @@ class Diagral_eOne extends eqLogic {
 
 
 
-    /* ------------------------------ Lancement d'actions sur le Cloud Diagral ------------------------------ */
+    /* ------------------------------ Verifications du plugin ------------------------------ */
 
 
 
     /**
-     * Genere l'environnement Diagral inclus le login, la recuperation de la configuration ainsi que l'entrée dans le systeme
-     * @return object   $MyAlarm
+     * Verification des configurations du plugins
      */
-    private function setDiagralEnv() {
-        log::add('Diagral_eOne', 'debug', 'setDiagralEnv::' . $this->getConfiguration('systemid') . '::Start Diagral Environnement');
-        if ( ! empty($this->getConfiguration('mastercode'))) {
-        $MyAlarm = new Mguyard\Diagral\Diagral_eOne(config::byKey('login', 'Diagral_eOne'),config::byKey('password', 'Diagral_eOne'));
-        $MyAlarm->verbose = config::byKey('verbose', 'Diagral_eOne');
-        if ( ! empty(config::byKey('retry', 'Diagral_eOne'))) {
-            $MyAlarm->doRequestAttempts = config::byKey('retry', 'Diagral_eOne');
-        }
-        if ( ! empty(config::byKey('waitRetry', 'Diagral_eOne'))) {
-            $MyAlarm->waitBetweenAttempts = config::byKey('waitRetry', 'Diagral_eOne');
-        }
-        $MyAlarm->login();
-        $MyAlarm->getSystems();
-        $MyAlarm->setSystemId(intval($this->getConfiguration('systemid')));
-        $MyAlarm->getConfiguration();
-        $MyAlarm->connect($this->getConfiguration('mastercode'));
-        // Recupere le nombre de mises à jour disponibles
-        $nbUpdates = $MyAlarm->getFirmwareUpdates();
-        log::add('Diagral_eOne', 'debug', 'setDiagralEnv::UpdateAvailable : '.$nbUpdates);
-        log::add('Diagral_eOne', 'debug', 'setDiagralEnv::getVersions : '.var_export($MyAlarm->versions, true));
-        $this->checkAndUpdateCmd('updates_available', $nbUpdates);
-        return $MyAlarm;
-        } else {
-            throw new Exception("MasterCode cannot be empty. Please configure it in your device.");
-        }
-    }
-
-    /**
-     * Recuperation automatique (cron) du statut de l'ensemble des équipements actifs
-     */
-    public function pull() {
-        $changed = false;
-        log::add('Diagral_eOne', 'debug', 'pull::Starting Request');
-        foreach (eqLogic::byType('Diagral_eOne') as $eqLogic) {
-            if($eqLogic->getIsEnable() && ! empty($eqLogic->getConfiguration('mastercode'))) {
-                list($status,$groups) = $eqLogic->getDiagralStatus();
-                $changed = $eqLogic->checkAndUpdateCmd('status', $status) || $changed; // on met à jour la commande avec le LogicalId "status"  de l'eqlogic
-                $changed = $eqLogic->checkAndUpdateCmd('groups_enable', $groups) || $changed; // On met à jour la commande avec le LogicalId "groups_enable" de l'eqlogic
-                if ($changed) {
-					$eqLogic->refreshWidget();
-				}
-            }
-        }
-        // Send data informations for installation follow
-        Diagral_eOne::installTracking();
-    }
-
-
     public function checkConfig() {
         // Checking Username
         log::add('Diagral_eOne', 'debug', 'checkConfig::login::Start');
@@ -584,6 +537,63 @@ class Diagral_eOne extends eqLogic {
             log::add('Diagral_eOne', 'debug', 'checkConfig::InstallBaseEmailAddr Default Value');
         }
     }
+
+
+    /* ------------------------------ Lancement d'actions sur le Cloud Diagral ------------------------------ */
+
+
+
+    /**
+     * Genere l'environnement Diagral inclus le login, la recuperation de la configuration ainsi que l'entrée dans le systeme
+     * @return object   $MyAlarm
+     */
+    private function setDiagralEnv() {
+        log::add('Diagral_eOne', 'debug', 'setDiagralEnv::' . $this->getConfiguration('systemid') . '::Start Diagral Environnement');
+        if ( ! empty($this->getConfiguration('mastercode'))) {
+        $MyAlarm = new Mguyard\Diagral\Diagral_eOne(config::byKey('login', 'Diagral_eOne'),config::byKey('password', 'Diagral_eOne'));
+        $MyAlarm->verbose = config::byKey('verbose', 'Diagral_eOne');
+        if ( ! empty(config::byKey('retry', 'Diagral_eOne'))) {
+            $MyAlarm->doRequestAttempts = config::byKey('retry', 'Diagral_eOne');
+        }
+        if ( ! empty(config::byKey('waitRetry', 'Diagral_eOne'))) {
+            $MyAlarm->waitBetweenAttempts = config::byKey('waitRetry', 'Diagral_eOne');
+        }
+        $MyAlarm->login();
+        $MyAlarm->getSystems();
+        $MyAlarm->setSystemId(intval($this->getConfiguration('systemid')));
+        $MyAlarm->getConfiguration();
+        $MyAlarm->connect($this->getConfiguration('mastercode'));
+        // Recupere le nombre de mises à jour disponibles
+        $nbUpdates = $MyAlarm->getFirmwareUpdates();
+        log::add('Diagral_eOne', 'debug', 'setDiagralEnv::UpdateAvailable : '.$nbUpdates);
+        log::add('Diagral_eOne', 'debug', 'setDiagralEnv::getVersions : '.var_export($MyAlarm->versions, true));
+        $this->checkAndUpdateCmd('updates_available', $nbUpdates);
+        return $MyAlarm;
+        } else {
+            throw new Exception("MasterCode cannot be empty. Please configure it in your device.");
+        }
+    }
+
+    /**
+     * Recuperation automatique (cron) du statut de l'ensemble des équipements actifs
+     */
+    public function pull() {
+        $changed = false;
+        log::add('Diagral_eOne', 'debug', 'pull::Starting Request');
+        foreach (eqLogic::byType('Diagral_eOne') as $eqLogic) {
+            if($eqLogic->getIsEnable() && ! empty($eqLogic->getConfiguration('mastercode'))) {
+                list($status,$groups) = $eqLogic->getDiagralStatus();
+                $changed = $eqLogic->checkAndUpdateCmd('status', $status) || $changed; // on met à jour la commande avec le LogicalId "status"  de l'eqlogic
+                $changed = $eqLogic->checkAndUpdateCmd('groups_enable', $groups) || $changed; // On met à jour la commande avec le LogicalId "groups_enable" de l'eqlogic
+                if ($changed) {
+					$eqLogic->refreshWidget();
+				}
+            }
+        }
+        // Send data informations for installation follow
+        Diagral_eOne::installTracking();
+    }
+
 
     /**
      * Recupere le statut de l'alarme
@@ -683,29 +693,6 @@ class Diagral_eOne extends eqLogic {
         log::add('Diagral_eOne', 'debug', 'setPresenceActivation::' . $this->getConfiguration('systemid') . '::Success');
     }
 
-    /**
-     * Fonction de verification du mode SecureDisarm
-     * @return boolean True si SecureDisarm est activé sinon False
-     */
-    public function secureDisarm() {
-        $userIsAdmin = isConnect('admin');
-        $secureDisarm = $this->getConfiguration('secureDisarm') ?: 0;
-        // Si l'utilisateur est administrateur, alors ne pas bloquer le désarmement même si SecureDisarm est actif
-        if ($secureDisarm) {
-            // La fonctionnalitée SecureDisarm est activée.
-            if ($userIsAdmin) {
-                log::add('Diagral_eOne', 'debug', 'L\'utilisateur est administrateur. La fonctionnalité SecureDisarm (Statut actuel : '. var_export($secureDisarm, true) .') est outre-passée.');
-                return FALSE;
-            } else {
-                log::add('Diagral_eOne', 'error', 'La fonctionnalitée SecureDisarm est active (' . var_export($secureDisarm, true) . '). La désactivation de l\'alarme au travers de Jeedom est désactivée.');
-                return TRUE;
-            }
-        } else {
-            // La fonctionnalitée SecureDisarm est désactivée.
-            return FALSE;
-        }
-
-    }
 
     /**
      * Activation partielle de l'alarme
@@ -812,6 +799,42 @@ class Diagral_eOne extends eqLogic {
         $MyAlarm->logout();
         log::add('Diagral_eOne', 'debug', 'setScenario::' . $this->getConfiguration('systemid') . '::Success ' . $listValue[$cmdValue]);
     }
+
+
+
+    /* ------------------------------ Sécurités du plugins ------------------------------ */
+
+
+
+
+    /**
+     * Fonction de verification du mode SecureDisarm
+     * @return boolean True si SecureDisarm est activé sinon False
+     */
+    public function secureDisarm() {
+        $userIsAdmin = isConnect('admin');
+        $secureDisarm = $this->getConfiguration('secureDisarm') ?: 0;
+        // Si l'utilisateur est administrateur, alors ne pas bloquer le désarmement même si SecureDisarm est actif
+        if ($secureDisarm) {
+            // La fonctionnalitée SecureDisarm est activée.
+            if ($userIsAdmin) {
+                log::add('Diagral_eOne', 'debug', 'L\'utilisateur est administrateur. La fonctionnalité SecureDisarm (Statut actuel : '. var_export($secureDisarm, true) .') est outre-passée.');
+                return FALSE;
+            } else {
+                log::add('Diagral_eOne', 'error', 'La fonctionnalitée SecureDisarm est active (' . var_export($secureDisarm, true) . '). La désactivation de l\'alarme au travers de Jeedom est désactivée.');
+                return TRUE;
+            }
+        } else {
+            // La fonctionnalitée SecureDisarm est désactivée.
+            return FALSE;
+        }
+    }
+
+
+
+    /* ------------------------------ Gestion des importations de Mail ou SMS ------------------------------ */
+
+
 
     /**
      * Importation d'un message (Mail, SMS, etc..) dans la plugin pour ajouter des informations et/ou prendre des actions
@@ -928,15 +951,6 @@ class Diagral_eOne extends eqLogic {
         );
     }
 
-    /**
-     * Return if alarm is in progress (0 : No Alarm / 1 : Alarm)
-     * @return boolean
-     */
-    public function isAlarmActive() {
-        $cmdAlarm = $this->getCmd(null, 'alarm')->execCmd();
-        log::add('Diagral_eOne', 'debug', 'isAlarmActive::Status ' . $cmdAlarm);
-        return $cmdAlarm;
-    }
 
     /**
      * Get information about alarm trigger
@@ -955,6 +969,17 @@ class Diagral_eOne extends eqLogic {
             "detector" => $triggerDetector,
             "zone" => $triggerZone
         );
+    }
+
+
+    /**
+     * Return if alarm is in progress (0 : No Alarm / 1 : Alarm)
+     * @return boolean
+     */
+    public function isAlarmActive() {
+        $cmdAlarm = $this->getCmd(null, 'alarm')->execCmd();
+        log::add('Diagral_eOne', 'debug', 'isAlarmActive::Status ' . $cmdAlarm);
+        return $cmdAlarm;
     }
 
 
