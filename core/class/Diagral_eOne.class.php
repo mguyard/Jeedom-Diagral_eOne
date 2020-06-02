@@ -213,7 +213,11 @@ class Diagral_eOne extends eqLogic {
         // Definition et chargement du fichier de configuration globale qui inclus notament les commandes
         $filename = __PLGBASE__.'/core/config/config.json';
         $config = $this->loadConfigFile($filename, 'commands');
-
+        // Attribue les valeurs par defaut d'un device
+        $eqLogicConf = $config['eqLogic'];
+        log::add('Diagral_eOne', 'debug', 'createCmd::EqTemplate ' . var_export($eqLogicConf, true));
+        utils::a2o($this, $eqLogicConf);
+        // Boucle de génération des commandes
         foreach ($config['commands'] as $key => $command) {
             $newCmd = false;
             $cmd = $this->getCmd(null, $command['logicalId']);
@@ -227,8 +231,6 @@ class Diagral_eOne extends eqLogic {
             if (! isset($command['masterCodeNeed']) || $command['masterCodeNeed'] === false || ! empty($this->getConfiguration('mastercode'))) {
                 $cmd->setOrder($key);
                 $cmd->setEqLogic_id($this->getId());
-                //$cmd->setType($command['type']);
-                //$cmd->setSubType($command['subtype']);
                 // Si un parametre function est fournit a la commande
                 if( isset($command['configuration']['function'])) {
                     list($fieldType, $fieldFunction)= explode("::", $command['configuration']['function']);
@@ -257,9 +259,36 @@ class Diagral_eOne extends eqLogic {
                 } else {
                     log::add('Diagral_eOne', 'info', 'postSave::updateCmd '.$command['logicalId'].' ('.$command['name'].') with order ' . $key);
                 }
+                if (isset($command['homebridge'])) {
+                    $this->applyHomeBridgeConf($command['logicalId'], $command['homebridge']);
+                }
             } else {
                 log::add('Diagral_eOne', 'info', 'postSave::bypassCmd '.$command['logicalId'].' ('.$command['name'].')');
             }
+        }
+    }
+
+    /**
+     * Applique les configurations necessaire pour HomeBridge
+     * @param string $logicalId nom de la commande sur laquelle appliquer Homebridge Alarm
+     * @param array $homebridgeConf contient la configuration Homebridge a appliquer
+     * @return void
+     */
+    private function applyHomeBridgeConf($logicalId, $homebridgeConf) {
+        $cmd = $this->getCmd(null, $logicalId);
+        // Verifie si la commande existe
+        if (!is_object($cmd)) {
+            throw new Exception('La commande sur laquelle HomeBridge doit être activé (' . $logicalId . ') n\'existe pas.');
+        }
+        $homebridge_mode = $homebridgeConf['homebridge_mode'];
+        $mode_status = $homebridgeConf['mode_status'];
+        // Verifie que les parametres necessaires sont bien présents.
+        if (! empty($homebridge_mode) && ! empty($mode_status)) {
+            $this->setConfiguration($homebridge_mode,$cmd->getId()."|".$mode_status);
+            log::add('Diagral_eOne', 'debug', 'HomeBridge::applyCommand ' . $homebridge_mode . ' / ' . $mode_status . ' / ' . $cmd->getId());
+            log::add('Diagral_eOne', 'debug', 'HomeBridge::EqConfiguration ' . var_export($this->getConfiguration(), true));
+        } else {
+            log::add('Diagral_eOne', 'debug', 'HomeBridge::alert Unable to activate Homebridge on Cmd ' . $logicalId . ' because configuration in JSON isn\'t complete.');
         }
     }
 
