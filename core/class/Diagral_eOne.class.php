@@ -266,6 +266,8 @@ class Diagral_eOne extends eqLogic {
                 log::add('Diagral_eOne', 'info', 'postSave::bypassCmd '.$command['logicalId'].' ('.$command['name'].')');
             }
         }
+        // Sauvegarde l'EqLogic
+        $this->save(true);
     }
 
     /**

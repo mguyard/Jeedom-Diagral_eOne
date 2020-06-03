@@ -91,10 +91,6 @@
             "listValue" : "1|FAKE;2|FAKE;3|FAKE",
             "function" : "listValue::generateGroupsList"
         },
-        "homebridge": {
-            "homebridge_mode": "SetModeAbsent",
-            "mode_status": "group"
-        },
         "masterCodeNeed": 1,
         "isDashboard": 0
     }, {
@@ -105,6 +101,10 @@
         "subtype": "other",
         "display": {
             "generic_type": "ALARM_ARMED"
+        },
+        "homebridge": {
+            "homebridge_mode": "SetModeAbsent",
+            "mode_status": "group"
         },
         "isVisible": 1,
         "isDashboard": 1
