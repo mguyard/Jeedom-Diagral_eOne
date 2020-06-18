@@ -4,6 +4,10 @@ __Lorsque aucunes informations ne sont disponibles sur le changelog, cela impliq
 
 __Le changelog de la version de developpement se trouve [ici](https://github.com/mguyard/Jeedom-Diagral_eOne/blob/develop/docs/fr_FR/changelog.md)__
 
+# 2020-06-18 - v1.2.5
+
+- Correction de l'[issue #20](https://github.com/mguyard/Jeedom-Diagral_eOne/issues/20) impéchant la synchronisation et l'ajout de plusieures alarmes.
+
 # 2020-04-22 - v1.2.4
 
 - Correction sur la gestion des suivis d'installation
