@@ -1,89 +1,52 @@
 {
-    "eqLogic":{
-        "description": "Defini les valeurs par defaut d'un device",
-        "configuration" : {
-            "SetModePresent": "NOT",
-            "SetModeAbsent": "NOT",
-            "SetModeNuit": "NOT"
-        }
-    },
     "commands":[{
         "name": "Rafraichir",
-        "description": "Lance un refresh de l'alarme",
-        "logicalId": "refresh",
         "type": "action",
         "subtype": "other",
         "isVisible": 1,
+        "logicalId": "refresh",
         "isDashboard": 1
     }, {
         "name": "Statut",
-        "description": "Affiche 0 si alarme désactivée et 1 si alarme activée",
-        "logicalId": "status",
-        "type": "info",
-        "subtype": "binary",
-        "display": {
-            "generic_type": "ALARM_ENABLE_STATE"
-        },
-        "isVisible": 1,
-        "isHistorized": 1,
-        "isDashboard": 1
-    }, {
-        "name": "Mode",
-        "description": "Affiche le mode actuel de l'alarme (ex. off / presence / group / tempogroup)",
-        "logicalId": "mode",
         "type": "info",
         "subtype": "string",
-        "display": {
-            "generic_type": "ALARM_MODE"
-        },
         "isVisible": 1,
-        "isHistorized": 1,
+		"isHistorized": 0,
+		"logicalId": "status",
         "isDashboard": 1
     }, {
         "name": "Alarme déclenchée",
-        "description": "Affiche 0 si l'alarme n'est pas déclenchée et 1 si déclenchée",
-        "logicalId": "alarm",
         "type": "info",
         "subtype": "binary",
-        "display": {
-            "generic_type": "ALARM_STATE"
-        },
         "isVisible": 1,
         "isHistorized": 1,
+        "logicalId": "alarm",
         "isDashboard": 1
     }, {
         "name": "Mises à jour disponibles",
-        "description": "Affiche le nombre de mises à jour disponibles",
-        "logicalId": "updates_available",
         "type": "info",
         "subtype": "numeric",
         "isVisible": 1,
-        "isHistorized": 0,
+		"isHistorized": 0,
+		"logicalId": "updates_available",
         "isDashboard": 1
     }, {
         "name": "Groupes Actifs",
-        "description": "Affiche le nom des groupes actifs",
-        "logicalId": "groups_enable",
         "type": "info",
         "subtype": "string",
         "isVisible": 1,
-        "isHistorized": 0,
+		"isHistorized": 0,
+		"logicalId": "groups_enable",
         "isDashboard": 1
     }, {
         "name": "Désactivation Total",
-        "description": "Désactive complètement l'alarme",
-        "logicalId": "total_disarm",
         "type": "action",
         "subtype": "other",
-        "display": {
-            "generic_type": "ALARM_RELEASED"
-        },
         "isVisible": 1,
+		"logicalId": "total_disarm",
         "isDashboard": 1
     }, {
         "name": "Désactivation Partielle",
-        "description": "Désactive seulement certains groupes actifs de l'alarme",
-        "logicalId": "disarm_partial",
         "type": "action",
         "subtype": "select",
         "isVisible": 1,
@@ -91,50 +54,34 @@
             "listValue" : "1|FAKE;2|FAKE;3|FAKE",
             "function" : "listValue::generateGroupsList"
         },
+        "logicalId": "disarm_partial",
         "masterCodeNeed": 1,
         "isDashboard": 0
     }, {
         "name": "Activation Totale",
-        "description": "Désactive totalement l'alarme",
-        "logicalId": "total_arm",
         "type": "action",
         "subtype": "other",
-        "display": {
-            "generic_type": "ALARM_ARMED"
-        },
-        "homebridge": {
-            "homebridge_mode": "SetModeAbsent",
-            "mode_status": "group"
-        },
         "isVisible": 1,
+        "logicalId": "total_arm",
         "isDashboard": 1
     }, {
         "name": "Activation Mode Presence",
-        "description": "Activation de l'alarme en mode presence",
-        "logicalId": "arm_presence",
         "type": "action",
         "subtype": "other",
-        "display": {
-            "generic_type": "ALARM_SET_MODE"
-        },
-        "homebridge": {
-            "homebridge_mode": "SetModeNuit",
-            "mode_status": "presence"
-        },
         "isVisible": 1,
+        "logicalId": "arm_presence",
         "isDashboard": 1
     }, {
         "name": "Activation Partielle",
-        "description": "Active uniquement certains groupes de l'alarme",
-        "logicalId": "arm_partial",
         "type": "action",
         "subtype": "select",
+        "isVisible": 1,
         "configuration" : {
             "listValue" : "1|FAKE;2|FAKE;3|FAKE",
             "function" : "listValue::generateGroupsPossibilities"
         },
+        "logicalId": "arm_partial",
         "masterCodeNeed": 1,
-        "isVisible": 1,
         "isDashboard": 0
     }, {
         "name": "Lancement Scenario",
