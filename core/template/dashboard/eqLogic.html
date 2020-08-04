@@ -108,7 +108,7 @@
                 widget_height = $('.Diagral_eOne_widget').height();
                 // Add some pixels to widget height for Groups showing
                 $('.Diagral_eOne_widget').css('height', widget_height + 100);
-                $.getJSON("/plugins/Diagral_eOne/core/config/groups_#systemID#.json", function(groups_JSON) {
+                $.getJSON("/plugins/Diagral_eOne/data/groups_#systemID#.json", function(groups_JSON) {
                     $.each(groups_JSON.groups, function (key, val) {
                         var test = "#groups_enable#"
                         var icon = "";
