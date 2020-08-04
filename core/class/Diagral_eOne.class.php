@@ -67,8 +67,8 @@ class Diagral_eOne extends eqLogic {
                 $eqLogic->setCategory('security', 1);
                 $eqLogic->setConfiguration('systemid', $key);
             }
+            $eqLogic->save();
         }
-        $eqLogic->save();
         if(!is_object($Alarm)) { // NEW
             event::add('jeedom::alert', array(
                 'level' => 'warning',
