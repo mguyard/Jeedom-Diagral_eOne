@@ -213,7 +213,11 @@ class Diagral_eOne extends eqLogic {
         // Definition et chargement du fichier de configuration globale qui inclus notament les commandes
         $filename = __PLGBASE__.'/core/config/config.json';
         $config = $this->loadConfigFile($filename, 'commands');
-
+        // Attribue les valeurs par defaut d'un device
+        $eqLogicConf = $config['eqLogic'];
+        log::add('Diagral_eOne', 'debug', 'createCmd::EqTemplate ' . var_export($eqLogicConf, true));
+        utils::a2o($this, $eqLogicConf);
+        // Boucle de génération des commandes
         foreach ($config['commands'] as $key => $command) {
             $newCmd = false;
             $cmd = $this->getCmd(null, $command['logicalId']);
@@ -253,11 +257,40 @@ class Diagral_eOne extends eqLogic {
                 if ($newCmd === true) {
                     log::add('Diagral_eOne', 'info', 'postSave::createCmd '.$command['logicalId'].' ('.$command['name'].')');
                 } else {
-                    log::add('Diagral_eOne', 'info', 'postSave::updateCmd '.$command['logicalId'].' ('.$command['name'].')');
+                    log::add('Diagral_eOne', 'info', 'postSave::updateCmd '.$command['logicalId'].' ('.$command['name'].') with order ' . $key);
+                }
+                if (isset($command['homebridge'])) {
+                    $this->applyHomeBridgeConf($command['logicalId'], $command['homebridge']);
                 }
             } else {
                 log::add('Diagral_eOne', 'info', 'postSave::bypassCmd '.$command['logicalId'].' ('.$command['name'].')');
             }
+        }
+        // Sauvegarde l'EqLogic
+        $this->save(true);
+    }
+
+    /**
+     * Applique les configurations necessaire pour HomeBridge
+     * @param string $logicalId nom de la commande sur laquelle appliquer Homebridge Alarm
+     * @param array $homebridgeConf contient la configuration Homebridge a appliquer
+     * @return void
+     */
+    private function applyHomeBridgeConf($logicalId, $homebridgeConf) {
+        $cmd = $this->getCmd(null, $logicalId);
+        // Verifie si la commande existe
+        if (!is_object($cmd)) {
+            throw new Exception('La commande sur laquelle HomeBridge doit être activé (' . $logicalId . ') n\'existe pas.');
+        }
+        $homebridge_mode = $homebridgeConf['homebridge_mode'];
+        $mode_status = $homebridgeConf['mode_status'];
+        // Verifie que les parametres necessaires sont bien présents.
+        if (! empty($homebridge_mode) && ! empty($mode_status)) {
+            $this->setConfiguration($homebridge_mode,$cmd->getId()."|".$mode_status);
+            log::add('Diagral_eOne', 'debug', 'HomeBridge::applyCommand ' . $homebridge_mode . ' / ' . $mode_status . ' / ' . $cmd->getId());
+            log::add('Diagral_eOne', 'debug', 'HomeBridge::EqConfiguration ' . var_export($this->getConfiguration(), true));
+        } else {
+            log::add('Diagral_eOne', 'debug', 'HomeBridge::alert Unable to activate Homebridge on Cmd ' . $logicalId . ' because configuration in JSON isn\'t complete.');
         }
     }
 
@@ -582,9 +615,10 @@ class Diagral_eOne extends eqLogic {
         log::add('Diagral_eOne', 'debug', 'pull::Starting Request');
         foreach (eqLogic::byType('Diagral_eOne') as $eqLogic) {
             if($eqLogic->getIsEnable() && ! empty($eqLogic->getConfiguration('mastercode'))) {
-                list($status,$groups) = $eqLogic->getDiagralStatus();
-                $changed = $eqLogic->checkAndUpdateCmd('status', $status) || $changed; // on met à jour la commande avec le LogicalId "status"  de l'eqlogic
-                $changed = $eqLogic->checkAndUpdateCmd('groups_enable', $groups) || $changed; // On met à jour la commande avec le LogicalId "groups_enable" de l'eqlogic
+                $alarmStatus = $eqLogic->getDiagralStatus();
+                $changed = $eqLogic->checkAndUpdateCmd('status', $alarmStatus['status']) || $changed;
+                $changed = $eqLogic->checkAndUpdateCmd('mode', $alarmStatus['mode']) || $changed;
+                $changed = $eqLogic->checkAndUpdateCmd('groups_enable', $alarmStatus['groups']) || $changed;
                 if ($changed) {
 					$eqLogic->refreshWidget();
 				}
@@ -597,11 +631,11 @@ class Diagral_eOne extends eqLogic {
 
     /**
      * Recupere le statut de l'alarme
-     * @return string statut de l'état de l'alarme
+     * @return array (state => etat binaire de l'alarme / mode => mode actuel de l'alarme / groups => groupes actif)
      */
     public function getDiagralStatus() {
         // Stock l'actuelle valeur du status pour pouvoir le comparer avec le nouveau statut plus tard
-        $lastStatus = $this->getCmd(null, 'status')->execCmd();
+        $lastStatus = $this->getCmd(null, 'mode')->execCmd();
         log::add('Diagral_eOne', 'debug', 'getDiagralStatus::' . $this->getConfiguration('systemid') . '::Starting Request');
         $MyAlarm = $this->setDiagralEnv();
         // Si nous n'avons pas d'information sur l'état de l'alarme (session existante), on demande les informations
@@ -643,6 +677,7 @@ class Diagral_eOne extends eqLogic {
                     $this->checkAndUpdateCmd('alarm', 0);
                 }
             }
+            $alarmState = 1;
         } else {
             $groups = "";
             // Si une alarme est active et que le dernier statut de l'alarme est off, on repasse supprime l'alarme active
@@ -650,8 +685,13 @@ class Diagral_eOne extends eqLogic {
                 $this->checkAndUpdateCmd('alarm', 0);
                 log::add('Diagral_eOne', 'debug', 'getDiagralStatus::Alarm set to 0 due to complete desactivation following an alarm alert');
             }
+            $alarmState = 0;
         }
-        return array($MyAlarm->systemState, $groups);
+        return array(
+            "status" => $alarmState,
+            "mode" => $MyAlarm->systemState,
+            "groups" => $groups
+        );
     }
 
     /**
@@ -915,9 +955,9 @@ class Diagral_eOne extends eqLogic {
                                 $alarmMethod = trim($matches[3]); # Correspond au declencheur de l'alarme
                                 log::add('Diagral_eOne', 'debug', 'importMessage::Message::alarmMethod ' . $alarmMethod);
                                 $alarmUser = ""; # Contenu non necessaire pour la gestion des alarmes
-                                $this->checkAndUpdateCmd('status', "alarm");
+                                $this->checkAndUpdateCmd('mode', "alarm");
                                 $this->checkAndUpdateCmd('alarm', 1);
-                                log::add('Diagral_eOne', 'debug', 'Update::status Changement du statut en mode ALARM suite à la reception d\'un email de déclenchement d\'alarme');
+                                log::add('Diagral_eOne', 'debug', 'Update::Mode Changement du statut en mode ALARM suite à la reception d\'un email de déclenchement d\'alarme');
                                 // Objectif avec commande info qui specifie l'alarme en cours => Voir comment faire pour la 'unset' apres quelques minutes --> Voir si a la prochaine desactivation, si alarme = 1 alors passé à 0
                                 break;
                             // Le sujet est invalide ou inconnu
@@ -1206,45 +1246,51 @@ class Diagral_eOneCmd extends cmd {
         $eqLogic = $this->getEqLogic(); //récupère l'éqlogic de la commande $this
         switch ($this->getLogicalId()) {	//vérifie le logicalid de la commande
             case 'refresh': // LogicalId de la commande rafraîchir que l’on a créé dans la méthode Postsave.
-                list($status,$groups) = $eqLogic->getDiagralStatus(); 	//On lance la fonction getDiagralStatus() pour récupérer le statut de l'alarme et on la stocke dans la variable $status
-                $changed = $eqLogic->checkAndUpdateCmd('status', $status) || $changed; // on met à jour la commande avec le LogicalId "status"  de l'eqlogic
-                $changed = $eqLogic->checkAndUpdateCmd('groups_enable', $groups) || $changed; // On met à jour la commande avec le LogicalId "groups_enable" de l'eqlogic
+                $alarmStatus = $eqLogic->getDiagralStatus(); 	//On lance la fonction getDiagralStatus() pour récupérer le statut de l'alarme et on la stocke dans la variable $status
+                $changed = $eqLogic->checkAndUpdateCmd('status', $alarmStatus['status']) || $changed;           // Set la commande status avec le statut binaire de l'alarme
+                $changed = $eqLogic->checkAndUpdateCmd('mode', $alarmStatus['mode']) || $changed;               // Set la commande mode avec le mode actif de l'alarme
+                $changed = $eqLogic->checkAndUpdateCmd('groups_enable', $alarmStatus['groups']) || $changed;    // Set la commande groups_enable avec les groupes actif de l'alarme
                 break;
             case 'total_disarm':
                 if ( ! $eqLogic->secureDisarm()) { // SecureDisarm n'est pas activée
                     $eqLogic->setCompleteDesactivation();
-                    list($status,$groups) = $eqLogic->getDiagralStatus();
-                    $changed = $eqLogic->checkAndUpdateCmd('status', $status) || $changed;
-                    $changed = $eqLogic->checkAndUpdateCmd('groups_enable', $groups) || $changed;
+                    $alarmStatus = $eqLogic->getDiagralStatus();
+                    $changed = $eqLogic->checkAndUpdateCmd('status', $alarmStatus['status']) || $changed;
+                    $changed = $eqLogic->checkAndUpdateCmd('mode', $alarmStatus['mode']) || $changed;
+                    $changed = $eqLogic->checkAndUpdateCmd('groups_enable', $alarmStatus['groups']) || $changed;
                 }
                 break;
             case 'disarm_partial':
                 if ( ! $eqLogic->secureDisarm()) { // SecureDisarm n'est pas activée
                     $status = $eqLogic->setPartialDesactivation($_options['select']);
                     if($status) {
-                        list($status,$groups) = $eqLogic->getDiagralStatus();
-                        $changed = $eqLogic->checkAndUpdateCmd('status', $status) || $changed;
-                        $changed = $eqLogic->checkAndUpdateCmd('groups_enable', $groups) || $changed;
+                        $alarmStatus = $eqLogic->getDiagralStatus();
+                        $changed = $eqLogic->checkAndUpdateCmd('status', $alarmStatus['status']) || $changed;
+                        $changed = $eqLogic->checkAndUpdateCmd('mode', $alarmStatus['mode']) || $changed;
+                        $changed = $eqLogic->checkAndUpdateCmd('groups_enable', $alarmStatus['groups']) || $changed;
                     }
                 }
                 break;
             case 'total_arm':
                 $eqLogic->setCompleteActivation();
-                list($status,$groups) = $eqLogic->getDiagralStatus();
-                $changed = $eqLogic->checkAndUpdateCmd('status', $status) || $changed;
-                $changed = $eqLogic->checkAndUpdateCmd('groups_enable', $groups) || $changed;
+                $alarmStatus = $eqLogic->getDiagralStatus();
+                $changed = $eqLogic->checkAndUpdateCmd('status', $alarmStatus['status']) || $changed;
+                $changed = $eqLogic->checkAndUpdateCmd('mode', $alarmStatus['mode']) || $changed;
+                $changed = $eqLogic->checkAndUpdateCmd('groups_enable', $alarmStatus['groups']) || $changed;
                 break;
             case 'arm_presence':
                 $eqLogic->setPresenceActivation();
-                list($status,$groups) = $eqLogic->getDiagralStatus();
-                $changed = $eqLogic->checkAndUpdateCmd('status', $status) || $changed;
-                $changed = $eqLogic->checkAndUpdateCmd('groups_enable', $groups) || $changed;
+                $alarmStatus = $eqLogic->getDiagralStatus();
+                $changed = $eqLogic->checkAndUpdateCmd('status', $alarmStatus['status']) || $changed;
+                $changed = $eqLogic->checkAndUpdateCmd('mode', $alarmStatus['mode']) || $changed;
+                $changed = $eqLogic->checkAndUpdateCmd('groups_enable', $alarmStatus['groups']) || $changed;
                 break;
             case 'arm_partial':
                 $eqLogic->setPartialActivation($_options['select'], $this->getConfiguration('listValue'));
-                list($status,$groups) = $eqLogic->getDiagralStatus();
-                $changed = $eqLogic->checkAndUpdateCmd('status', $status) || $changed;
-                $changed = $eqLogic->checkAndUpdateCmd('groups_enable', $groups) || $changed;
+                $alarmStatus = $eqLogic->getDiagralStatus();
+                $changed = $eqLogic->checkAndUpdateCmd('status', $alarmStatus['status']) || $changed;
+                $changed = $eqLogic->checkAndUpdateCmd('mode', $alarmStatus['mode']) || $changed;
+                $changed = $eqLogic->checkAndUpdateCmd('groups_enable', $alarmStatus['groups']) || $changed;
                 break;
             case 'launch_scenario':
                 $eqLogic->setScenario($_options['select'], $this->getConfiguration('listValue'));
@@ -1263,9 +1309,10 @@ class Diagral_eOneCmd extends cmd {
                 $eqLogic->checkAndUpdateCmd('imported_last_method', $contents['method']);
                 $eqLogic->checkAndUpdateCmd('imported_last_user', $contents['user']);
                 if($contents['refresh']) {
-                    list($status,$groups) = $eqLogic->getDiagralStatus();
-                    $changed = $eqLogic->checkAndUpdateCmd('status', $status) || $changed;
-                    $changed = $eqLogic->checkAndUpdateCmd('groups_enable', $groups) || $changed;
+                    $alarmStatus = $eqLogic->getDiagralStatus();
+                    $changed = $eqLogic->checkAndUpdateCmd('status', $alarmStatus['status']) || $changed;
+                    $changed = $eqLogic->checkAndUpdateCmd('mode', $alarmStatus['mode']) || $changed;
+                    $changed = $eqLogic->checkAndUpdateCmd('groups_enable', $alarmStatus['groups']) || $changed;
                 }
                 break;
             case 'force_groups_refresh_json':
