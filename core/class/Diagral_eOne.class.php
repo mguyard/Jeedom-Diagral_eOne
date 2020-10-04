@@ -387,7 +387,7 @@ class Diagral_eOne extends eqLogic {
      * Genere un Liste des groupes de Zone possible
      * @return array Tableau contenant l'ensemble des zones Diagral de l'alarme
      */
-    private function generateGroupsList() {
+    public function generateGroupsList() {
         log::add('Diagral_eOne', 'debug', 'generateGroupsList::Start');
         $filename = __PLGBASE__.'/data/groups_' . $this->getConfiguration('systemid') . '.json';
         // Si le fichier JSON des groupes n'existe pas, on le genère.
@@ -800,6 +800,24 @@ class Diagral_eOne extends eqLogic {
         log::add('Diagral_eOne', 'debug', 'setScenario::' . $this->getConfiguration('systemid') . '::Success ' . $listValue[$cmdValue]);
     }
 
+
+    /**
+     * Fonction de récuperation des Events
+     */
+    public function getEvents($id, $startDate = "2010-01-01 00:00:00", $endDate = null) {
+        $eqLogic = eqLogic::byId($id);
+        log::add('Diagral_eOne', 'debug', 'getEvents::' . $eqLogic->getConfiguration('systemid') . '::Starting Request');
+        try {
+            $MyAlarm = $eqLogic->setDiagralEnv();
+            $MyAlarm->setEventsRetry(100);
+            $events = $MyAlarm->getEvents($startDate,$endDate);
+            $MyAlarm->logout();
+        } catch (Exception $e) {
+            log::add('Diagral_eOne', 'error', 'getEvents::' . $eqLogic->getConfiguration('systemid') . '::Failed. Reason : ' . $e->getMessage());
+        }
+        log::add('Diagral_eOne', 'debug', 'getEvents::' . $eqLogic->getConfiguration('systemid') . '::Success');
+        return $events;
+    }
 
 
     /* ------------------------------ Sécurités du plugins ------------------------------ */

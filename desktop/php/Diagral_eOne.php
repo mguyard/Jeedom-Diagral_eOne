@@ -126,6 +126,11 @@ $pluginCompatible = array(
                             <input type="checkbox" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="secureDisarm"/>
                         </div>
                     </div>
+                    <div class="col-sm-3"></div>
+                    <div class="col-sm-6">
+                        <br/>
+                        <a class="btn btn-info btn-sm cmdAction" id="bt_showEvents"><i class="fas fa-info"></i> {{Journal d'activité}}</a>
+                    </div>
                 </fieldset>
             </form>
         </div>
