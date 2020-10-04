@@ -179,3 +179,12 @@ $('#notificationDeleteScenario').click( function() {
         }
     });
 });
+
+// Affiche la model des Evenements
+$('#bt_showEvents').on('click',function() {
+	$('#md_modal').dialog({title: "{{Journal d'activité}}"});
+    $('#md_modal').load('index.php?v=d&plugin=Diagral_eOne&modal=events.Diagral_eOne&id='
+        + $('.eqLogicAttr[data-l1key=id]').value()
+        )
+        .dialog('open');
+});
