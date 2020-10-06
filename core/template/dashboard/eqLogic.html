@@ -15,7 +15,7 @@
         <div class="row">
             <div class="col-12">
                 <span class="state">
-                    <i class="fa-5x iconCmd#status_id#"></i>
+                    <i class="fa-5x iconCmd#mode_id#"></i>
                 </span>
             </div>
         </div>
@@ -73,30 +73,30 @@
     
     <script>
         var default_widget_height = 280;
-        // FA for Status
-        jeedom.cmd.update['#status_id#'] = function(_options) {
+        // FA for Mode
+        jeedom.cmd.update['#mode_id#'] = function(_options) {
             // Force widget height with default value
             $('.Diagral_eOne_widget').css('height', default_widget_height);
             // Define widget_height with actual widget height
             var widget_height = $('.Diagral_eOne_widget').height();
             switch(_options.display_value) {
                 case 'off':
-                    $('.iconCmd#status_id#').addClass('fas fa-unlock');
+                    $('.iconCmd#mode_id#').addClass('fas fa-unlock');
                     break;
                 case 'presence':
-                    $('.iconCmd#status_id#').addClass('fas fa-cloud-moon');
+                    $('.iconCmd#mode_id#').addClass('fas fa-cloud-moon');
                     break;
                 case 'group':
-                    $('.iconCmd#status_id#').addClass('fas fa-lock');
+                    $('.iconCmd#mode_id#').addClass('fas fa-lock');
                     break;
                 case 'tempogroup':
-                    $('.iconCmd#status_id#').addClass('fa fa-stopwatch');
+                    $('.iconCmd#mode_id#').addClass('fa fa-stopwatch');
                     break;
                 case 'alarm':
-                    $('.iconCmd#status_id#').addClass('fas fa-bullhorn');
+                    $('.iconCmd#mode_id#').addClass('fas fa-bullhorn');
                     break;
                 default:
-                    $('.iconCmd#status_id#').addClass('fas fa-spinner fa-spin');
+                    $('.iconCmd#mode_id#').addClass('fas fa-spinner fa-spin');
                     break;
             }
 
@@ -137,7 +137,7 @@
                 $('.Diagral_eOne_widget').css('height', widget_height + 80);
             }
         }
-        jeedom.cmd.update['#status_id#']({display_value:'#status#'});
+        jeedom.cmd.update['#mode_id#']({display_value:'#mode#'});
 
         jeedom.cmd.update['#updates_available_id#'] = function(_options) {
             // Define (not same function) and Retrieve actual widget height
