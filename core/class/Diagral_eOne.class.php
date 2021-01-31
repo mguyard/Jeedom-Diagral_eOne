@@ -304,7 +304,7 @@ class Diagral_eOne extends eqLogic {
      */
     private function createCmd() {
         // Definition et chargement du fichier de configuration globale qui inclus notament les commandes
-        $filename = __PLGBASE__.'/core/config/'. $this->getConfiguration('type') .'.config.json';
+        $filename = __PLGBASE__.'/core/config/cmdConfig/'. $this->getConfiguration('type') .'.config.json';
         $config = $this->loadConfigFile($filename, 'commands');
         // Attribue les valeurs par defaut d'un device
         $eqLogicConf = $config['eqLogic'];
