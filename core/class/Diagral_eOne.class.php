@@ -985,14 +985,14 @@ class Diagral_eOne extends eqLogic {
                 $date = new \DateTime('now', new \DateTimeZone(config::byKey('timezone')));
                 $date->setTimestamp($video['timestamp']);
                 // Créé l'arborescence de stockage si elle n'existe pas
-                if (!is_dir(__PLGBASE__.'/data/videos/imagedetector/'.strval($this->getConfiguration('index')))) {
-                    mkdir(__PLGBASE__.'/data/videos/imagedetector/'.strval($this->getConfiguration('index')), 0766, True);
+                if (!is_dir(__PLGBASE__.'/data/videos/'.$this->getConfiguration('type').'/'.strval($this->getConfiguration('index')))) {
+                    mkdir(__PLGBASE__.'/data/videos/'.$this->getConfiguration('type').'/'.strval($this->getConfiguration('index')), 0766, True);
                 }
                 // Si le fichier de video existe deja, on le sauvegarde pas.
-                if (!file_exists(__PLGBASE__.'/data/videos/imagedetector/'.strval($this->getConfiguration('index')).'/'.$video['timestamp'].'.mp4')) {
+                if (!file_exists(__PLGBASE__.'/data/videos/'.$this->getConfiguration('type').'/'.strval($this->getConfiguration('index')).'/'.$video['timestamp'].'.mp4')) {
                     $videoFile = $MyAlarm->downloadImageDetectorsVideo(strval($this->getConfiguration('index')), $video['id']);
                     // Store Videos
-                    $videoStorage = fopen(__PLGBASE__.'/data/videos/imagedetector/'.strval($this->getConfiguration('index')).'/'.$video['timestamp'].'.mp4', "wb");
+                    $videoStorage = fopen(__PLGBASE__.'/data/videos/'.$this->getConfiguration('type').'/'.strval($this->getConfiguration('index')).'/'.$video['timestamp'].'.mp4', "wb");
                     fwrite($videoStorage, $videoFile);
                     fclose($videoStorage);
                     log::add('Diagral_eOne', 'info', 'listImageDetectorVideos::Download&Store Sauvegarde de la video ' . $video['id'] . ' du ' . $date->format('Y-m-d H:i:s'));

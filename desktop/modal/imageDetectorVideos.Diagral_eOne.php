@@ -70,7 +70,7 @@ function getIcon($type) {
                     echo "<td>" . $video['format'] . "</td>";
                     echo "<td>" . $video['durationMs'] / 1000 . "</td>";
                     echo "<td>
-                        <a href='/plugins/Diagral_eOne/data/videos/imagedetector/".$eqLogic->getConfiguration('index')."/".$video['timestamp'].".mp4' target='_blank'> <i class='icon_green fas fa-2x fa-play-circle'></i></a>
+                        <a href='/plugins/Diagral_eOne/data/videos/".$eqLogic->getConfiguration('type')."/".$eqLogic->getConfiguration('index')."/".$video['timestamp'].".mp4' target='_blank'> <i class='icon_green fas fa-2x fa-play-circle'></i></a>
                     </td>";
                 echo "</tr>";
             }
