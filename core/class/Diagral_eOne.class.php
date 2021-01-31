@@ -35,19 +35,53 @@ class Diagral_eOne extends eqLogic {
 
     /*     * ***********************Methode static*************************** */
 
-    public static function synchronize() {
+
+    /**
+     * Sync Dispatcher
+     */
+    public static function synchronize($type='all') {
+        $callResults = array();
+        $message = array();
+        switch($type) {
+            case 'systems':
+                $systemsResult = Diagral_eOne::syncSystems();
+                array_push($callResults, $systemsResult);
+                break;
+            case 'all':
+                $systemsResult = Diagral_eOne::syncSystems();
+                $imageDetectorResult = Diagral_eOne::syncImageDetectors();
+                array_push($callResults, $systemsResult, $imageDetectorResult);
+                break;
+        }
+        foreach ($callResults as $callResult) {
+            if ($callResult['nbCreated'] > 0) array_push($message, 'Ajout de ' . $callResult['nbCreated'] . ' ' . $callResult['type']);
+            if ($callResult['nbUpdated'] > 0) array_push($message, 'Mise à jour de ' . $callResult['nbUpdated'] . ' '  . $callResult['type']);
+        }
+        event::add('jeedom::alert', array(
+            'level' => 'warning',
+            'page' => 'Diagral_eOne',
+            'message' => implode('<br/>', $message),
+        ));
+    }
+
+    /**
+     * Sync Systems
+     * @return array
+     */
+    public static function syncSystems() {
         $MyAlarm = new Mguyard\Diagral\Diagral_eOne(config::byKey('login', 'Diagral_eOne'),config::byKey('password', 'Diagral_eOne'));
         $MyAlarm->verbose = boolval(config::byKey('verbose', 'Diagral_eOne'));
         $debug_output = $MyAlarm->login();
-        log::add('Diagral_eOne', 'debug', 'Synchronize::Login ' . var_export($debug_output, true));
+        log::add('Diagral_eOne', 'debug', 'Synchronize::Systems::Login ' . var_export($debug_output, true));
         $Diagral_systems = $MyAlarm->getSystems();
-        log::add('Diagral_eOne', 'debug', 'Synchronize::GetSystems ' . var_export($Diagral_systems, true));
+        log::add('Diagral_eOne', 'debug', 'Synchronize::Systems::GetSystems ' . var_export($Diagral_systems, true));
         // TODO : Voir pourquoi le logout ne marche plus
         //$MyAlarm->logout();
+        $nbCreated = 0;
         foreach ($Diagral_systems as $key => $value) {
             $Alarm = Diagral_eOne::byLogicalId($value[id], 'Diagral_eOne');
             if (!is_object($Alarm)) {
-                log::add('Diagral_eOne', 'info', "Synchronize:: Alarme trouvée ".$value[name]."(".$value[id]."):");
+                log::add('Diagral_eOne', 'info', "Synchronize::Systems Alarme trouvée ".$value[name]."(".$value[id]."):");
                 $eqLogic = new Diagral_eOne();
                 $eqLogic->setName($value[name]);
                 $eqLogic->setIsEnable(0);
@@ -56,8 +90,10 @@ class Diagral_eOne extends eqLogic {
                 $eqLogic->setEqType_name('Diagral_eOne');
                 $eqLogic->setCategory('security', 1);
                 $eqLogic->setConfiguration('systemid', $key);
+                $eqLogic->setConfiguration('type', 'centrale');
+                $nbCreated++;
             } else {
-                log::add('Diagral_eOne', 'info', "Synchronize:: Alarme ".$Alarm->getName()." mise à jour.");
+                log::add('Diagral_eOne', 'info', "Synchronize::Systems Alarme ".$Alarm->getName()." mise à jour.");
                 $eqLogic = $Alarm;
                 $eqLogic->setName($Alarm->getName());
                 $eqLogic->setIsEnable($Alarm->getIsEnable());
@@ -66,21 +102,78 @@ class Diagral_eOne extends eqLogic {
                 $eqLogic->setEqType_name('Diagral_eOne');
                 $eqLogic->setCategory('security', 1);
                 $eqLogic->setConfiguration('systemid', $key);
+                $eqLogic->setConfiguration('type', 'centrale');
             }
             $eqLogic->save();
         }
-        if(!is_object($Alarm)) { // NEW
-            event::add('jeedom::alert', array(
-                'level' => 'warning',
-                'page' => 'Diagral_eOne',
-                'message' => __('Alarme ajouté avec succès : ' .$value[name], __FILE__),
-            ));
-        } else { // ALREADY EXIST
-            event::add('jeedom::alert', array(
-                'level' => 'warning',
-                'page' => 'Diagral_eOne',
-                'message' => __('Alarme mise à jour : ' .$value[name], __FILE__),
-            ));
+        return array(
+            "type" => "système(s)",
+            "nbCreated" => $nbCreated,
+            "nbUpdated" => count($Diagral_systems) - $nbCreated
+        );
+    }
+
+    public static function syncImageDetectors() {
+        $MyAlarm = new Mguyard\Diagral\Diagral_eOne(config::byKey('login', 'Diagral_eOne'),config::byKey('password', 'Diagral_eOne'));
+        $MyAlarm->verbose = boolval(config::byKey('verbose', 'Diagral_eOne'));
+        $debug_output = $MyAlarm->login();
+        log::add('Diagral_eOne', 'debug', 'Synchronize::Detectors::Login ' . var_export($debug_output, true));
+        $MyAlarm->getSystems();
+        // Pour chaque equipement Diagral qui a un type centrale
+        foreach (eqLogic::byType('Diagral_eOne') as $system) {
+            if ($system->getConfiguration('type') == 'centrale') {
+                if (! empty($system->getConfiguration('mastercode'))) {
+                    $MyAlarm->setSystemId(intval($system->getConfiguration('systemid')));
+                    $MyAlarm->getConfiguration();
+                    $MyAlarm->connect($system->getConfiguration('mastercode'));
+                    $imageDetectors = $MyAlarm->getImageDetectors();
+                    $nbCreated = 0;
+                    foreach ($imageDetectors as $imageDetector) {
+                        //$detector = Diagral_eOne::byObjectNameEqLogicName(__('Aucun', __FILE__), $imageDetector['customLabel']);
+                        $detector = Diagral_eOne::byLogicalId($imageDetector['radioId'], 'Diagral_eOne');
+                        if (!is_object($detector)) {
+                            log::add('Diagral_eOne', 'info', "Synchronize::ImageDetector Detecteur à image trouvée (". $imageDetector['customLabel'] . ")");
+                            $eqLogic = new Diagral_eOne();
+                            $eqLogic->setName($imageDetector['customLabel']);
+                            $eqLogic->setIsEnable(1);
+                            $eqLogic->setIsVisible(1);
+                            $eqLogic->setLogicalId($imageDetector['radioId']);
+                            $eqLogic->setEqType_name('Diagral_eOne');
+                            $eqLogic->setCategory('security', 1);
+                            $eqLogic->setConfiguration('type', 'imagedetector');
+                            log::add('Diagral_eOne', 'debug', 'DEBUG EQLOGIC ' . var_export($system, true));
+                            $eqLogic->setConfiguration('centrale', $system->getLogicalId());
+                            $eqLogic->setConfiguration('index', $imageDetector['index']);
+                            $eqLogic->setConfiguration('carirOnDemand', $imageDetector['carirOnDemand']);
+                            $eqLogic->setConfiguration('affectedToZone', $imageDetector['affectedToZone']);
+                            $eqLogic->setConfiguration('autoDlVideo', '0');
+                            $nbCreated++;
+                        } else {
+                            log::add('Diagral_eOne', 'info', "Synchronize::ImageDetectors Detecteur à image (".$detector->getName().") mis à jour.");
+                            $eqLogic = $detector;
+                            $eqLogic->setName($detector->getName());
+                            $eqLogic->setIsEnable($detector->getIsEnable());
+                            $eqLogic->setIsVisible($detector->getIsVisible());
+                            $eqLogic->setLogicalId($imageDetector['radioId']);
+                            $eqLogic->setEqType_name('Diagral_eOne');
+                            $eqLogic->setCategory('security', 1);
+                            $eqLogic->setConfiguration('type', 'imagedetector');
+                            $eqLogic->setConfiguration('centrale', $system->getLogicalId());
+                            $eqLogic->setConfiguration('index', $imageDetector['index']);
+                            $eqLogic->setConfiguration('carirOnDemand', $imageDetector['carirOnDemand']);
+                            $eqLogic->setConfiguration('affectedToZone', $imageDetector['affectedToZone']);
+                        }
+                        $eqLogic->save();
+                    }
+                    return array(
+                        "type" => "détecteur(s) à image",
+                        "nbCreated" => $nbCreated,
+                        "nbUpdated" => count($imageDetectors) - $nbCreated
+                    );
+                } else {
+                    log::add('Diagral_eOne', 'debug', 'Synchronize::Detectors Bypass de la centrale ' . $eqLogic->getName() . ' car le masterCode est vide.');
+                }
+            }
         }
     }
 
@@ -211,7 +304,7 @@ class Diagral_eOne extends eqLogic {
      */
     private function createCmd() {
         // Definition et chargement du fichier de configuration globale qui inclus notament les commandes
-        $filename = __PLGBASE__.'/core/config/config.json';
+        $filename = __PLGBASE__.'/core/config/'. $this->getConfiguration('type') .'.config.json';
         $config = $this->loadConfigFile($filename, 'commands');
         // Attribue les valeurs par defaut d'un device
         $eqLogicConf = $config['eqLogic'];
@@ -857,6 +950,59 @@ class Diagral_eOne extends eqLogic {
         }
         log::add('Diagral_eOne', 'debug', 'getEvents::' . $eqLogic->getConfiguration('systemid') . '::Success');
         return $events;
+    }
+
+
+    /**
+     * Fonction pour se connecter sur la centrale a partir d'un detecteur/cameras/etc..
+     * @return object   Object Diagral
+     */
+    private function getCentrale() {
+        // $this = Detector
+        $centrale = eqLogic::byLogicalId($this->getConfiguration('centrale'), 'Diagral_eOne');
+        $MyAlarm = $centrale->setDiagralEnv();
+        $MyAlarm->verbose = True;
+        $MyAlarm->setSystemId($centrale->getConfiguration('systemid'));
+        $MyAlarm->connect($centrale->getConfiguration('mastercode'));
+        return $MyAlarm;
+    }
+
+
+
+    /**
+     * Recupère la liste des videos disponible effectuées par un detecteur a image
+     * et les telecharges selon le paramètre $download et la configuration du detecteur
+     * @return array    Liste des videos disponibles
+     */
+    public function listImageDetectorVideos($download = False) {
+        $MyAlarm = $this->getCentrale();
+        log::add('Diagral_eOne', 'debug', 'listImageDetectorVideos::ImageDetectors ' . var_export($MyAlarm->getImageDetectors(), true));
+        $videoList = $MyAlarm->getImageDetectorsVideos(strval($this->getConfiguration('index')));
+        log::add('Diagral_eOne', 'debug', 'listImageDetectorVideos::VideoList ' . var_export($videoList, true));
+        // Si le mode AutoDownload des videos est actif et que le telechargement est autorisé en parametre de la fonction, alors on sauvegarde
+        if ($this->getConfiguration('autoDlVideo', '0') == '1' && $download === True) {
+            foreach ($videoList as $video) {
+                $date = new \DateTime('now', new \DateTimeZone(config::byKey('timezone')));
+                $date->setTimestamp($video['timestamp']);
+                // Créé l'arborescence de stockage si elle n'existe pas
+                if (!is_dir(__PLGBASE__.'/data/videos/imagedetector/'.strval($this->getConfiguration('index')))) {
+                    mkdir(__PLGBASE__.'/data/videos/imagedetector/'.strval($this->getConfiguration('index')), 0766, True);
+                }
+                // Si le fichier de video existe deja, on le sauvegarde pas.
+                if (!file_exists(__PLGBASE__.'/data/videos/imagedetector/'.strval($this->getConfiguration('index')).'/'.$video['timestamp'].'.mp4')) {
+                    $videoFile = $MyAlarm->downloadImageDetectorsVideo(strval($this->getConfiguration('index')), $video['id']);
+                    // Store Videos
+                    $videoStorage = fopen(__PLGBASE__.'/data/videos/imagedetector/'.strval($this->getConfiguration('index')).'/'.$video['timestamp'].'.mp4', "wb");
+                    fwrite($videoStorage, $videoFile);
+                    fclose($videoStorage);
+                    log::add('Diagral_eOne', 'info', 'listImageDetectorVideos::Download&Store Sauvegarde de la video ' . $video['id'] . ' du ' . $date->format('Y-m-d H:i:s'));
+                } else {
+                    log::add('Diagral_eOne', 'info', 'listImageDetectorVideos::Download&Store Bypass de la video ' . $video['id'] . ' du ' . $date->format('Y-m-d H:i:s'). ' car elle est déjà sauvegardée');
+                }
+            }
+        }
+        $MyAlarm->logout();
+        return $videoList;
     }
 
 

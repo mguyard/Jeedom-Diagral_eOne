@@ -28,7 +28,7 @@ try {
     // Lancement de la synchronisation des equipements
     if (init('action') == 'synchronize') {
       try {
-		    Diagral_eOne::synchronize();
+		    Diagral_eOne::synchronize('all');
 		    ajax::success();
       } catch (Exception $e) {
             ajax::error(displayExeption($e), $e->getCode());
@@ -96,6 +96,30 @@ try {
 
         }
         ajax::success();
+    }
+
+    //Generation du lien vers la centrale pour la page EqLogic des detecteurs à Image
+    if (init('action') == 'generateCentralLink') {
+        try {
+            if(! empty(init('eqID'))) {
+                $eqlogic = eqLogic::byId(init('eqID'));
+                if ($eqlogic->getConfiguration('type') == "imagedetector") {
+                    $centrale = eqLogic::byLogicalId($eqlogic->getConfiguration('centrale'), 'Diagral_eOne');
+                    if (is_object($centrale)) {
+                        $return = array('centraleId' => $centrale->getId());
+                        ajax::success(json_encode($return));
+                    } else {
+                        ajax::success(json_encode(array('centraleId' => '')));
+                    }
+                } else {
+                    ajax::success(json_encode(array('centraleId' => '')));
+                }
+            } else {
+                ajax::success(json_encode(array('centraleId' => '')));
+            }
+        } catch (Exception $e) {
+            ajax::error(displayExeption($e), $e->getCode());
+        }
     }
 
     //Lancement de la suppression des données de tracking

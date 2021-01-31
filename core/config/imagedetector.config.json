@@ -1,0 +1,11 @@
+{
+    "commands":[{
+        "name": "Déclencher Enregistrement",
+        "description": "Declenche un enregistrement à la demande",
+        "logicalId": "onDemandRecord",
+        "type": "action",
+        "subtype": "other",
+        "isVisible": 1,
+        "isDashboard": 1
+    }]
+}
