@@ -23,7 +23,7 @@ if (!isConnect('admin')) {
 // Recupere l'Eq correspond à l'equipement
 $eqLogic = eqLogic::byId(init(id));
 // Lance la récuperations des videos disponibles
-$videosList = $eqLogic->listImageDetectorVideos(True);
+$videosList = $eqLogic->listImageDetectorVideos(False);
 // Tri le tableau en descendant (date la plus recente en haut)
 usort($videosList, function ($item1, $item2) {
     return $item2['timestamp'] <=> $item1['timestamp'];
