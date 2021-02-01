@@ -1498,7 +1498,12 @@ class Diagral_eOne{
     public function downloadImageDetectorsVideo($carirId, $videoId) {
         try {
             if(list($data,$httpRespCode) = $this->doRequest("/api/videos/".$this->transmitterId."/DETECTOR".$carirId."/".$videoId."/mpeg4", "", True, "GET")) {
-                return $data;
+                $JSONResult = json_decode($data, True);
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    return $data;
+                } else {
+                    throw new \Exception("Download video of Image Detector failed to execute " . var_export($JSONResult, True), 56);
+                }
             } else {
                 throw new \Exception("Unable to download Image Detector Video (http code : ".$httpRespCode.")", 19);
             }
@@ -1506,6 +1511,72 @@ class Diagral_eOne{
             throw $e;
         }
 
+    }
+
+
+
+    /**
+     * Lance un enregistrement manuel
+     * @param str $carirId          Image Detector ID
+     */
+    public function launchManualVideo($carirId) {
+        $launchManualVideoPost = '{"centralId":"'.$this->centralId.'", "transmitterId":"'.$this->transmitterId.'", "systemId":"'.$this->systemId.'", "carirId": "'.$carirId.'", "ttmSessionId":"'.$this->ttmSessionId.'"}';
+        try {
+            if(list($data,$httpRespCode) = $this->doRequest("/action/v2/captureCarir/", $launchManualVideoPost)) {
+                if(isset($data['operationId'])) {
+                    // La commande a était bien lancée
+                    $status = FALSE;
+                    for ($i = 1; $i <= 5; $i++) {
+                        // Si la verification retourne FALSE (video pas fini de generer), on attend 10 minutes
+                        if ($this->verifyManualVideoStatus($carirId, $data['operationId']) === FALSE) {
+                            sleep(20);
+                        } else {
+                            // Si ca retourne TRUE alors c'est que la video est terminé donc on peut arreter la boucle
+                            $status = TRUE;
+                            break;
+                        }
+                    }
+                    if ($status === FALSE) {
+                        throw new \Exception("Unable to launch or verify than manual video was launched with success", 56);
+                    }
+                    //return $status;
+                } else {
+                    throw new \Exception("Manual video recording failed to execute" . json_encode($data), 56);
+                }
+            } else {
+                throw new \Exception("Unable to launch manual video recording (http code : ".$httpRespCode.")", 19);
+            }
+        } catch (Exception $e) {
+            throw $e;
+        }
+    }
+
+
+    /**
+     * Verifie le statut de l'enregistrement manuel
+     * @param str $carirId          Image Detector ID
+     * @param str $operationId      ID recupéré dans le resultat de la fonction launchManualVideo
+     * @return binary               TRUE si success / FALSE si echec
+     */
+    private function verifyManualVideoStatus($carirId, $operationId) {
+        $launchManualVideoPost = '{"centralId":"'.$this->centralId.'", "transmitterId":"'.$this->transmitterId.'", "systemId":"'.$this->systemId.'", "carirId": "'.$carirId.'", "operationId":"'.$operationId.'", "ttmSessionId":"'.$this->ttmSessionId.'"}';
+        try {
+            if(list($data,$httpRespCode) = $this->doRequest("/action/captureCarirStatus/", $launchManualVideoPost)) {
+                if(isset($data['status'])) {
+                    if ($data['status'] == 'OK') {
+                        return TRUE;
+                    } else {
+                        return FALSE;
+                    }
+                } else {
+                    throw new \Exception("Manual video recording verification failed to execute" . json_encode($data), 56);
+                }
+            } else {
+                throw new \Exception("Unable to verify manual video recording (http code : ".$httpRespCode.")", 19);
+            }
+        } catch (Exception $e) {
+            throw $e;
+        }
     }
 
 

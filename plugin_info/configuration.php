@@ -67,6 +67,12 @@ if (empty($plugin_version)) {
                 <input class="configKey form-control" data-l1key="polling_interval" type="number" min="1" placeholder="10"/>
             </div>
         </div>
+        <div class="form-group">
+            <label class="col-lg-4 control-label">{{Nombre de video à conserver}}</label>
+            <div class="col-lg-4">
+                <input class="configKey form-control" data-l1key="video_retention" type="number" min="1" placeholder="100"/>
+            </div>
+        </div>
     </fieldset>
     <fieldset>
         <legend>

@@ -22,12 +22,11 @@ if (!isConnect('admin')) {
 
 // Recupere l'Eq correspond à l'equipement
 $eqLogic = eqLogic::byId(init(id));
+// Base du plugin
+$plugin = plugin::byId('Diagral_eOne');
+$pluginBasePath = dirname($plugin->getFilepath(), 2);
 // Lance la récuperations des videos disponibles
 $videosList = $eqLogic->listImageDetectorVideos(False);
-// Tri le tableau en descendant (date la plus recente en haut)
-usort($videosList, function ($item1, $item2) {
-    return $item2['timestamp'] <=> $item1['timestamp'];
-});
 
 function getIcon($type) {
     switch ($type) {
@@ -43,7 +42,7 @@ function getIcon($type) {
 ?>
 
 <div class="container">
-	<h2>Liste des videos <?php $eqLogic->getName() ?> - Diagral eOne</h2>
+	<h2>Liste des videos "<?php echo $eqLogic->getName() ?>"</h2>
 	<br/><br/>
 	<table class="table">
         <thead class="thead-dark">
@@ -60,6 +59,11 @@ function getIcon($type) {
         <tbody>
         <?php
             foreach ($videosList as $key => $video) {
+                // Si il y a plus de videos que le nombre maximale a stocker, on ne les affiches plus.
+                if ($key >= config::byKey('video_retention', 'Diagral_eOne')) {
+                    break;
+                }
+                $video_path = '/data/videos/'.$eqLogic->getConfiguration('type').'/'.$eqLogic->getLogicalId().'/'.$video['timestamp'].'.mp4';
                 echo "<tr>";
                     echo "<th scope='row'>" . $key . "</th>";
                     $date = new \DateTime('now', new \DateTimeZone(config::byKey('timezone')));
@@ -69,9 +73,13 @@ function getIcon($type) {
                     echo "<td>" . $video['id'] . "</td>";
                     echo "<td>" . $video['format'] . "</td>";
                     echo "<td>" . $video['durationMs'] / 1000 . "</td>";
-                    echo "<td>
-                        <a href='/plugins/Diagral_eOne/data/videos/".$eqLogic->getConfiguration('type')."/".$eqLogic->getConfiguration('index')."/".$video['timestamp'].".mp4' target='_blank'> <i class='icon_green fas fa-2x fa-play-circle'></i></a>
-                    </td>";
+                    echo "<td>";
+                        if ($eqLogic->getConfiguration('autoDlVideo', '0') == '1' && file_exists($pluginBasePath.$video_path)) {
+                            echo "<a href='/plugins/Diagral_eOne".$video_path."' target='_blank'> <i class='icon_green fas fa-2x fa-play-circle'></i></a>";
+                        } else {
+                            echo "<p class='state tooltips tooltipstered' title='Video non disponible car la configuration Video Auto Download est désactivée sur le détecteur ou bien le téléchargement de la vidéo a échoué (consultez les logs).'> <i class='icon_red fas fa-2x fa-video-slash'></i></p>";
+                        }
+                    echo "</td>";
                 echo "</tr>";
             }
         ?>
