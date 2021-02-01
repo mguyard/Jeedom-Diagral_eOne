@@ -34,6 +34,9 @@ function Diagral_eOne_update() {
     $pluginVersion = Diagral_eOne_setVersion();
     // Mise à jour de l'ensemble des commandes
     log::add('Diagral_eOne', 'info', 'Mise à jour des commandes du Plugin Diagral_eOne');
+    // Force une synnchronisation
+    Diagral_eOne::synchronize();
+    log::add('Diagral_eOne', 'info', 'Synchronisation de l\'ensemble des éléments');
     foreach (eqLogic::byType('Diagral_eOne') as $eqLogic) {
         $eqLogic->save();
         log::add('Diagral_eOne', 'info', 'Mise à jour effectuée pour l\'équipement '. $eqLogic->getHumanName());
