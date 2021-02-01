@@ -1082,8 +1082,8 @@ class Diagral_eOne extends eqLogic {
         $countArray = count($files);
         log::add('Diagral_eOne', 'debug', 'purgeVideos::CountVideos - Il y a actuellement ' . $countArray . ' vidéos sur '. config::byKey('video_retention', 'Diagral_eOne') .' stockables (retention configuré dans le plugin)');
         // Si il y a plus de videos stocké que la retention autorisée
-        if ($countArray > intval(config::byKey('video_retention', 'Diagral_eOne'))) {
-            $nbToDelete = $countArray - intval(config::byKey('video_retention', 'Diagral_eOne'));
+        if ($countArray > intval(config::byKey('video_retention', 'Diagral_eOne', '100'))) {
+            $nbToDelete = $countArray - intval(config::byKey('video_retention', 'Diagral_eOne', '100'));
             for ($entry = 0; $entry <= $nbToDelete - 1; $entry++) {
                 unlink($files[$entry]['filefull']);
                 log::add('Diagral_eOne', 'info', 'purgeVideos::Delete Suppression du fichier ' . $files[$entry]['filefull']);
