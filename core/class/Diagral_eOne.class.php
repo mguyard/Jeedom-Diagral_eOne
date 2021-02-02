@@ -1488,7 +1488,20 @@ class Diagral_eOne extends eqLogic {
             log::add('Diagral_eOne', 'warning', 'installTracking Erreur '. $request->code .' avec le serveur de suivi des installations (' . $request->body->message . ') : ' . var_export($request->body, True));
         }
         return $request->code;
-}
+    }
+
+    /* ------------------------------ Gestion des icones par type d'équipements ------------------------------ */
+
+    /**
+     * Renvoi le chemin de l'icone
+     */
+    public function getPathDeviceIcon($eqLogic) {
+        if (file_exists(__DIR__ . '/../devices_image/' . $eqLogic->getConfiguration('type') . '_icon.png')) {
+            return 'plugins/Diagral_eOne/core/devices_image/' . $eqLogic->getConfiguration('type') . '_icon.png';
+        }
+        $plugin = plugin::byId('Diagral_eOne');
+        return $plugin->getPathImgIcon();
+     }
 
     /*     * **********************Getteur Setteur*************************** */
 }

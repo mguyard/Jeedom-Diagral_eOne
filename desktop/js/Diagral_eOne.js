@@ -231,9 +231,9 @@ $('#bt_showImagedetectorVideos').on('click',function() {
 
 // Application des templates d'affichage
 $('.eqLogicAttr[data-l1key=id], .eqLogicAttr[data-l1key=configuration][data-l2key=type]').on('change', function () {
-    var id = $('.eqLogicAttr[data-l1key=id]').val();
+    var eqLogicId = $('.eqLogicAttr[data-l1key=id]').val();
     var type = $('.eqLogicAttr[data-l1key=configuration][data-l2key=type]').val();
-    //console.log ("ID : " + id + "/ template : " + type)
+    //console.log ("ID : " + eqLogicId + "/ template : " + type)
     // Custom Template
     $('.eqCustom').hide();
     var cssClass = '.eq' + type.charAt(0).toUpperCase() + type.slice(1);
@@ -246,7 +246,7 @@ $('.eqLogicAttr[data-l1key=id], .eqLogicAttr[data-l1key=configuration][data-l2ke
             url: "plugins/Diagral_eOne/core/ajax/Diagral_eOne.ajax.php", // url du fichier php
             data: {
                 action: "generateCentralLink",
-                eqID: id,
+                eqID: eqLogicId,
             },
             dataType: 'json',
             error: function (request, status, error) {
@@ -259,6 +259,27 @@ $('.eqLogicAttr[data-l1key=id], .eqLogicAttr[data-l1key=configuration][data-l2ke
                     $( "#centralLink" ).append( "<a class='btn btn-info btn-sm cmdAction' href='/index.php?v=d&m=Diagral_eOne&p=Diagral_eOne&id=" + JSONreturn['centraleId'] + "' target='_blank'><i class='fas fa-info'></i> {{Voir}}</a>" )
                 }
             }
+        });
+    }
+    // Si on a un EqLogicId alors on change l'image selon le type d'équipement
+    if (eqLogicId) {
+    $.ajax({// fonction permettant de faire de l'ajax
+        type: "POST", // methode de transmission des données au fichier php
+        url: "plugins/Diagral_eOne/core/ajax/Diagral_eOne.ajax.php", // url du fichier php
+        data: {
+            action: "getIconPath",
+            eqLogicId: eqLogicId,
+        },
+        dataType: 'json',
+        error: function (request, status, error) {
+            handleAjaxError(request, status, error);
+        },
+        success: function (data) { // si l'appel a bien fonctionné
+            var JSONreturn = JSON.parse(data.result);
+            if(JSONreturn['iconPath']) {
+                $("img[name*='icon_visu']").attr("src", JSONreturn['iconPath']);
+            }
+        }
         });
     }
 });

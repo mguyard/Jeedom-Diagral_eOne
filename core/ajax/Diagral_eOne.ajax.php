@@ -35,6 +35,22 @@ try {
       }
     }
 
+    // Mise en place des icones d'équipement selon le type
+    if (init('action') == 'getIconPath') {
+		try {
+			$eqLogic = eqLogic::byId(init(eqLogicId), 'Diagral_eOne');
+			if (is_object($eqLogic)) {
+				$iconPath = Diagral_eOne::getPathDeviceIcon($eqLogic);
+				$return = array('iconPath' => $iconPath);
+				ajax::success(json_encode($return));
+			} else {
+			ajax::success(false);
+			}
+		} catch (Exception $e) {
+			ajax::error(displayExeption($e), $e->getCode());
+		}
+	}
+
     //Lancement de la suppression des données de tracking
     if (init('action') == 'delete_remote_datainfo') {
         try {
