@@ -1473,13 +1473,17 @@ class Diagral_eOne{
         $listImageDetectorsVideosPost = '{"carirIds":["DETECTOR'.$carirId.'"],"ttmSessionId":"'.$this->ttmSessionId.'"}';
         try {
             if(list($data,$httpRespCode) = $this->doRequest("/api/videos/".$this->transmitterId, $listImageDetectorsVideosPost)) {
+                // Si on a des données
                 if(isset($data['DETECTOR'.$carirId])) {
                     if($this->verbose) {
                         $this->addVerboseEvent("DEBUG", "List Image Detector Videos with success");
                     }
                     return $data['DETECTOR'.$carirId];
                 } else {
-                    throw new \Exception("Listing of Image Detector Videos failed to execute or no videos availables " . json_encode($data), 56);
+                    // No data available (no videos)
+                    $this->addVerboseEvent("DEBUG", "List Image Detector Videos with success - No videos available");
+                    // Return empty array
+                    return array();
                 }
             } else {
                 throw new \Exception("Unable to request Image Detector Videos list (http code : ".$httpRespCode.")", 19);

@@ -44,6 +44,12 @@ function getIcon($type) {
 <div class="container">
 	<h2>Liste des videos "<?php echo $eqLogic->getName() ?>"</h2>
 	<br/><br/>
+    <?php
+        if (empty($videosList)) {
+            echo "<b>Aucune videos disponibles</b>";
+            exit(0);
+        }
+    ?>
 	<table class="table">
         <thead class="thead-dark">
             <tr>
