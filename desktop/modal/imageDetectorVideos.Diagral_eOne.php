@@ -27,7 +27,7 @@ $plugin = plugin::byId('Diagral_eOne');
 $pluginBasePath = dirname($plugin->getFilepath(), 2);
 // Lance la récuperations des videos disponibles
 $videosList = $eqLogic->listImageDetectorVideos(False);
-log::add('Diagral_eOne', 'debug', 'modal::imageDetectorVideos Videos disponible : ' . var_export($videosList, True));
+log::add('Diagral_eOne', 'debug', 'modal::imageDetectorVideos Videos disponibles : ' . var_export($videosList, True));
 
 function getIcon($type) {
     switch ($type) {
@@ -67,7 +67,7 @@ function getIcon($type) {
         <?php
             foreach ($videosList as $key => $video) {
                 // Si il y a plus de videos que le nombre maximale a stocker, on ne les affiches plus.
-                if ($key >= config::byKey('video_retention', 'Diagral_eOne')) {
+                if ($key >= config::byKey('video_retention', 'Diagral_eOne', '100')) {
                     break;
                 }
                 $video_path = '/data/videos/'.$eqLogic->getConfiguration('type').'/'.$eqLogic->getLogicalId().'/'.$video['timestamp'].'.mp4';

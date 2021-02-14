@@ -1056,7 +1056,7 @@ class Diagral_eOne extends eqLogic {
                 }
             }
         }
-        $MyAlarm->logout();
+        //$MyAlarm->logout(); // FAIT PARFOIS BUGGER LA RECUPERATION DES VIDEOS
         return $videoList;
     }
 
