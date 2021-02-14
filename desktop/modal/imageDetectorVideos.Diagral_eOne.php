@@ -27,6 +27,7 @@ $plugin = plugin::byId('Diagral_eOne');
 $pluginBasePath = dirname($plugin->getFilepath(), 2);
 // Lance la récuperations des videos disponibles
 $videosList = $eqLogic->listImageDetectorVideos(False);
+log::add('Diagral_eOne', 'debug', 'modal::imageDetectorVideos Videos disponible : ' . var_export($videosList, True));
 
 function getIcon($type) {
     switch ($type) {
