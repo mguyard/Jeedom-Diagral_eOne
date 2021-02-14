@@ -1479,7 +1479,7 @@ class Diagral_eOne{
                     }
                     return $data['DETECTOR'.$carirId];
                 } else {
-                    throw new \Exception("Listing of Image Detector Videos failed to execute" . json_encode($data), 56);
+                    throw new \Exception("Listing of Image Detector Videos failed to execute or no videos availables " . json_encode($data), 56);
                 }
             } else {
                 throw new \Exception("Unable to request Image Detector Videos list (http code : ".$httpRespCode.")", 19);
