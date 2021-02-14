@@ -91,6 +91,7 @@ class Diagral_eOne extends eqLogic {
                 $eqLogic->setCategory('security', 1);
                 $eqLogic->setConfiguration('systemid', $key);
                 $eqLogic->setConfiguration('type', 'centrale');
+                $eqLogic->setConfiguration('templateDiagral', 1);
                 $nbCreated++;
             } else {
                 log::add('Diagral_eOne', 'info', "Synchronize::Systems Alarme ".$Alarm->getName()." mise à jour.");
@@ -103,6 +104,9 @@ class Diagral_eOne extends eqLogic {
                 $eqLogic->setCategory('security', 1);
                 $eqLogic->setConfiguration('systemid', $key);
                 $eqLogic->setConfiguration('type', 'centrale');
+                if ($eqLogic->getConfiguration('templateDiagral') == "") {
+                    $eqLogic->setConfiguration('templateDiagral', 1);
+                }
             }
             $eqLogic->save();
         }
@@ -235,6 +239,12 @@ class Diagral_eOne extends eqLogic {
     }
 
     public function toHtml($_version = 'dashboard') {
+        // Si on desactive l'option du template du plugin, alors on repasse en template par defaut (Jeedom)
+        if ($this->getConfiguration('templateDiagral') != 1)
+        {
+            return parent::toHtml($_version);
+        }
+
         $replace = $this->preToHtml($_version);
 		if (!is_array($replace)) {
 			return $replace;

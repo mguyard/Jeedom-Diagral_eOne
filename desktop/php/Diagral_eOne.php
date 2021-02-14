@@ -168,7 +168,9 @@ $pluginCompatible = array(
                                         </div>
                                     </div>
                                     <div class="form-group">
-                                        <label class="col-sm-3 control-label">{{Sécurisation désarmement}}</label>
+                                        <label class="col-sm-3 control-label">{{Sécurisation désarmement}}
+                                            <sup><i class="fa fa-question-circle tooltips" title="Empêche le désarmement de l’alarme au travers de Jeedom"></i></sup>
+                                        </label>
                                         <div class="col-sm-3">
                                             <input type="checkbox" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="secureDisarm"/>
                                         </div>
@@ -178,7 +180,7 @@ $pluginCompatible = array(
                                 <div class="eqCustom eqImagedetector">
                                 <div class="form-group">
                                         <label class="col-sm-3 control-label">{{Video Auto Download}}
-                                            <sup><i class="fa fa-question-circle tooltips" title="Recupère de façon automatique les videos disponibles" style="font-size:1em;color:bleu;"></i></sup>
+                                            <sup><i class="fa fa-question-circle tooltips" title="Recupère de façon automatique les videos disponibles"></i></sup>
                                         </label>
                                         <div class="col-sm-3">
                                             <input type="checkbox" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="autoDlVideo"/>
@@ -186,10 +188,21 @@ $pluginCompatible = array(
                                     </div>
                                     <div class="form-group">
                                         <label class="col-sm-3 control-label">{{Centrale}}
-                                            <sup><i class="fa fa-question-circle tooltips" title="Lien vers la centrale qui gère ce détecteur" style="font-size:1em;color:bleu;"></i></sup>
+                                            <sup><i class="fa fa-question-circle tooltips" title="Lien vers la centrale qui gère ce détecteur"></i></sup>
                                         </label>
                                         <div id="centralLink" class="col-sm-3">
                                             <!-- Import button by JS -->
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="eqCustom eqCentrale"><legend><i class="fas fa-desktop"></i> {{Affichage}}</legend></div>
+                                <div class="eqCustom eqCentrale">
+                                    <div class="form-group">
+                                        <label class="col-sm-3 control-label">{{Template Diagral}}
+                                            <sup><i class="fa fa-question-circle tooltips" title="Active le template widget du plugin"></i></sup>
+                                        </label>
+                                        <div class="col-sm-3">
+                                            <input type="checkbox" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="templateDiagral"/>
                                         </div>
                                     </div>
                                 </div>
