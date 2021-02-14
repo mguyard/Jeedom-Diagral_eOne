@@ -28,12 +28,28 @@ try {
     // Lancement de la synchronisation des equipements
     if (init('action') == 'synchronize') {
       try {
-		    Diagral_eOne::synchronize();
+		    Diagral_eOne::synchronize('all');
 		    ajax::success();
       } catch (Exception $e) {
             ajax::error(displayExeption($e), $e->getCode());
       }
     }
+
+    // Mise en place des icones d'équipement selon le type
+    if (init('action') == 'getIconPath') {
+		try {
+			$eqLogic = eqLogic::byId(init(eqLogicId), 'Diagral_eOne');
+			if (is_object($eqLogic)) {
+				$iconPath = Diagral_eOne::getPathDeviceIcon($eqLogic);
+				$return = array('iconPath' => $iconPath);
+				ajax::success(json_encode($return));
+			} else {
+			ajax::success(false);
+			}
+		} catch (Exception $e) {
+			ajax::error(displayExeption($e), $e->getCode());
+		}
+	}
 
     //Lancement de la suppression des données de tracking
     if (init('action') == 'delete_remote_datainfo') {
@@ -96,6 +112,30 @@ try {
 
         }
         ajax::success();
+    }
+
+    //Generation du lien vers la centrale pour la page EqLogic des detecteurs à Image
+    if (init('action') == 'generateCentralLink') {
+        try {
+            if(! empty(init('eqID'))) {
+                $eqlogic = eqLogic::byId(init('eqID'));
+                if ($eqlogic->getConfiguration('type') == "imagedetector") {
+                    $centrale = eqLogic::byLogicalId($eqlogic->getConfiguration('centrale'), 'Diagral_eOne');
+                    if (is_object($centrale)) {
+                        $return = array('centraleId' => $centrale->getId());
+                        ajax::success(json_encode($return));
+                    } else {
+                        ajax::success(json_encode(array('centraleId' => '')));
+                    }
+                } else {
+                    ajax::success(json_encode(array('centraleId' => '')));
+                }
+            } else {
+                ajax::success(json_encode(array('centraleId' => '')));
+            }
+        } catch (Exception $e) {
+            ajax::error(displayExeption($e), $e->getCode());
+        }
     }
 
     //Lancement de la suppression des données de tracking
