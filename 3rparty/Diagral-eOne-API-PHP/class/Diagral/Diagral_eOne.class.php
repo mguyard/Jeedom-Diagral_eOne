@@ -398,7 +398,7 @@ class Diagral_eOne{
         if(!isset($this->versions["central"]) && !isset($this->versions["centralRadio"])) {
             $this->getDevicesMultizone();
         }
-        $GetFirmwareUpdatesStatusPost = '{"currentVersions":{"BOX":"'.$this->versions["box"].'","BOXRADIO":"'.$this->versions["boxRadio"].'","PLUGKNX":"'.$this->versions["plugKnx"].'","CENTRAL":"'.$this->versions["central"].'","CENTRALRADIO":"'.$this->versions["centralRadio"].'"},"systemId":"'.$this->systems[$this->systemId]["id"].'","ttmSessionId":"'.$this->ttmSessionId.'"}';
+        $GetFirmwareUpdatesStatusPost = '{"currentVersions":{"BOX":"'.$this->versions["box"].'","BOXRADIO":"'.$this->versions["boxRadio"].'","PLUGKNX":"'.$this->versions["plugKnx"].'","CENTRAL":"'.$this->versions["central"].'","CENTRALRADIO":"'.$this->versions["centralRadio"].'"},"systemId":'.$this->systems[$this->systemId]["id"].',"ttmSessionId":"'.$this->ttmSessionId.'"}';
         try {
                     if(list($data,$httpRespCode) = $this->doRequest("/configuration/getFirmwareUpdates", $GetFirmwareUpdatesStatusPost)) {
                         if(isset($data["totalUpdates"])) {
@@ -1602,10 +1602,10 @@ class Diagral_eOne{
         $retry = isset($retry) ? $retry : $this->doRequestAttempts - 1;
         $curl = curl_init();
         $curl_headers = array(
-            "User-Agent: Mozilla/5.0 (iPhone; CPU iPhone OS 12_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148",
+            "User-Agent: eOne/1.11.8.1 CFNetwork/1220.1 Darwin/20.3.0",
             "Accept: application/json, text/plain, */*",
             "Accept-Encoding: deflate",
-            "X-App-Version: 1.10.1",
+            "X-App-Version: 1.11.8",
             "X-Identity-Provider: JANRAIN",
             "ttmSessionIdNotRequired: true",
             "X-Vendor: diagral",
