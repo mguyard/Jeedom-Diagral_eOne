@@ -134,7 +134,7 @@ class Diagral_eOne{
 
 
 
-
+    /* ------------------------------- Initialisation ------------------------------ */
 
     /**
      * Object construct initialisation
@@ -152,6 +152,7 @@ class Diagral_eOne{
     }
 
 
+    /* ------------------------------- Fonctions dediés à l'authentification Cloud ------------------------------ */
 
 
     /**
@@ -182,6 +183,7 @@ class Diagral_eOne{
     }
 
 
+    /* ------------------------------- Fonctions dédiés aux Centrales ------------------------------ */
 
 
     /**
@@ -396,7 +398,7 @@ class Diagral_eOne{
         if(!isset($this->versions["central"]) && !isset($this->versions["centralRadio"])) {
             $this->getDevicesMultizone();
         }
-        $GetFirmwareUpdatesStatusPost = '{"currentVersions":{"BOX":"'.$this->versions["box"].'","BOXRADIO":"'.$this->versions["boxRadio"].'","PLUGKNX":"'.$this->versions["plugKnx"].'","CENTRAL":"'.$this->versions["central"].'","CENTRALRADIO":"'.$this->versions["centralRadio"].'"},"systemId":"'.$this->systems[$this->systemId]["id"].'","ttmSessionId":"'.$this->ttmSessionId.'"}';
+        $GetFirmwareUpdatesStatusPost = '{"currentVersions":{"BOX":"'.$this->versions["box"].'","BOXRADIO":"'.$this->versions["boxRadio"].'","PLUGKNX":"'.$this->versions["plugKnx"].'","CENTRAL":"'.$this->versions["central"].'","CENTRALRADIO":"'.$this->versions["centralRadio"].'"},"systemId":'.$this->systems[$this->systemId]["id"].',"ttmSessionId":"'.$this->ttmSessionId.'"}';
         try {
                     if(list($data,$httpRespCode) = $this->doRequest("/configuration/getFirmwareUpdates", $GetFirmwareUpdatesStatusPost)) {
                         if(isset($data["totalUpdates"])) {
@@ -1443,6 +1445,148 @@ class Diagral_eOne{
 
 
 
+    /* ------------------------------- Fonctions dédiés aux Detecteurs à Image ------------------------------ */
+
+
+    /**
+     * Retreive Diagral Image Detector
+     * @return array     Array of Diagral Image detectors
+     */
+    public function getImageDetectors() {
+        if(!isset($this->DeviceMultizone["boxLearningZone"]["carirs"])) {
+            try {
+                $this->getDevicesMultizone();
+            } catch (Exception $e) {
+                throw $e;
+            }
+        }
+        return $this->DeviceMultizone["boxLearningZone"]["carirs"];
+    }
+
+
+    /**
+     * Retreive Videos available for Image Detector
+     * @param str $carirId      Image Detector ID
+     * @return array            List of all videos
+     */
+    public function getImageDetectorsVideos($carirId) {
+        $listImageDetectorsVideosPost = '{"carirIds":["DETECTOR'.$carirId.'"],"ttmSessionId":"'.$this->ttmSessionId.'"}';
+        try {
+            if(list($data,$httpRespCode) = $this->doRequest("/api/videos/".$this->transmitterId, $listImageDetectorsVideosPost)) {
+                // Si on a des données
+                if(isset($data['DETECTOR'.$carirId])) {
+                    if($this->verbose) {
+                        $this->addVerboseEvent("DEBUG", "List Image Detector Videos with success");
+                    }
+                    return $data['DETECTOR'.$carirId];
+                } else {
+                    // No data available (no videos)
+                    $this->addVerboseEvent("DEBUG", "List Image Detector Videos with success - No videos available");
+                    // Return empty array
+                    return array();
+                }
+            } else {
+                throw new \Exception("Unable to request Image Detector Videos list (http code : ".$httpRespCode.")", 19);
+            }
+        } catch (Exception $e) {
+            throw $e;
+        }
+    }
+
+    /**
+     * Download Video File
+     * @param str $carirId      Image Detector ID
+     * @param str $videoId      Video ID // Change everytime we request video list
+     * @return str              Video content
+     */
+    public function downloadImageDetectorsVideo($carirId, $videoId) {
+        try {
+            if(list($data,$httpRespCode) = $this->doRequest("/api/videos/".$this->transmitterId."/DETECTOR".$carirId."/".$videoId."/mpeg4", "", True, "GET")) {
+                $JSONResult = json_decode($data, True);
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    return $data;
+                } else {
+                    throw new \Exception("Download video of Image Detector failed to execute " . var_export($JSONResult, True), 56);
+                }
+            } else {
+                throw new \Exception("Unable to download Image Detector Video (http code : ".$httpRespCode.")", 19);
+            }
+        } catch (Exception $e) {
+            throw $e;
+        }
+
+    }
+
+
+
+    /**
+     * Lance un enregistrement manuel
+     * @param str $carirId          Image Detector ID
+     */
+    public function launchManualVideo($carirId) {
+        $launchManualVideoPost = '{"centralId":"'.$this->centralId.'", "transmitterId":"'.$this->transmitterId.'", "systemId":"'.$this->systemId.'", "carirId": "'.$carirId.'", "ttmSessionId":"'.$this->ttmSessionId.'"}';
+        try {
+            if(list($data,$httpRespCode) = $this->doRequest("/action/v2/captureCarir/", $launchManualVideoPost)) {
+                if(isset($data['operationId'])) {
+                    // La commande a était bien lancée
+                    $status = FALSE;
+                    for ($i = 1; $i <= 5; $i++) {
+                        // Si la verification retourne FALSE (video pas fini de generer), on attend 10 minutes
+                        if ($this->verifyManualVideoStatus($carirId, $data['operationId']) === FALSE) {
+                            sleep(20);
+                        } else {
+                            // Si ca retourne TRUE alors c'est que la video est terminé donc on peut arreter la boucle
+                            $status = TRUE;
+                            break;
+                        }
+                    }
+                    if ($status === FALSE) {
+                        throw new \Exception("Unable to launch or verify than manual video was launched with success", 56);
+                    }
+                    //return $status;
+                } else {
+                    throw new \Exception("Manual video recording failed to execute" . json_encode($data), 56);
+                }
+            } else {
+                throw new \Exception("Unable to launch manual video recording (http code : ".$httpRespCode.")", 19);
+            }
+        } catch (Exception $e) {
+            throw $e;
+        }
+    }
+
+
+    /**
+     * Verifie le statut de l'enregistrement manuel
+     * @param str $carirId          Image Detector ID
+     * @param str $operationId      ID recupéré dans le resultat de la fonction launchManualVideo
+     * @return binary               TRUE si success / FALSE si echec
+     */
+    private function verifyManualVideoStatus($carirId, $operationId) {
+        $launchManualVideoPost = '{"centralId":"'.$this->centralId.'", "transmitterId":"'.$this->transmitterId.'", "systemId":"'.$this->systemId.'", "carirId": "'.$carirId.'", "operationId":"'.$operationId.'", "ttmSessionId":"'.$this->ttmSessionId.'"}';
+        try {
+            if(list($data,$httpRespCode) = $this->doRequest("/action/captureCarirStatus/", $launchManualVideoPost)) {
+                if(isset($data['status'])) {
+                    if ($data['status'] == 'OK') {
+                        return TRUE;
+                    } else {
+                        return FALSE;
+                    }
+                } else {
+                    throw new \Exception("Manual video recording verification failed to execute" . json_encode($data), 56);
+                }
+            } else {
+                throw new \Exception("Unable to verify manual video recording (http code : ".$httpRespCode.")", 19);
+            }
+        } catch (Exception $e) {
+            throw $e;
+        }
+    }
+
+
+
+    /* ------------------------------- Requêtes WEB ------------------------------ */
+
 
     /**
      * Execute all http request to Diagral Cloud
@@ -1458,10 +1602,10 @@ class Diagral_eOne{
         $retry = isset($retry) ? $retry : $this->doRequestAttempts - 1;
         $curl = curl_init();
         $curl_headers = array(
-            "User-Agent: Mozilla/5.0 (iPhone; CPU iPhone OS 12_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148",
+            "User-Agent: eOne/1.11.8.1 CFNetwork/1220.1 Darwin/20.3.0",
             "Accept: application/json, text/plain, */*",
             "Accept-Encoding: deflate",
-            "X-App-Version: 1.10.1",
+            "X-App-Version: 1.11.8",
             "X-Identity-Provider: JANRAIN",
             "ttmSessionIdNotRequired: true",
             "X-Vendor: diagral",
@@ -1485,7 +1629,7 @@ class Diagral_eOne{
         curl_setopt($curl, CURLOPT_CUSTOMREQUEST,  $method);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($curl, CURLOPT_POSTFIELDS,     $data);
-        curl_setopt($curl, CURLOPT_HTTPHEADER, $curl_headers);
+        curl_setopt($curl, CURLOPT_HTTPHEADER,     $curl_headers);
         $result = curl_exec($curl);
         $httpRespCode  = curl_getinfo($curl, CURLINFO_HTTP_CODE);
         if ($this->verbose) {
@@ -1497,7 +1641,11 @@ class Diagral_eOne{
             }
             $curl_verboseEvent = $curl_verboseEvent . "**************************************\n";
             $curl_verboseEvent = $curl_verboseEvent . "HTTP Response Code : " . $httpRespCode . "\n";
-            $curl_verboseEvent = $curl_verboseEvent . "HTTP Response : " . json_encode($result) . "\n";
+            if($rawout == true) {
+                $curl_verboseEvent = $curl_verboseEvent . "HTTP Response : " . $result . "\n";
+            } else {
+                $curl_verboseEvent = $curl_verboseEvent . "HTTP Response : " . json_encode($result) . "\n";
+            }
             $curl_verboseEvent = $curl_verboseEvent . "**************************************\n";
             $this->addVerboseEvent("DEBUG", $curl_verboseEvent);
         }
