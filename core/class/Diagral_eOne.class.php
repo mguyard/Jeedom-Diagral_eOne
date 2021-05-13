@@ -21,8 +21,8 @@ require_once __DIR__  . '/../../../../core/php/core.inc.php';
 
 define('__PLGBASE__', dirname(dirname(__DIR__)));
 require_once (__PLGBASE__.'/3rparty/Diagral-eOne-API-PHP/class/Diagral/Diagral_eOne.class.php');
+require_once (__PLGBASE__.'/3rparty/DiagDebug/DiagDebug.class.php');
 include(__PLGBASE__.'/3rparty/HTTPFul/httpful.phar');
-//use \Mguyard\Diagral\Diagral_eOne;
 
 class Diagral_eOne extends eqLogic {
     /*     * *************************Attributs****************************** */
@@ -1365,7 +1365,7 @@ class Diagral_eOne extends eqLogic {
             $success = TRUE;
             log::add('Diagral_eOne', 'debug', 'installTracking UID:' . $uid);
         } else {
-            log::add('Diagral_eOne', 'warning', 'installTracking Erreur '. $requestUID->code .' avec le serveur de suivi des installations (' . $requestUID->body->message . ') : ' . var_export($requestUID->body, True));
+            log::add('Diagral_eOne', 'debug', 'installTracking Erreur '. $requestUID->code .' avec le serveur de suivi des installations (' . $requestUID->body->message . ') : ' . var_export($requestUID->body, True));
         }
 
         // Retourne les paramètres collectés
@@ -1495,7 +1495,7 @@ class Diagral_eOne extends eqLogic {
         if (strpos($request->code, '2') === 0) {
             log::add('Diagral_eOne', 'debug', 'installTracking Données envoyées (HTTP '. $request->code .')');
         } else {
-            log::add('Diagral_eOne', 'warning', 'installTracking Erreur '. $request->code .' avec le serveur de suivi des installations (' . $request->body->message . ') : ' . var_export($request->body, True));
+            log::add('Diagral_eOne', 'debug', 'installTracking Erreur '. $request->code .' avec le serveur de suivi des installations (' . $request->body->message . ') : ' . var_export($request->body, True));
         }
         return $request->code;
     }
@@ -1511,7 +1511,29 @@ class Diagral_eOne extends eqLogic {
         }
         $plugin = plugin::byId('Diagral_eOne');
         return $plugin->getPathImgIcon();
-     }
+    }
+
+
+    /* ------------------------------ Génératon de l'archive de DiagDebug ------------------------------ */
+
+    public function generateDiagDebug() {
+        try {
+            $diag = new DiagDebug('Diagral_eOne');
+            $diag->addPluginLogs();
+            $diag->addJeedomLogs(array('plugin', 'jeedom', 'http.error'));
+            $diag->addCmd('nslookup appv3.tt-monitor.com');
+            $diag->addCmd('ip addr', NULL, TRUE);
+            $diag->addCmd('ip route', NULL, TRUE);
+            $diag->addCmd('ls -lR #PLUGBASE#', NULL, TRUE);
+            $diag->addPluginConf();
+            $diag->addAllPluginEqlogic();
+            $diag->addFile('#PLUGBASE#');
+            return $diag->download();
+        } catch (Exception $e) {
+            echo 'Exception reçue : '.  $e->getMessage() . '<br>';
+        }
+    }
+
 
     /*     * **********************Getteur Setteur*************************** */
 }

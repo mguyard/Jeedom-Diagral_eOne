@@ -19,3 +19,4 @@ core/config/scenarios_*\.json
 data/groups_*\.json
 data/scenarios_*\.json
 data/videos/*/
+data/DiagDebug/*
