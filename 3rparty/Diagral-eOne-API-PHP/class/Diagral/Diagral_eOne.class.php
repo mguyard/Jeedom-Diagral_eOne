@@ -213,6 +213,8 @@ class Diagral_eOne{
 
 
 
+
+
     /**
      * Define on which system who want to work
      * @param integer $id ID of Diagral System
@@ -389,6 +391,64 @@ class Diagral_eOne{
             throw $e;
         }
     }
+
+
+
+
+
+    /**
+     * Retrieve all devices
+     * @return array List of all devices
+     */
+    private function getDevices() {
+        try {
+            if(list($data,$httpRespCode) = $this->doRequest("/api/scenarios/".$this->systems[$this->systemId]["id"]."/devices", "", FALSE, "GET")) {
+                return $data;
+            } else {
+                throw new \Exception("Unable to retrieve automations (http code : ".$httpRespCode.")", 19);
+            }
+        } catch (Exception $e) {
+            throw $e;
+        }
+    }
+
+
+
+
+
+    /**
+     * Retrieve all automations
+     * @return array All automations informations
+     */
+    public function getAutomations() {
+        // Get Automation Sequence
+        $devices = $this->getDevices();
+        $GetAutomationPost = '{"systemId":'.$this->systems[$this->systemId]["id"].',"ttmSessionId":"'.$this->ttmSessionId.'"}';
+        try {
+            if(list($data,$httpRespCode) = $this->doRequest("/automation/getAutomationList", $GetAutomationPost)) {
+                if (is_array($data) && !empty($data)) {
+                    foreach ($data as &$automation) {
+                        foreach ($devices as $device) {
+                            if ($automation['index'] == $device['index']) {
+                                $automation['type']['type'] = $device['type'];
+                                $automation['type']['application'] = $device['application'];
+                            }
+                        }
+                    }
+                    return $data;
+                } else {
+                    return $data;
+                }
+            } else {
+                throw new \Exception("Unable to retrieve automations (http code : ".$httpRespCode.")", 19);
+            }
+        } catch (Exception $e) {
+            throw $e;
+        }
+    }
+
+
+
 
     /**
      * Verify if firmware update is need
@@ -1344,6 +1404,27 @@ class Diagral_eOne{
                 }
             } else {
                 throw new \Exception("Unable to execute this scenario (http code : ".$httpRespCode.")", 19);
+            }
+        } catch (Exception $e) {
+            throw $e;
+        }
+    }
+
+
+
+    public function openAutomation($index, $command) {
+        $openAutomationPost = '{"command":"'.strtoupper($command).'","index":'.intval($index).',"systemId":'.$this->systems[$this->systemId]["id"].',"ttmSessionId":"'.$this->ttmSessionId.'"}';
+        try {
+            if(list($data,$httpRespCode) = $this->doRequest("/automation/sendCommand", $openAutomationPost)) {
+                if(isset($data[0]) && $data[0] == "CMD_OK") {
+                    if($this->verbose) {
+                        $this->addVerboseEvent("DEBUG", "Automation Command (open) executed with success");
+                    }
+                } else {
+                    throw new \Exception("OPEN automation command failed to execute" . json_encode($data), 56);
+                }
+            } else {
+                throw new \Exception("Unable to execute this OPEN automation command (http code : ".$httpRespCode.")", 19);
             }
         } catch (Exception $e) {
             throw $e;

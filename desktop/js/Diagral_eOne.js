@@ -233,14 +233,13 @@ $('#bt_showImagedetectorVideos').on('click',function() {
 $('.eqLogicAttr[data-l1key=id], .eqLogicAttr[data-l1key=configuration][data-l2key=type]').on('change', function () {
     var eqLogicId = $('.eqLogicAttr[data-l1key=id]').val();
     var type = $('.eqLogicAttr[data-l1key=configuration][data-l2key=type]').val();
-    //console.log ("ID : " + eqLogicId + "/ template : " + type)
     // Custom Template
     $('.eqCustom').hide();
     var cssClass = '.eq' + type.charAt(0).toUpperCase() + type.slice(1);
-    //console.log('CSS: ' + cssClass)
     $(cssClass).show();
     // Generation du lien vers la centrale pour les detecteurs à image
-    if ( type === 'imagedetector') {
+    if ($.inArray(type, ['imagedetector', 'adyx-portal'])) {
+        $('.eqCentralLink').show();
         $.ajax({// fonction permettant de faire de l'ajax
             type: "POST", // methode de transmission des données au fichier php
             url: "plugins/Diagral_eOne/core/ajax/Diagral_eOne.ajax.php", // url du fichier php

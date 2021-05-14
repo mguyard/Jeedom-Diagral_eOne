@@ -129,7 +129,7 @@ try {
         try {
             if(! empty(init('eqID'))) {
                 $eqlogic = eqLogic::byId(init('eqID'));
-                if ($eqlogic->getConfiguration('type') == "imagedetector") {
+                if(in_array($eqlogic->getConfiguration('type'),array('imagedetector', 'adyx-portal'))) {
                     $centrale = eqLogic::byLogicalId($eqlogic->getConfiguration('centrale'), 'Diagral_eOne');
                     if (is_object($centrale)) {
                         $return = array('centraleId' => $centrale->getId());

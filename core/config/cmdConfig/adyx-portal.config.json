@@ -1,0 +1,19 @@
+{
+    "commands":[{
+        "name": "Ouverture totale",
+        "description": "Ouverture totale",
+        "logicalId": "openComplete",
+        "type": "action",
+        "subtype": "other",
+        "isVisible": 1,
+        "isDashboard": 1
+    }, {
+        "name": "Ouverture Pieton",
+        "description": "Ouverture partielle ou pieton",
+        "logicalId": "openPartial",
+        "type": "action",
+        "subtype": "other",
+        "isVisible": 1,
+        "isDashboard": 1
+    }]
+}

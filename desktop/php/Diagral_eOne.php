@@ -73,6 +73,23 @@ $pluginCompatible = array(
             }
             ?>
         </div>
+
+
+        <!-- Liste des Automatoons -->
+        <legend><i class="fas fa-table"></i> {{Mes Automations}}</legend>
+        <div class="eqLogicThumbnailContainer">
+            <?php
+            foreach ($eqLogics as $eqLogic) {
+                if (!in_array($eqLogic->getConfiguration('type', ''), array('adyx-portal'))) continue;
+                $opacity = ($eqLogic->getIsEnable()) ? '' : 'disableCard';
+                echo '<div class="eqLogicDisplayCard cursor '.$opacity.'" data-eqLogic_id="' . $eqLogic->getId() . '">';
+                echo '<img src="' . Diagral_eOne::getPathDeviceIcon($eqLogic) . '"/>';
+                echo '<br>';
+                echo '<span class="name">' . $eqLogic->getHumanName(true, true) . '</span>';
+                echo '</div>';
+            }
+            ?>
+        </div>
     </div> <!-- /.eqLogicThumbnailDisplay -->
 
     <!-- Page de présentation de l'équipement -->
@@ -178,7 +195,7 @@ $pluginCompatible = array(
                                 </div>
                                 <!-- Template for Image Detectors -->
                                 <div class="eqCustom eqImagedetector">
-                                <div class="form-group">
+                                    <div class="form-group">
                                         <label class="col-sm-3 control-label">{{Video Auto Download}}
                                             <sup><i class="fa fa-question-circle tooltips" title="Recupère de façon automatique les videos disponibles"></i></sup>
                                         </label>
@@ -186,6 +203,9 @@ $pluginCompatible = array(
                                             <input type="checkbox" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="autoDlVideo"/>
                                         </div>
                                     </div>
+                                </div>
+                                <!-- Template for All device who are connected to Centrale -->
+                                <div class="eqCustom eqImagedetector eqCentralLink">
                                     <div class="form-group">
                                         <label class="col-sm-3 control-label">{{Centrale}}
                                             <sup><i class="fa fa-question-circle tooltips" title="Lien vers la centrale qui gère ce détecteur"></i></sup>
