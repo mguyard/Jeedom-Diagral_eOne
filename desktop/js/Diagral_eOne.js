@@ -219,10 +219,10 @@ $('#bt_showEvents').on('click',function() {
         .dialog('open');
 });
 
-// Affiche la modale des videos d'ImageDetector
-$('#bt_showImagedetectorVideos').on('click',function() {
+// Affiche la modale des videos d'ImageDetector / Cameras
+$('#bt_showVideos').on('click',function() {
 	$('#md_modal').dialog({title: "{{Liste des videos disponibles}}"});
-    $('#md_modal').load('index.php?v=d&plugin=Diagral_eOne&modal=imageDetectorVideos.Diagral_eOne&id='
+    $('#md_modal').load('index.php?v=d&plugin=Diagral_eOne&modal=videos.Diagral_eOne&id='
         + $('.eqLogicAttr[data-l1key=id]').value()
         )
         .dialog('open');
@@ -237,8 +237,8 @@ $('.eqLogicAttr[data-l1key=id], .eqLogicAttr[data-l1key=configuration][data-l2ke
     $('.eqCustom').hide();
     var cssClass = '.eq' + type.charAt(0).toUpperCase() + type.slice(1);
     $(cssClass).show();
-    // Generation du lien vers la centrale pour les detecteurs à image
-    if ($.inArray(type, ['imagedetector', 'adyx-portal'])) {
+    // Generation du lien vers la centrale
+    if ($.inArray(type, ['imagedetector', 'camera', 'adyx-portal'])) {
         $('.eqCentralLink').show();
         $.ajax({// fonction permettant de faire de l'ajax
             type: "POST", // methode de transmission des données au fichier php

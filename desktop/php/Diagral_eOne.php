@@ -58,12 +58,12 @@ $pluginCompatible = array(
             ?>
         </div>
 
-        <!-- Liste des Detecteurs a Image -->
-        <legend><i class="fas fa-table"></i> {{Mes detecteurs à image}}</legend>
+        <!-- Liste des Detecteurs a Image / Cameras  -->
+        <legend><i class="fas fa-table"></i> {{Mes Cameras / detecteurs à image}}</legend>
         <div class="eqLogicThumbnailContainer">
             <?php
             foreach ($eqLogics as $eqLogic) {
-                if ($eqLogic->getConfiguration('type', '') != 'imagedetector') continue;
+                if (!in_array($eqLogic->getConfiguration('type', ''), array('imagedetector','camera'))) continue;
                 $opacity = ($eqLogic->getIsEnable()) ? '' : 'disableCard';
                 echo '<div class="eqLogicDisplayCard cursor '.$opacity.'" data-eqLogic_id="' . $eqLogic->getId() . '">';
                 echo '<img src="' . Diagral_eOne::getPathDeviceIcon($eqLogic) . '"/>';
@@ -193,8 +193,8 @@ $pluginCompatible = array(
                                         </div>
                                     </div>
                                 </div>
-                                <!-- Template for Image Detectors -->
-                                <div class="eqCustom eqImagedetector">
+                                <!-- Template for Cameras / Image Detectors -->
+                                <div class="eqCustom eqImagedetector eqCamera">
                                     <div class="form-group">
                                         <label class="col-sm-3 control-label">{{Video Auto Download}}
                                             <sup><i class="fa fa-question-circle tooltips" title="Recupère de façon automatique les videos disponibles"></i></sup>
@@ -205,7 +205,7 @@ $pluginCompatible = array(
                                     </div>
                                 </div>
                                 <!-- Template for All device who are connected to Centrale -->
-                                <div class="eqCustom eqImagedetector eqCentralLink">
+                                <div class="eqCustom eqImagedetector eqCamera eqCentralLink">
                                     <div class="form-group">
                                         <label class="col-sm-3 control-label">{{Centrale}}
                                             <sup><i class="fa fa-question-circle tooltips" title="Lien vers la centrale qui gère ce détecteur"></i></sup>
@@ -244,11 +244,11 @@ $pluginCompatible = array(
                                     <a class="btn btn-info btn-sm cmdAction" id="bt_showEvents"><i class="fas fa-info"></i> {{Consulter}}</a>
                                 </div>
                             </div>
-                            <div class="eqCustom eqImagedetector">
+                            <div class="eqCustom eqImagedetector eqCamera">
                                 <div><legend><i class="fas fa-info"></i> {{Liste des vidéos disponibles}}</legend></div>
                                 <div class="col-sm-3"></div>
                                 <div class="col-sm-6">
-                                    <a class="btn btn-info btn-sm cmdAction" id="bt_showImagedetectorVideos"><i class="fas fa-video"></i> {{Consulter}}</a>
+                                    <a class="btn btn-info btn-sm cmdAction" id="bt_showVideos"><i class="fas fa-video"></i> {{Consulter}}</a>
                                 </div>
                             </div>
                         </div>

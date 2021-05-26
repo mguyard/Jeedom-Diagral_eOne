@@ -1,0 +1,12 @@
+{
+    "commands":[{
+        "name": "Dernière video",
+        "description": "Affiche le chemin de la dernière video",
+        "logicalId": "lastVideoPath",
+        "type": "info",
+        "subtype": "string",
+        "isVisible": 1,
+        "isHistorized": 0,
+        "isDashboard": 0
+    }]
+}
