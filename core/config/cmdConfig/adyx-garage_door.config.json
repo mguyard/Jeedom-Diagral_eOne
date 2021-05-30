@@ -1,0 +1,19 @@
+{
+    "commands":[{
+        "name": "Ouverture",
+        "description": "Ouverture Garage",
+        "logicalId": "garageOpen",
+        "type": "action",
+        "subtype": "other",
+        "isVisible": 1,
+        "isDashboard": 1
+    }, {
+        "name": "Fermeture",
+        "description": "Fermeture Garage",
+        "logicalId": "garageClose",
+        "type": "action",
+        "subtype": "other",
+        "isVisible": 1,
+        "isDashboard": 1
+    }]
+}

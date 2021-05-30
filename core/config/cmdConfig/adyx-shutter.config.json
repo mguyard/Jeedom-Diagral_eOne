@@ -1,0 +1,19 @@
+{
+    "commands":[{
+        "name": "Ouverture",
+        "description": "Ouverture Volet",
+        "logicalId": "shutterOpen",
+        "type": "action",
+        "subtype": "other",
+        "isVisible": 1,
+        "isDashboard": 1
+    }, {
+        "name": "Fermeture",
+        "description": "Fermeture Volet",
+        "logicalId": "shutterClose",
+        "type": "action",
+        "subtype": "other",
+        "isVisible": 1,
+        "isDashboard": 1
+    }]
+}
