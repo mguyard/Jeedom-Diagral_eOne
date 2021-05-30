@@ -81,14 +81,14 @@ class Diagral_eOne extends eqLogic {
         //$MyAlarm->logout();
         $nbCreated = 0;
         foreach ($Diagral_systems as $key => $value) {
-            $Alarm = Diagral_eOne::byLogicalId($value[id], 'Diagral_eOne');
+            $Alarm = Diagral_eOne::byLogicalId($value['id'], 'Diagral_eOne');
             if (!is_object($Alarm)) {
-                log::add('Diagral_eOne', 'info', "Synchronize::Systems Alarme trouvée ".$value[name]."(".$value[id]."):");
+                log::add('Diagral_eOne', 'info', "Synchronize::Systems Alarme trouvée ".$value['name']."(".$value['id']."):");
                 $eqLogic = new Diagral_eOne();
-                $eqLogic->setName($value[name]);
+                $eqLogic->setName($value['name']);
                 $eqLogic->setIsEnable(0);
                 $eqLogic->setIsVisible(1);
-                $eqLogic->setLogicalId($value[id]);
+                $eqLogic->setLogicalId($value['id']);
                 $eqLogic->setEqType_name('Diagral_eOne');
                 $eqLogic->setCategory('security', 1);
                 $eqLogic->setConfiguration('systemid', $key);
@@ -101,7 +101,7 @@ class Diagral_eOne extends eqLogic {
                 $eqLogic->setName($Alarm->getName());
                 $eqLogic->setIsEnable($Alarm->getIsEnable());
                 $eqLogic->setIsVisible($Alarm->getIsVisible());
-                $eqLogic->setLogicalId($value[id]);
+                $eqLogic->setLogicalId($value['id']);
                 $eqLogic->setEqType_name('Diagral_eOne');
                 $eqLogic->setCategory('security', 1);
                 $eqLogic->setConfiguration('systemid', $key);
@@ -245,9 +245,9 @@ class Diagral_eOne extends eqLogic {
                     );
                 } else {
                     if (is_object($system)) {
-                        log::add('Diagral_eOne', 'warning', 'Synchronize::Detectors Bypass de la centrale ' . $system->getName() . ' car le masterCode est vide.');
+                        log::add('Diagral_eOne', 'warning', 'Synchronize::Cameras Bypass de la centrale ' . $system->getName() . ' car le masterCode est vide.');
                     } else {
-                        log::add('Diagral_eOne', 'warning', 'Synchronize::Detectors Bypass d\'une ou plusieurs centrale(s) car le masterCode est vide.');
+                        log::add('Diagral_eOne', 'warning', 'Synchronize::Cameras Bypass d\'une ou plusieurs centrale(s) car le masterCode est vide.');
                     }
                 }
             }
@@ -268,6 +268,7 @@ class Diagral_eOne extends eqLogic {
                     $MyAlarm->getConfiguration();
                     $MyAlarm->connect($system->getConfiguration('mastercode'));
                     $automationList = $MyAlarm->getAutomations();
+                    log::add('Diagral_eOne', 'debug', var_export($automationList, TRUE));
                     $nbCreated = 0;
                     foreach ($automationList as $automation) {
                         $automationObject = Diagral_eOne::byLogicalId(strtolower($automation['type']['type'].'-'.$automation['type']['application'].'_'.$automation['index']), 'Diagral_eOne');
@@ -285,7 +286,7 @@ class Diagral_eOne extends eqLogic {
                             $eqLogic->setConfiguration('index', $automation['index']);
                             $nbCreated++;
                         } else {
-                            log::add('Diagral_eOne', 'info', "Synchronize::Automation Equipement Automation (".$automation->getName().") mis à jour.");
+                            log::add('Diagral_eOne', 'info', "Synchronize::Automation Equipement Automation (".$automationObject->getName().") mis à jour.");
                             $eqLogic = $automationObject;
                             $eqLogic->setName($automationObject->getName());
                             $eqLogic->setIsEnable($automationObject->getIsEnable());
@@ -1668,6 +1669,12 @@ class Diagral_eOne extends eqLogic {
         switch ($eqLogic->getConfiguration('type')) {
             case 'adyx-portal':
                 $type = 'portal';
+                break;
+            case 'adyx-shutter':
+                $type = 'rollershutter';
+                break;
+            case 'adyx-garage_door';
+                $type = 'garagedoor';
                 break;
             default:
                 $type = $eqLogic->getConfiguration('type');

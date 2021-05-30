@@ -238,7 +238,7 @@ $('.eqLogicAttr[data-l1key=id], .eqLogicAttr[data-l1key=configuration][data-l2ke
     var cssClass = '.eq' + type.charAt(0).toUpperCase() + type.slice(1);
     $(cssClass).show();
     // Generation du lien vers la centrale
-    if ($.inArray(type, ['imagedetector', 'camera', 'adyx-portal'])) {
+    if ($.inArray(type, ['imagedetector', 'camera', 'adyx-portal', 'adyx-shutter', 'adyx-garage_door', 'knx-shutter', 'knx-light'])) {
         $('.eqCentralLink').show();
         $.ajax({// fonction permettant de faire de l'ajax
             type: "POST", // methode de transmission des données au fichier php

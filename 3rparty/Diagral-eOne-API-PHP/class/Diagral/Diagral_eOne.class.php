@@ -429,7 +429,7 @@ class Diagral_eOne{
                 if (is_array($data) && !empty($data)) {
                     foreach ($data as &$automation) {
                         foreach ($devices as $device) {
-                            if ($automation['index'] == $device['index']) {
+                            if ($automation['index'] == $device['index'] && $automation['name'] == $device['name']) {
                                 $automation['type']['type'] = $device['type'];
                                 $automation['type']['application'] = $device['application'];
                             }
