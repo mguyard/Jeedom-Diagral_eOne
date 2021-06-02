@@ -1365,6 +1365,10 @@ class Diagral_eOne{
         }
     }
 
+    public function refreshDeviceMultizone() {
+        $this->getDevicesMultizone();
+    }
+
 
 
     /**

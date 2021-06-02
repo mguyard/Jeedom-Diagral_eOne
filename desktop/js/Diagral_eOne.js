@@ -281,4 +281,30 @@ $('.eqLogicAttr[data-l1key=id], .eqLogicAttr[data-l1key=configuration][data-l2ke
         }
         });
     }
+    // Si on a un EqLogicId alors on rempli l'onglet des équipements associés
+    if (eqLogicId) {
+        $.ajax({// fonction permettant de faire de l'ajax
+            type: "POST", // methode de transmission des données au fichier php
+            url: "plugins/Diagral_eOne/core/ajax/Diagral_eOne.ajax.php", // url du fichier php
+            data: {
+                action: "getChildDevices",
+                eqLogicId: eqLogicId,
+            },
+            dataType: 'json',
+            error: function (request, status, error) {
+                handleAjaxError(request, status, error);
+            },
+            success: function (data) { // si l'appel a bien fonctionné
+                var JSONreturn = JSON.parse(data.result);
+                $( "#childDeviceList" ).empty();
+                $( "#childDeviceList" ).append( "<ul>" );
+                console.log(JSONreturn);
+                $.each(JSONreturn, function(i, item) {
+                    console.log(JSONreturn[i].name);
+                    $( "#childDeviceList" ).append( "<li><a target='_blank' href='/index.php?v=d&m=Diagral_eOne&p=Diagral_eOne&id=" + JSONreturn[i].id + "'>" +  JSONreturn[i].name + "</a></li>")
+                });
+                $( "#childDeviceList" ).append( "</ul>" );
+            }
+            });
+        }
 });

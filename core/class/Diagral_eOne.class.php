@@ -63,6 +63,7 @@ class Diagral_eOne extends eqLogic {
                             $MyAlarm->setSystemId(intval($system->getConfiguration('systemid')));
                             $MyAlarm->getConfiguration();
                             $MyAlarm->connect($system->getConfiguration('mastercode'));
+                            $MyAlarm->refreshDeviceMultizone();
                             $imageDetectorResult = Diagral_eOne::syncImageDetectors($MyAlarm, $system);
                             $cameraResult = Diagral_eOne::syncCameras($MyAlarm, $system);
                             $automationsResults = Diagral_eOne::syncAutomations($MyAlarm, $system);
