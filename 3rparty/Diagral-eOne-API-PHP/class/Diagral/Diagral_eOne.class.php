@@ -413,6 +413,35 @@ class Diagral_eOne{
     }
 
 
+    /**
+     * Retreive all battery and AutoProtection informations
+     * @param string $type      Type of module (commands / transmitters / sensors / alarms)  
+     * @param string $radioId   RadioID
+     * @return array            List of informations
+     */
+    public function getSystemAlerts($type) {
+
+        if ($type == 'centrale') {
+            $type = 'central';
+        }
+
+        $getCentralStatusZonePost = '{"centralId":"'.$this->centralId.'","transmitterId":"'.$this->transmitterId.'","systemId":'.$this->systems[$this->systemId]["id"].',"ttmSessionId":"'.$this->ttmSessionId.'"}';
+        try {
+                    if(list($data,$httpRespCode) = $this->doRequest("/configuration/getCentralStatusZone", $getCentralStatusZonePost)) {
+                        if(isset($data[$type.'Status'])) {
+                            return $data[$type.'Status'];
+                        } else {
+                            if ($this->verbose) {
+                                $this->addVerboseEvent("WARNING", "totalUpdates is not in the response\n" . var_dump($data));
+                            }
+                        }
+                    } else {
+                        throw new \Exception("Unable to request CentralStatusZone Status (http code : ".$httpRespCode." with message ".$data["message"].")", 19);
+                    }
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
 
 
 
@@ -1704,6 +1733,25 @@ class Diagral_eOne{
         }
     }
 
+
+    /* ------------------------------- Récupère la liste de toutes les commandes / transmitters / sensors / alarmes ------------------------------ */
+
+
+    /**
+     * Retreive all modules (commands / transmitters / sensors / alarms)
+     * @param string $type      Type of module (commands / transmitters / sensors / alarms)
+     * @return array            List of module (for a specific type passed in argument)
+     */
+    public function getModules($type) {
+        if(!isset($this->DeviceMultizone["centralLearningZone"][$type])) {
+            try {
+                $this->getDevicesMultizone();
+            } catch (\Exception $e) {
+                throw $e;
+            }
+        }
+        return $this->DeviceMultizone["centralLearningZone"][$type]; 
+    }
 
 
     /* ------------------------------- Requêtes WEB ------------------------------ */

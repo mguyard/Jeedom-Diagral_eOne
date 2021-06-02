@@ -70,7 +70,7 @@ function Diagral_eOne_Cron_Pull($action) {
                 $cron->setFunction('pull');
                 $cron->setEnable(1);
                 $cron->setDeamon(0);
-                $cron->setTimeout(2);
+                $cron->setTimeout(5);
                 $cron->setSchedule('*/10 * * * *');
                 $cron->save();
             }

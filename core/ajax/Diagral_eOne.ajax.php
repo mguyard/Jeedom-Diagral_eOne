@@ -129,7 +129,7 @@ try {
         try {
             if(! empty(init('eqID'))) {
                 $eqlogic = eqLogic::byId(init('eqID'));
-                if(in_array($eqlogic->getConfiguration('type'),array('imagedetector', 'camera', 'adyx-portal', 'adyx-shutter', 'adyx-garage_door', 'knx-shutter', 'knx-light'))) {
+                if(in_array($eqlogic->getConfiguration('type'),array('module', 'imagedetector', 'camera', 'adyx-portal', 'adyx-shutter', 'adyx-garage_door', 'knx-shutter', 'knx-light'))) {
                     $centrale = eqLogic::byLogicalId($eqlogic->getConfiguration('centrale'), 'Diagral_eOne');
                     if (is_object($centrale)) {
                         $return = array('centraleId' => $centrale->getId());

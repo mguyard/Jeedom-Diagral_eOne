@@ -75,7 +75,24 @@ $pluginCompatible = array(
         </div>
 
 
-        <!-- Liste des Automatoons -->
+        <!-- Liste des Modules  -->
+        <legend><i class="fas fa-table"></i> {{Mes Commandes / Transmetteurs / Sensors / Sirenes}}</legend>
+        <div class="eqLogicThumbnailContainer">
+            <?php
+            foreach ($eqLogics as $eqLogic) {
+                if ($eqLogic->getConfiguration('type', '') != 'module') continue;
+                $opacity = ($eqLogic->getIsEnable()) ? '' : 'disableCard';
+                echo '<div class="eqLogicDisplayCard cursor '.$opacity.'" data-eqLogic_id="' . $eqLogic->getId() . '">';
+                echo '<img src="' . Diagral_eOne::getPathDeviceIcon($eqLogic) . '"/>';
+                echo '<br>';
+                echo '<span class="name">' . $eqLogic->getHumanName(true, true) . '</span>';
+                echo '</div>';
+            }
+            ?>
+        </div>
+
+
+        <!-- Liste des Automations -->
         <legend><i class="fas fa-table"></i> {{Mes Automations ADYX/KNX}}</legend>
         <div class="eqLogicThumbnailContainer">
             <?php
@@ -205,7 +222,7 @@ $pluginCompatible = array(
                                     </div>
                                 </div>
                                 <!-- Template for All device who are connected to Centrale -->
-                                <div class="eqCustom eqImagedetector eqCamera eqCentralLink">
+                                <div class="eqCustom eqModule eqImagedetector eqCamera eqCentralLink">
                                     <div class="form-group">
                                         <label class="col-sm-3 control-label">{{Centrale}}
                                             <sup><i class="fa fa-question-circle tooltips" title="Lien vers la centrale qui gère ce détecteur"></i></sup>
