@@ -725,12 +725,11 @@ class Diagral_eOne extends eqLogic {
      * Genere un Liste des groupes de Zone possible
      * @return array Tableau contenant l'ensemble des zones Diagral de l'alarme
      */
-    public function generateGroupsList() {
+    public function generateGroupsList($MyAlarm) {
         log::add('Diagral_eOne', 'debug', 'generateGroupsList::Start');
         $filename = __PLGBASE__.'/data/groups_' . $this->getConfiguration('systemid') . '.json';
         // Si le fichier JSON des groupes n'existe pas, on le genère.
         if ( file_exists($filename) === false ) {
-            $MyAlarm = $this->setDiagralEnv();
             $this->generateGroupJson($MyAlarm);
         }
         // Recuperation de l'ensemble des groups avec leur nom et leur ID
@@ -933,24 +932,92 @@ class Diagral_eOne extends eqLogic {
     public function pull() {
         $changed = false;
         log::add('Diagral_eOne', 'debug', 'pull::Starting Request');
-        foreach (eqLogic::byType('Diagral_eOne') as $eqLogic) {
-            if($eqLogic->getIsEnable()) {
-                $refreshCmd = $eqLogic->getCmd(null, 'refresh');
-                if(is_object($refreshCmd)) {
-                    log::add('Diagral_eOne', 'debug', 'Execution de la commande '.$refreshCmd->getName(). ' de l\'équipement '.$eqLogic->getName());
-                    $refreshCmd->execute();   
+        // Recuperer la liste des centrale
+        foreach (eqLogic::byTypeAndSearhConfiguration('Diagral_eOne', 'systemid') as $centrale) {
+            if($centrale->getIsEnable()) {
+                //Se connecter sur la centrale
+                $MyAlarm = $centrale->setDiagralEnv();
+                // Récupérer la liste de toutes les alertes
+                $allAlerts = $centrale->getAlerts($MyAlarm, TRUE);
+                // Rafraichi la centrale
+                $centrale->deviceRefresh($MyAlarm, $allAlerts['centralStatus']);
+                foreach (eqLogic::byTypeAndSearhConfiguration('Diagral_eOne', 'centrale') as $centralChild) {
+                    // Si le device enfant a bien la centrale en parent
+                    if ($centralChild->getConfiguration('centrale') == $centrale->getLogicalId()) {
+                        switch($centralChild->getConfiguration('type')) {
+                            case 'module':
+                                foreach ($allAlerts[$centralChild->getConfiguration('subtype').'Status'] as $moduleAlert) {
+                                    if ($moduleAlert['index'] == $centralChild->getConfiguration('index')) {
+                                        $centralChild->deviceRefresh($MyAlarm, $moduleAlert);
+                                    }
+                                }
+                                break;
+                        }
+                    }
                 }
-                
-                if (in_array($eqLogic->getConfiguration('type'), array('camera', 'imagedetector'))) {
-                    $eqLogic->listVideos(True);
-                }
-
+                $MyAlarm->logout();
             }
         }
         // Purge Videos Retention
         Diagral_eOne::purgeVideos();
         // Send data informations for installation follow
         Diagral_eOne::installTracking();
+    }
+
+
+    public function deviceRefresh($MyAlarm, $alert) {
+        $changed = false;
+        log::add('Diagral_eOne', 'info', 'deviceRefresh::Start Refresh de l\'équipement '.$this->getName());
+        switch ($this->getConfiguration('type', '')) {
+            case 'centrale':
+                $alarmStatus = $this->getDiagralStatus($MyAlarm);
+                $changed = $this->checkAndUpdateCmd('status', $alarmStatus['status']) || $changed;
+                $changed = $this->checkAndUpdateCmd('mode', $alarmStatus['mode']) || $changed;
+                $changed = $this->checkAndUpdateCmd('groups_enable', $alarmStatus['groups']) || $changed;
+                // Stockage de la batterie
+                if ($alert['mainPowerSupplyAlert'] === TRUE || $alert['secondaryPowerSupplyAlert'] === TRUE) {
+                    $changed = $this->checkAndUpdateCmd('battery', TRUE) || $changed;
+                    $this->batteryStatus(20);
+                } else {
+                    $changed = $this->checkAndUpdateCmd('battery', FALSE) || $changed;
+                    $this->batteryStatus(100);
+                }
+                // Stockage de l'autoProtection
+                if ($alert['autoprotectionMechanicalAlert'] === TRUE || $alert['autoprotectionWiredAlert'] === TRUE) {
+                    $this->checkAndUpdateCmd('autoprotectionAlert', TRUE);
+                } else {
+                    $this->checkAndUpdateCmd('autoprotectionAlert', FALSE);
+                }
+                // Stockage de defaultMediaAlert
+                $this->checkAndUpdateCmd('MediaAlert', $alert['defaultMediaAlert']);
+                break;
+            case 'module':
+                // Stockage de la batterie
+                if ($this->getConfiguration('subtype', '') == 'transmitters') {
+                    if ($alert['mainPowerSupplyAlert'] === TRUE || $alert['secondaryPowerSupplyAlert'] === TRUE) {
+                        $this->checkAndUpdateCmd('battery', TRUE);
+                        $this->batteryStatus(20);
+                    } else {
+                        $this->checkAndUpdateCmd('battery', FALSE);
+                        $this->batteryStatus(100);
+                    }
+                } else {
+                    $batteryAlert = $alert['powerSupplyAlert'];
+                    $this->checkAndUpdateCmd('battery', $alert['powerSupplyAlert']);
+                    if ($alert['powerSupplyAlert'] === TRUE) {
+                        $this->batteryStatus(20);
+                    } else {
+                        $this->batteryStatus(100);
+                    }
+                }
+                
+                // Stockage de l'autoProtection
+                $this->checkAndUpdateCmd('autoprotectionMechanicalAlert', $alert['autoprotectionMechanicalAlert']);
+                // Stockage de radioAlert
+                $this->checkAndUpdateCmd('radioAlert', $alert['radioAlert']);
+                break;
+        }
+        return $changed;
     }
 
 
@@ -968,7 +1035,6 @@ class Diagral_eOne extends eqLogic {
             $filename = __PLGBASE__.'/data/groups_' . $this->getConfiguration('systemid') . '.json';
             // Si le fichier JSON des groupes n'existe pas, on le genère.
             if ( file_exists($filename) === false ) {
-                $MyAlarm = $this->setDiagralEnv();
                 $this->generateGroupJson($MyAlarm);
             }
             // Recuperation de l'ensemble des groups avec leur nom et leur ID
@@ -1060,7 +1126,6 @@ class Diagral_eOne extends eqLogic {
         $filename = __PLGBASE__.'/data/groups_' . $this->getConfiguration('systemid') . '.json';
         // Si le fichier JSON des groupes n'existe pas, on le genère.
         if ( file_exists($filename) === false ) {
-            $MyAlarm = $this->setDiagralEnv();
             $this->generateGroupJson($MyAlarm);
         }
         // Recuperation de l'ensemble des groups avec leur nom et leur ID
@@ -1108,7 +1173,7 @@ class Diagral_eOne extends eqLogic {
         if ($this->isAlarmActive()) {
             $trigger = $this->getAlarmTrigger();
             // Recuperation de la liste des zones existante
-            $listAlarmZone = $this->generateGroupsList();
+            $listAlarmZone = $this->generateGroupsList($MyAlarm);
             $zoneNameDisabled = $listAlarmZone[$cmdValue];
             // Comparaison de la zone d'alarme et de la zone qui vient d'être désactivé
             $result = strpos(strtolower($trigger['zone']), strtolower($zoneNameDisabled));
@@ -1126,13 +1191,12 @@ class Diagral_eOne extends eqLogic {
      * @param int $cmdValue         ID du listValue recu en parametre de l'execution de la commande
      * @param array $listValue      listValue configuré sur la commande
      */
-    public function setScenario($cmdValue, $listValue) {
+    public function setScenario($MyAlarm, $cmdValue, $listValue) {
         log::add('Diagral_eOne', 'debug', 'setScenario::cmdValue ' . $cmdValue);
         log::add('Diagral_eOne', 'debug', 'setScenario::ListValue ' . var_export($listValue, true));
         $filename = __PLGBASE__.'/data/scenarios_' . $this->getConfiguration('systemid') . '.json';
         // Si le fichier JSON des scenarios n'existe pas, on le genère.
         if ( file_exists($filename) === false ) {
-            $MyAlarm = $this->setDiagralEnv();
             $this->generateScenariosJson($MyAlarm);
         }
         // Recuperation de l'ensemble des scenarios
@@ -1147,7 +1211,6 @@ class Diagral_eOne extends eqLogic {
         $scenarioID = $config['scenarios'][$listValue[$cmdValue]][0]['id'];
         log::add('Diagral_eOne', 'debug', 'setScenario::ScenarioToEnableWithScenarioID ' . $scenarioID);
         // Execution de la demande de mise en activation partielle avec les ID Diagral
-        $MyAlarm = $this->setDiagralEnv();
         $MyAlarm->launchScenario($scenarioID);
         $MyAlarm->logout();
         log::add('Diagral_eOne', 'debug', 'setScenario::' . $this->getConfiguration('systemid') . '::Success ' . $listValue[$cmdValue]);
@@ -1503,29 +1566,33 @@ class Diagral_eOne extends eqLogic {
 
     /* ------------------------------ Alerte Batterie, AutoProtection, GSM, etc... ------------------------------ */
 
-    public function getAlerts($MyAlarm) {
+    public function getAlerts($MyAlarm, $all = FALSE) {
         try{
-            // Define how to get informations depending of device type
-            switch ($this->getConfiguration('type')) {
-                case 'centrale':
-                    $status = $MyAlarm->getSystemAlerts($this->getConfiguration('type'));
-                    log::add('Diagral_eOne', 'debug', var_export($status, TRUE));
-                    return $status;
-                    break;
-                case 'module':
-                    $status = $MyAlarm->getSystemAlerts($this->getConfiguration('subtype'));
-                    foreach ($status as $module) {
-                        if ($module['index'] == $this->getConfiguration('index')) {
-                            log::add('Diagral_eOne', 'debug', var_export($status, TRUE));
-                            return $module;
+            $allSysAlerts = $MyAlarm->getSystemAlerts();
+            log::add('Diagral_eOne', 'debug', 'List of System alerts : '.var_export($allSysAlerts, TRUE));
+            if ($all) {
+                return $allSysAlerts;
+            } else {
+                switch ($this->getConfiguration('type')) {
+                    case 'centrale':
+                        return $allSysAlerts['centralStatus'];
+                        break;
+                    case 'module':
+                        foreach ($allSysAlerts[$this->getConfiguration('subtype').'Status'] as $module) {
+                            if ($module['index'] == $this->getConfiguration('index')) {
+                                log::add('Diagral_eOne', 'debug', 'List of System alerts for '.$this->getName().': '.var_export($module, TRUE));
+                                return $module;
+                            }
                         }
-                    }
-                    break;
-            }            
+                        break;
+                }
+            } 
         } catch (Exception $e) {
             log::add('Diagral_eOne', 'error', 'getAlerts - '.  $e->getMessage());
         }
     }
+
+
 
     /* ------------------------------ Tracking d'installation ------------------------------ */
 
@@ -1809,45 +1876,7 @@ class Diagral_eOneCmd extends cmd {
             case 'refresh':
                 // Recuperation des alertes
                 $alert = $eqLogic->getAlerts($MyAlarm);
-                switch ($eqLogic->getConfiguration('type', '')) {
-                    case 'centrale':
-                        $alarmStatus = $eqLogic->getDiagralStatus($MyAlarm);
-                        $changed = $eqLogic->checkAndUpdateCmd('status', $alarmStatus['status']) || $changed;
-                        $changed = $eqLogic->checkAndUpdateCmd('mode', $alarmStatus['mode']) || $changed;
-                        $changed = $eqLogic->checkAndUpdateCmd('groups_enable', $alarmStatus['groups']) || $changed;
-                        // Stockage de la batterie
-                        if ($alert['mainPowerSupplyAlert'] === TRUE || $alert['secondaryPowerSupplyAlert'] === TRUE) {
-                            $changed = $eqLogic->checkAndUpdateCmd('battery', true) || $changed;
-                            $eqLogic->batteryStatus(20);
-                        } else {
-                            $changed = $eqLogic->checkAndUpdateCmd('battery', false) || $changed;
-                            $eqLogic->batteryStatus(100);
-                        }
-                        // Stockage de l'autoProtection
-                        $autoProtectionAlert = ($alert['autoprotectionMechanicalAlert'] && $alert['autoprotectionWiredAlert']);
-                        $eqLogic->checkAndUpdateCmd('autoprotectionAlert', $autoProtectionAlert);
-                        // Stockage de defaultMediaAlert
-                        $eqLogic->checkAndUpdateCmd('MediaAlert', $alert['defaultMediaAlert']);
-                        break;
-                    case 'module':
-                        if ($eqLogic->getConfiguration('subtype', '') == 'transmitters') {
-                            $batteryAlert = ($alert['mainPowerSupplyAlert'] && $alert['secondaryPowerSupplyAlert']);
-                        } else {
-                            $batteryAlert = $alert['powerSupplyAlert'];
-                        }
-                        // Stockage de la batterie
-                        $eqLogic->checkAndUpdateCmd('battery', $batteryAlert);
-                        if ($batteryAlert === TRUE) {
-                            $eqLogic->batteryStatus(20);
-                        } else {
-                            $eqLogic->batteryStatus(100);
-                        }
-                        // Stockage de l'autoProtection
-                        $eqLogic->checkAndUpdateCmd('autoprotectionMechanicalAlert', $alert['autoprotectionMechanicalAlert']);
-                        // Stockage de radioAlert
-                        $eqLogic->checkAndUpdateCmd('radioAlert', $alert['radioAlert']);
-                        break;
-                }
+                $changed = $eqLogic->deviceRefresh($MyAlarm, $alert);
                 break;
             case 'total_disarm':
                 if ( ! $eqLogic->secureDisarm()) { // SecureDisarm n'est pas activée

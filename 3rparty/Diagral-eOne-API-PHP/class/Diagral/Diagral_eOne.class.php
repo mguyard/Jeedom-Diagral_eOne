@@ -419,20 +419,15 @@ class Diagral_eOne{
      * @param string $radioId   RadioID
      * @return array            List of informations
      */
-    public function getSystemAlerts($type) {
-
-        if ($type == 'centrale') {
-            $type = 'central';
-        }
-
+    public function getSystemAlerts() {
         $getCentralStatusZonePost = '{"centralId":"'.$this->centralId.'","transmitterId":"'.$this->transmitterId.'","systemId":'.$this->systems[$this->systemId]["id"].',"ttmSessionId":"'.$this->ttmSessionId.'"}';
         try {
                     if(list($data,$httpRespCode) = $this->doRequest("/configuration/getCentralStatusZone", $getCentralStatusZonePost)) {
-                        if(isset($data[$type.'Status'])) {
-                            return $data[$type.'Status'];
+                        if(isset($data['centralStatus'])) {
+                            return $data;
                         } else {
                             if ($this->verbose) {
-                                $this->addVerboseEvent("WARNING", "totalUpdates is not in the response\n" . var_dump($data));
+                                $this->addVerboseEvent("WARNING", "The response seems to be invalid\n" . var_dump($data));
                             }
                         }
                     } else {
