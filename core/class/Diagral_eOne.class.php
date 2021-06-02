@@ -57,9 +57,9 @@ class Diagral_eOne extends eqLogic {
                 break;
             case 'all':
                 $systemsResult = Diagral_eOne::syncSystems($Diagral_systems);
-                foreach (eqLogic::byType('Diagral_eOne') as $system) {
+                foreach (eqLogic::byTypeAndSearhConfiguration('Diagral_eOne', 'systemid') as $system) {
                     if ($system->getConfiguration('type') == 'centrale') {
-                        if (! empty($system->getConfiguration('mastercode'))) {
+                        if (! empty($system->getConfiguration('mastercode',''))) {
                             $MyAlarm->setSystemId(intval($system->getConfiguration('systemid')));
                             $MyAlarm->getConfiguration();
                             $MyAlarm->connect($system->getConfiguration('mastercode'));
@@ -67,12 +67,12 @@ class Diagral_eOne extends eqLogic {
                             $cameraResult = Diagral_eOne::syncCameras($MyAlarm, $system);
                             $automationsResults = Diagral_eOne::syncAutomations($MyAlarm, $system);
                             $modulesResults = Diagral_eOne::syncModules($MyAlarm, $system);
-                        }
-                    } else {
-                        if (is_object($system)) {
-                            log::add('Diagral_eOne', 'warning', 'Synchronize::Centrale Bypass de la centrale ' . $system->getName() . ' car le masterCode est vide.');
                         } else {
-                            log::add('Diagral_eOne', 'warning', 'Synchronize::Centrale Bypass d\'une ou plusieurs centrale(s) car le masterCode est vide.');
+                            if (is_object($system)) {
+                                log::add('Diagral_eOne', 'warning', 'Synchronize::Centrale Bypass de la centrale ' . $system->getName() . ' car le masterCode est vide.');
+                            } else {
+                                log::add('Diagral_eOne', 'warning', 'Synchronize::Centrale Bypass d\'une ou plusieurs centrale(s) car le masterCode est vide.');
+                            }
                         }
                     }
                 }
@@ -190,188 +190,140 @@ class Diagral_eOne extends eqLogic {
 
 
     public static function syncCameras($MyAlarm, $system) {
-        // Pour chaque equipement Diagral qui a un type centrale
-        foreach (eqLogic::byType('Diagral_eOne') as $system) {
-            if ($system->getConfiguration('type') == 'centrale') {
-                if (! empty($system->getConfiguration('mastercode'))) {
-                    $MyAlarm->setSystemId(intval($system->getConfiguration('systemid')));
-                    $MyAlarm->getConfiguration();
-                    $MyAlarm->connect($system->getConfiguration('mastercode'));
-                    $cameras = $MyAlarm->getCameras();
-                    $nbCreated = 0;
-                    foreach ($cameras as $camera) {
-                        $cam = Diagral_eOne::byLogicalId($camera['macAddress'], 'Diagral_eOne');
-                        if (!is_object($cam)) {
-                            log::add('Diagral_eOne', 'info', "Synchronize::Cameras Camera trouvée (". $camera['name'] . ")");
-                            $eqLogic = new Diagral_eOne();
-                            $eqLogic->setName($camera['name']);
-                            $eqLogic->setIsEnable(1);
-                            $eqLogic->setIsVisible(0);
-                            $eqLogic->setLogicalId($camera['macAddress']);
-                            $eqLogic->setEqType_name('Diagral_eOne');
-                            $eqLogic->setCategory('security', 1);
-                            $eqLogic->setConfiguration('type', 'camera');
-                            $eqLogic->setConfiguration('centrale', $system->getLogicalId());
-                            $eqLogic->setConfiguration('index', $camera['index']);
-                            $eqLogic->setConfiguration('ip', $camera['ip']);
-                            $eqLogic->setConfiguration('autoDlVideo', '0');
-                            $nbCreated++;
-                        } else {
-                            log::add('Diagral_eOne', 'info', "Synchronize::Camera Camera (".$cam->getName().") mis à jour.");
-                            $eqLogic = $cam;
-                            $eqLogic->setName($cam->getName());
-                            $eqLogic->setIsEnable($cam->getIsEnable());
-                            $eqLogic->setIsVisible($cam->getIsVisible());
-                            $eqLogic->setLogicalId($camera['macAddress']);
-                            $eqLogic->setEqType_name('Diagral_eOne');
-                            $eqLogic->setCategory('security', 1);
-                            $eqLogic->setConfiguration('type', 'camera');
-                            $eqLogic->setConfiguration('centrale', $system->getLogicalId());
-                            $eqLogic->setConfiguration('index', $camera['index']);
-                            $eqLogic->setConfiguration('ip', $camera['ip']);
-                        }
-                        $eqLogic->save();
-                    }
-                    return array(
-                        "type" => "camera(s)",
-                        "nbCreated" => $nbCreated,
-                        "nbUpdated" => count($cameras) - $nbCreated
-                    );
-                } else {
-                    if (is_object($system)) {
-                        log::add('Diagral_eOne', 'warning', 'Synchronize::Cameras Bypass de la centrale ' . $system->getName() . ' car le masterCode est vide.');
-                    } else {
-                        log::add('Diagral_eOne', 'warning', 'Synchronize::Cameras Bypass d\'une ou plusieurs centrale(s) car le masterCode est vide.');
-                    }
-                }
+        $cameras = $MyAlarm->getCameras();
+        $nbCreated = 0;
+        foreach ($cameras as $camera) {
+            $cam = Diagral_eOne::byLogicalId($camera['macAddress'], 'Diagral_eOne');
+            if (!is_object($cam)) {
+                log::add('Diagral_eOne', 'info', "Synchronize::Cameras Camera trouvée (". $camera['name'] . ")");
+                $eqLogic = new Diagral_eOne();
+                $eqLogic->setName($camera['name']);
+                $eqLogic->setIsEnable(1);
+                $eqLogic->setIsVisible(0);
+                $eqLogic->setLogicalId($camera['macAddress']);
+                $eqLogic->setEqType_name('Diagral_eOne');
+                $eqLogic->setCategory('security', 1);
+                $eqLogic->setConfiguration('type', 'camera');
+                $eqLogic->setConfiguration('centrale', $system->getLogicalId());
+                $eqLogic->setConfiguration('index', $camera['index']);
+                $eqLogic->setConfiguration('ip', $camera['ip']);
+                $eqLogic->setConfiguration('autoDlVideo', '0');
+                $nbCreated++;
+            } else {
+                log::add('Diagral_eOne', 'info', "Synchronize::Camera Camera (".$cam->getName().") mis à jour.");
+                $eqLogic = $cam;
+                $eqLogic->setName($cam->getName());
+                $eqLogic->setIsEnable($cam->getIsEnable());
+                $eqLogic->setIsVisible($cam->getIsVisible());
+                $eqLogic->setLogicalId($camera['macAddress']);
+                $eqLogic->setEqType_name('Diagral_eOne');
+                $eqLogic->setCategory('security', 1);
+                $eqLogic->setConfiguration('type', 'camera');
+                $eqLogic->setConfiguration('centrale', $system->getLogicalId());
+                $eqLogic->setConfiguration('index', $camera['index']);
+                $eqLogic->setConfiguration('ip', $camera['ip']);
             }
+            $eqLogic->save();
         }
+        return array(
+            "type" => "camera(s)",
+            "nbCreated" => $nbCreated,
+            "nbUpdated" => count($cameras) - $nbCreated
+        );
     }
 
     public static function syncAutomations($MyAlarm, $system) {
-        // Pour chaque equipement Diagral qui a un type centrale
-        foreach (eqLogic::byType('Diagral_eOne') as $system) {
-            if ($system->getConfiguration('type') == 'centrale') {
-                if (! empty($system->getConfiguration('mastercode'))) {
-                    $MyAlarm->setSystemId(intval($system->getConfiguration('systemid')));
-                    $MyAlarm->getConfiguration();
-                    $MyAlarm->connect($system->getConfiguration('mastercode'));
-                    $automationList = $MyAlarm->getAutomations();
-                    log::add('Diagral_eOne', 'debug', var_export($automationList, TRUE));
-                    $nbCreated = 0;
-                    foreach ($automationList as $automation) {
-                        $automationObject = Diagral_eOne::byLogicalId(strtolower($automation['type']['type'].'-'.$automation['type']['application'].'_'.$automation['index']), 'Diagral_eOne');
-                        if (!is_object($automationObject)) {
-                            log::add('Diagral_eOne', 'info', "Synchronize::Automation Equipement Automation trouvé (". $automation['name'] . ")");
-                            $eqLogic = new Diagral_eOne();
-                            $eqLogic->setName($automation['name']);
-                            $eqLogic->setIsEnable(1);
-                            $eqLogic->setIsVisible(0);
-                            $eqLogic->setLogicalId(strtolower($automation['type']['type'].'-'.$automation['type']['application'].'_'.$automation['index']));
-                            $eqLogic->setEqType_name('Diagral_eOne');
-                            $eqLogic->setCategory('security', 1);
-                            $eqLogic->setConfiguration('type', strtolower($automation['type']['type'].'-'.$automation['type']['application']));
-                            $eqLogic->setConfiguration('centrale', $system->getLogicalId());
-                            $eqLogic->setConfiguration('index', $automation['index']);
-                            $nbCreated++;
-                        } else {
-                            log::add('Diagral_eOne', 'info', "Synchronize::Automation Equipement Automation (".$automationObject->getName().") mis à jour.");
-                            $eqLogic = $automationObject;
-                            $eqLogic->setName($automationObject->getName());
-                            $eqLogic->setIsEnable($automationObject->getIsEnable());
-                            $eqLogic->setIsVisible($automationObject->getIsVisible());
-                            $eqLogic->setLogicalId(strtolower($automation['type']['type'].'-'.$automation['type']['application'].'_'.$automation['index']));
-                            $eqLogic->setEqType_name('Diagral_eOne');
-                            $eqLogic->setCategory('security', 1);
-                            $eqLogic->setConfiguration('type', strtolower($automation['type']['type'].'-'.$automation['type']['application']));
-                            $eqLogic->setConfiguration('centrale', $system->getLogicalId());
-                            $eqLogic->setConfiguration('index', $automation['index']);
-                        }
-                        $eqLogic->save();
-                    }
-                    return array(
-                        "type" => "Automation",
-                        "nbCreated" => $nbCreated,
-                        "nbUpdated" => count($automationList) - $nbCreated
-                    );
-                } else {
-                    if (is_object($system)) {
-                        log::add('Diagral_eOne', 'warning', 'Synchronize::Automations Bypass de la centrale ' . $system->getName() . ' car le masterCode est vide.');
-                    } else {
-                        log::add('Diagral_eOne', 'warning', 'Synchronize::Automations Bypass d\'une ou plusieurs centrale(s) car le masterCode est vide.');
-                    }
-                }
+        $automationList = $MyAlarm->getAutomations();
+        log::add('Diagral_eOne', 'debug', var_export($automationList, TRUE));
+        $nbCreated = 0;
+        foreach ($automationList as $automation) {
+            $automationObject = Diagral_eOne::byLogicalId(strtolower($automation['type']['type'].'-'.$automation['type']['application'].'_'.$automation['index']), 'Diagral_eOne');
+            if (!is_object($automationObject)) {
+                log::add('Diagral_eOne', 'info', "Synchronize::Automation Equipement Automation trouvé (". $automation['name'] . ")");
+                $eqLogic = new Diagral_eOne();
+                $eqLogic->setName($automation['name']);
+                $eqLogic->setIsEnable(1);
+                $eqLogic->setIsVisible(0);
+                $eqLogic->setLogicalId(strtolower($automation['type']['type'].'-'.$automation['type']['application'].'_'.$automation['index']));
+                $eqLogic->setEqType_name('Diagral_eOne');
+                $eqLogic->setCategory('security', 1);
+                $eqLogic->setConfiguration('type', strtolower($automation['type']['type'].'-'.$automation['type']['application']));
+                $eqLogic->setConfiguration('centrale', $system->getLogicalId());
+                $eqLogic->setConfiguration('index', $automation['index']);
+                $nbCreated++;
+            } else {
+                log::add('Diagral_eOne', 'info', "Synchronize::Automation Equipement Automation (".$automationObject->getName().") mis à jour.");
+                $eqLogic = $automationObject;
+                $eqLogic->setName($automationObject->getName());
+                $eqLogic->setIsEnable($automationObject->getIsEnable());
+                $eqLogic->setIsVisible($automationObject->getIsVisible());
+                $eqLogic->setLogicalId(strtolower($automation['type']['type'].'-'.$automation['type']['application'].'_'.$automation['index']));
+                $eqLogic->setEqType_name('Diagral_eOne');
+                $eqLogic->setCategory('security', 1);
+                $eqLogic->setConfiguration('type', strtolower($automation['type']['type'].'-'.$automation['type']['application']));
+                $eqLogic->setConfiguration('centrale', $system->getLogicalId());
+                $eqLogic->setConfiguration('index', $automation['index']);
             }
+            $eqLogic->save();
         }
+        return array(
+            "type" => "Automation",
+            "nbCreated" => $nbCreated,
+            "nbUpdated" => count($automationList) - $nbCreated
+        );
     }
 
     public static function syncModules($MyAlarm, $system) {
-        // Pour chaque equipement Diagral qui a un type centrale
-        foreach (eqLogic::byType('Diagral_eOne') as $system) {
-            if ($system->getConfiguration('type') == 'centrale') {
-                if (! empty($system->getConfiguration('mastercode'))) {
-                    $MyAlarm->setSystemId(intval($system->getConfiguration('systemid')));
-                    $MyAlarm->getConfiguration();
-                    $MyAlarm->connect($system->getConfiguration('mastercode'));
-                    $nbCreated = 0;
-                    $moduleListSum = 0;
-                    foreach (array('commands', 'transmitters', 'sensors', 'alarms') as $moduleType) {
-                        $moduleList = $MyAlarm->getModules($moduleType);
-                        $moduleListSum = $moduleListSum + count($moduleList);
-                        log::add('Diagral_eOne', 'debug', var_export($moduleList, TRUE));
-                        foreach ($moduleList as $module) {
-                            $moduleObject = Diagral_eOne::byLogicalId($module['radioId'], 'Diagral_eOne');
-                            if (!is_object($moduleObject)) {
-                                log::add('Diagral_eOne', 'info', "Synchronize::Modules Module trouvé (". $module['customLabel'] . ")");
-                                $eqLogic = new Diagral_eOne();
-                                if (empty($module['customLabel'])) {
-                                    $eqLogic->setName('Module '.$module['radioId']);
-                                } else {
-                                    $eqLogic->setName($module['customLabel']);
-                                }
-                                $eqLogic->setIsEnable(1);
-                                $eqLogic->setIsVisible(0);
-                                $eqLogic->setLogicalId($module['radioId']);
-                                $eqLogic->setEqType_name('Diagral_eOne');
-                                $eqLogic->setCategory('security', 1);
-                                $eqLogic->setConfiguration('type', 'module');
-                                $eqLogic->setConfiguration('subtype', $moduleType);
-                                $eqLogic->setConfiguration('centrale', $system->getLogicalId());
-                                $eqLogic->setConfiguration('index', $module['index']);
-                                $nbCreated++;
-                            } else {
-                                log::add('Diagral_eOne', 'info', "Synchronize::Modules Module (".$moduleObject->getName().") mis à jour.");
-                                $eqLogic = $moduleObject;
-                                if ($eqLogic->getConfiguration('type','') == 'module') {
-                                    $eqLogic->setName($moduleObject->getName());
-                                    $eqLogic->setIsEnable($moduleObject->getIsEnable());
-                                    $eqLogic->setIsVisible($moduleObject->getIsVisible());
-                                    $eqLogic->setLogicalId($module['radioId']);
-                                    $eqLogic->setEqType_name('Diagral_eOne');
-                                    $eqLogic->setCategory('security', 1);
-                                    $eqLogic->setConfiguration('type', 'module');
-                                    $eqLogic->setConfiguration('subtype', $moduleType);
-                                    $eqLogic->setConfiguration('centrale', $system->getLogicalId());
-                                    $eqLogic->setConfiguration('index', $module['index']);
-                                }
-                            }
-                            $eqLogic->save();
-                        }
-                    }
-                    return array(
-                        "type" => "Modules",
-                        "nbCreated" => $nbCreated,
-                        "nbUpdated" => $moduleListSum - $nbCreated
-                    );
-                } else {
-                    if (is_object($system)) {
-                        log::add('Diagral_eOne', 'warning', 'Synchronize::Modules Bypass de la centrale ' . $system->getName() . ' car le masterCode est vide.');
+        $nbCreated = 0;
+        $moduleListSum = 0;
+        foreach (array('commands', 'transmitters', 'sensors', 'alarms') as $moduleType) {
+            $moduleList = $MyAlarm->getModules($moduleType);
+            $moduleListSum = $moduleListSum + count($moduleList);
+            log::add('Diagral_eOne', 'debug', var_export($moduleList, TRUE));
+            foreach ($moduleList as $module) {
+                $moduleObject = Diagral_eOne::byLogicalId($module['radioId'], 'Diagral_eOne');
+                if (!is_object($moduleObject)) {
+                    log::add('Diagral_eOne', 'info', "Synchronize::Modules Module trouvé (". $module['customLabel'] . ")");
+                    $eqLogic = new Diagral_eOne();
+                    if (empty($module['customLabel'])) {
+                        $eqLogic->setName('Module '.$module['radioId']);
                     } else {
-                        log::add('Diagral_eOne', 'warning', 'Synchronize::Modules Bypass d\'une ou plusieurs centrale(s) car le masterCode est vide.');
+                        $eqLogic->setName($module['customLabel']);
+                    }
+                    $eqLogic->setIsEnable(1);
+                    $eqLogic->setIsVisible(0);
+                    $eqLogic->setLogicalId($module['radioId']);
+                    $eqLogic->setEqType_name('Diagral_eOne');
+                    $eqLogic->setCategory('security', 1);
+                    $eqLogic->setConfiguration('type', 'module');
+                    $eqLogic->setConfiguration('subtype', $moduleType);
+                    $eqLogic->setConfiguration('centrale', $system->getLogicalId());
+                    $eqLogic->setConfiguration('index', $module['index']);
+                    $nbCreated++;
+                } else {
+                    log::add('Diagral_eOne', 'info', "Synchronize::Modules Module (".$moduleObject->getName().") mis à jour.");
+                    $eqLogic = $moduleObject;
+                    if ($eqLogic->getConfiguration('type','') == 'module') {
+                        $eqLogic->setName($moduleObject->getName());
+                        $eqLogic->setIsEnable($moduleObject->getIsEnable());
+                        $eqLogic->setIsVisible($moduleObject->getIsVisible());
+                        $eqLogic->setLogicalId($module['radioId']);
+                        $eqLogic->setEqType_name('Diagral_eOne');
+                        $eqLogic->setCategory('security', 1);
+                        $eqLogic->setConfiguration('type', 'module');
+                        $eqLogic->setConfiguration('subtype', $moduleType);
+                        $eqLogic->setConfiguration('centrale', $system->getLogicalId());
+                        $eqLogic->setConfiguration('index', $module['index']);
                     }
                 }
+                $eqLogic->save();
             }
         }
+        return array(
+            "type" => "Modules",
+            "nbCreated" => $nbCreated,
+            "nbUpdated" => $moduleListSum - $nbCreated
+        );
     }
 
     /*
@@ -725,11 +677,14 @@ class Diagral_eOne extends eqLogic {
      * Genere un Liste des groupes de Zone possible
      * @return array Tableau contenant l'ensemble des zones Diagral de l'alarme
      */
-    public function generateGroupsList($MyAlarm) {
+    public function generateGroupsList($MyAlarm = NULL) {
         log::add('Diagral_eOne', 'debug', 'generateGroupsList::Start');
         $filename = __PLGBASE__.'/data/groups_' . $this->getConfiguration('systemid') . '.json';
         // Si le fichier JSON des groupes n'existe pas, on le genère.
         if ( file_exists($filename) === false ) {
+            if (is_null($MyAlarm) || ! is_object($MyAlarm)) {
+                $MyAlarm = $this->setDiagralEnv();
+            }
             $this->generateGroupJson($MyAlarm);
         }
         // Recuperation de l'ensemble des groups avec leur nom et leur ID
