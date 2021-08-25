@@ -1,27 +1,8 @@
 {
     "commands":[{
-        "name": "Rafraichir",
-        "description": "Lance un refresh du module",
-        "logicalId": "refresh",
-        "type": "action",
-        "subtype": "other",
-        "isVisible": 1,
-        "isDashboard": 1,
-        "display": {
-            "icon": "<i class=\"fas fa-sync\"></i>"
-        }
-    }, {
-        "name": "Ouverture",
-        "description": "Ouverture Garage",
-        "logicalId": "garageOpen",
-        "type": "action",
-        "subtype": "other",
-        "isVisible": 1,
-        "isDashboard": 1
-    }, {
-        "name": "Fermeture",
-        "description": "Fermeture Garage",
-        "logicalId": "garageClose",
+        "name": "Mouvement",
+        "description": "Ouverture/Fermeture Garage",
+        "logicalId": "garageMove",
         "type": "action",
         "subtype": "other",
         "isVisible": 1,

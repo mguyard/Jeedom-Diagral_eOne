@@ -1,7 +1,7 @@
 {
     "commands":[{
         "name": "Rafraichir",
-        "description": "Lance un refresh du module",
+        "description": "Lance un refresh de l'état du Volet",
         "logicalId": "refresh",
         "type": "action",
         "subtype": "other",
@@ -11,9 +11,21 @@
             "icon": "<i class=\"fas fa-sync\"></i>"
         }
     }, {
+        "name": "Etat Position",
+        "description": "Affiche la position du volet (0=Ouvert/100=Fermé)",
+        "logicalId": "positionState",
+        "type": "info",
+        "subtype": "numeric",
+        "minValue": 0,
+        "maxValue": 100,
+        "unite": "%",
+        "isVisible": 1,
+        "isHistorized": 1,
+        "isDashboard": 1
+    }, {
         "name": "Ouverture",
         "description": "Ouverture Volet",
-        "logicalId": "shutterOpen",
+        "logicalId": "KNXshutterOpen",
         "type": "action",
         "subtype": "other",
         "isVisible": 1,
@@ -21,9 +33,28 @@
     }, {
         "name": "Fermeture",
         "description": "Fermeture Volet",
-        "logicalId": "shutterClose",
+        "logicalId": "KNXshutterClose",
         "type": "action",
         "subtype": "other",
+        "isVisible": 1,
+        "isDashboard": 1
+    }, {
+        "name": "Stop",
+        "description": "Arrêt Volet",
+        "logicalId": "KNXshutterStop",
+        "type": "action",
+        "subtype": "other",
+        "isVisible": 1,
+        "isDashboard": 1
+    }, {
+        "name": "Position",
+        "description": "Positionne le volet à un pourcentage",
+        "logicalId": "KNXshutterPosition",
+        "type": "action",
+        "subtype": "slider",
+        "minValue": 0,
+        "maxValue": 100,
+        "unite": "%",
         "isVisible": 1,
         "isDashboard": 1
     }]

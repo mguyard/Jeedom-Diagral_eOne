@@ -510,6 +510,35 @@ class Diagral_eOne{
     }
 
 
+    /**
+     * Retrieve KNX Automations status
+     * @param int $index      Index of module  
+     * @return int Value of module
+     */
+    public function getKNXAutomationStatus($index) {
+        // Get Automation Sequence
+        $GetKNXAutomationPost = '{"transmitterId":"'.$this->transmitterId.'","centralId":"'.$this->centralId.'","systemId":'.$this->systems[$this->systemId]["id"].',"ttmSessionId":"'.$this->ttmSessionId.'"}';
+        try {
+            if(list($data,$httpRespCode) = $this->doRequest("/installation/getBoxKNXStatusZone", $GetKNXAutomationPost)) {
+                if (is_array($data['devices']) && !empty($data['devices'])) {
+                    foreach ($data['devices'] as $automation) {
+                        if ($automation['index'] == $index) {
+                            return array_values($automation['status'])[0];
+                        }
+                    }
+                } else {
+                    throw new \Exception("KNX automation return isn't valid. Return : ".var_export($data, True), 19);
+                }
+            } else {
+                throw new \Exception("Unable to retrieve KNX automations (http code : ".$httpRespCode.")", 19);
+            }
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+
+
+
 
 
     /**
@@ -1478,19 +1507,38 @@ class Diagral_eOne{
 
 
 
-    public function openAutomation($index, $command) {
-        $openAutomationPost = '{"command":"'.strtoupper($command).'","index":'.intval($index).',"systemId":'.$this->systems[$this->systemId]["id"].',"ttmSessionId":"'.$this->ttmSessionId.'"}';
+    public function automationSendCmd($index, $command) {
+        $automationSendCmdPost = '{"command":"'.strtoupper($command).'","index":'.intval($index).',"systemId":'.$this->systems[$this->systemId]["id"].',"ttmSessionId":"'.$this->ttmSessionId.'"}';
         try {
-            if(list($data,$httpRespCode) = $this->doRequest("/automation/sendCommand", $openAutomationPost)) {
+            if(list($data,$httpRespCode) = $this->doRequest("/automation/sendCommand", $automationSendCmdPost)) {
                 if(isset($data[0]) && $data[0] == "CMD_OK") {
                     if($this->verbose) {
                         $this->addVerboseEvent("DEBUG", "Automation Command (open) executed with success");
                     }
                 } else {
-                    throw new \Exception("OPEN automation command failed to execute" . json_encode($data), 56);
+                    throw new \Exception("Automation command failed to execute" . json_encode($data), 56);
                 }
             } else {
-                throw new \Exception("Unable to execute this OPEN automation command (http code : ".$httpRespCode.")", 19);
+                throw new \Exception("Unable to execute this automation command (http code : ".$httpRespCode.")", 19);
+            }
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+
+    public function automationKNXSendCmd($index, $command, $position) {
+        $automationKNXSendCmdPost = '{"transmitterId":"'.$this->transmitterId.'","centralId":"'.$this->centralId.'","systemId":'.$this->systems[$this->systemId]["id"].',"deviceId":'.intval($index).',"action":"'.strtoupper($command).'","param":"'.$position.'","ttmSessionId":"'.$this->ttmSessionId.'"}';
+        try {
+            if(list($data,$httpRespCode) = $this->doRequest("/installation/knxCommand", $automationKNXSendCmdPost)) {
+                if(isset($data[0]) && $data[0] == "CMD_OK") {
+                    if($this->verbose) {
+                        $this->addVerboseEvent("DEBUG", "KNX Automation Command (open) executed with success");
+                    }
+                } else {
+                    throw new \Exception("KNX Automation command failed to execute" . json_encode($data), 56);
+                }
+            } else {
+                throw new \Exception("Unable to execute this KNX automation command (http code : ".$httpRespCode.")", 19);
             }
         } catch (\Exception $e) {
             throw $e;

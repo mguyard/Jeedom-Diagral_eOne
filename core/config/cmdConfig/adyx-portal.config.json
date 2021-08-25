@@ -13,7 +13,7 @@
     }, {
         "name": "Ouverture totale",
         "description": "Ouverture totale",
-        "logicalId": "openComplete",
+        "logicalId": "portalOpenComplete",
         "type": "action",
         "subtype": "other",
         "isVisible": 1,
@@ -21,7 +21,7 @@
     }, {
         "name": "Ouverture Pieton",
         "description": "Ouverture partielle ou pieton",
-        "logicalId": "openPartial",
+        "logicalId": "portalOpenPartial",
         "type": "action",
         "subtype": "other",
         "isVisible": 1,

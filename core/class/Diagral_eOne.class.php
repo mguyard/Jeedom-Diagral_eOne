@@ -400,7 +400,7 @@ class Diagral_eOne extends eqLogic {
 
     public function toHtml($_version = 'dashboard') {
         // Si on desactive l'option du template du plugin, alors on repasse en template par defaut (Jeedom)
-        if ($this->getConfiguration('templateDiagral') != 1)
+        if ($this->getConfiguration('templateDiagral') != 1 || $this->getConfiguration('type') != 'centrale')
         {
             return parent::toHtml($_version);
         }
@@ -910,6 +910,8 @@ class Diagral_eOne extends eqLogic {
                                     }
                                 }
                                 break;
+                            default:
+                                $centralChild->deviceRefresh($MyAlarm);
                         }
                     }
                 }
@@ -923,7 +925,7 @@ class Diagral_eOne extends eqLogic {
     }
 
 
-    public function deviceRefresh($MyAlarm, $alert) {
+    public function deviceRefresh($MyAlarm, $alert = "") {
         $changed = false;
         log::add('Diagral_eOne', 'info', 'deviceRefresh::Start Refresh de l\'équipement '.$this->getName());
         switch ($this->getConfiguration('type', '')) {
@@ -973,6 +975,30 @@ class Diagral_eOne extends eqLogic {
                 $this->checkAndUpdateCmd('autoprotectionMechanicalAlert', $alert['autoprotectionMechanicalAlert']);
                 // Stockage de radioAlert
                 $this->checkAndUpdateCmd('radioAlert', $alert['radioAlert']);
+                break;
+            case 'knx-shutter':
+                // Recuperation de la centrale
+                $centrale = eqLogic::byLogicalId($this->getConfiguration('centrale'), 'Diagral_eOne');
+                // Recuperation de la position
+                $position = intval($this->automationKNXgetValue($MyAlarm, $centrale));
+                // Stockage de la position
+                $changed = $this->checkAndUpdateCmd('positionState', $position) || $changed;
+                break;
+            case 'knx-light':
+                // Recuperation de la centrale
+                $centrale = eqLogic::byLogicalId($this->getConfiguration('centrale'), 'Diagral_eOne');
+                // Recuperation de la position
+                $value = $this->automationKNXgetValue($MyAlarm, $centrale);
+                switch($value) {
+                    case 'ON':
+                        $status = 1;
+                        break;
+                    case 'OFF':
+                        $status = 0;
+                        break;
+                }
+                // Stockage de la position
+                $changed = $this->checkAndUpdateCmd('status', $status) || $changed;
                 break;
         }
         return $changed;
@@ -1331,13 +1357,54 @@ class Diagral_eOne extends eqLogic {
 
     /* ------------------------------ Produit Tiers integré Diagral e-One - Automations ------------------------------ */
 
-    public function openAutomation($MyAlarm, $centrale, $command) {
+    /**
+     * Execute une commande ADYX (allumer/eteindre lampe, ouvrir/fermer volet, etc...)
+     * @param object $MyAlarm
+     * @param object $centrale
+     * @param string $command
+     */
+    public function automationSendCmd($MyAlarm, $centrale, $command) {
         try{
-            log::add('Diagral_eOne', 'debug', 'openAutomation::' . $centrale->getConfiguration('systemid') . '::Starting Request');
-            $MyAlarm->openAutomation($this->getConfiguration('index'),$command);
-            log::add('Diagral_eOne', 'debug', 'openAutomation::' . $centrale->getConfiguration('systemid') . '::Success');
+            log::add('Diagral_eOne', 'debug', 'automationSendCmd::' . $centrale->getConfiguration('systemid') . '::Starting Request');
+            $MyAlarm->automationSendCmd($this->getConfiguration('index'),$command);
+            log::add('Diagral_eOne', 'debug', 'automationSendCmd::' . $centrale->getConfiguration('systemid') . '::Success');
         } catch (Exception $e) {
-            log::add('Diagral_eOne', 'error', 'openAutomation - '.  $e->getMessage());
+            log::add('Diagral_eOne', 'error', 'automationSendCmd - '.  $e->getMessage());
+        }
+    }
+
+    /**
+     * Execute une commande KNX (allumer/eteindre lampe, ouvrir/fermer volet, etc...)
+     * @param object $MyAlarm
+     * @param object $centrale
+     * @param string $command
+     * @param int    $position
+     */
+    public function automationKNXSendCmd($MyAlarm, $centrale, $command, $position = 0) {
+        try{
+            log::add('Diagral_eOne', 'debug', 'automationKNXSendCmd::' . $centrale->getConfiguration('systemid') . '::Starting Request');
+            $MyAlarm->automationKNXSendCmd($this->getConfiguration('index'),$command, $position);
+            log::add('Diagral_eOne', 'debug', 'automationKNXSendCmd::' . $centrale->getConfiguration('systemid') . '::Success');
+        } catch (Exception $e) {
+            log::add('Diagral_eOne', 'error', 'automationKNXSendCmd - '.  $e->getMessage());
+        }
+    }
+
+
+    /**
+     * Retourne la valeur d'un module KNX (position pour volet, etat d'une lampe, etc..)
+     * @param object $MyAlarm
+     * @param object $centrale
+     * @return int   $value 
+     */
+    public function automationKNXgetValue($MyAlarm, $centrale) {
+        try{
+            log::add('Diagral_eOne', 'debug', 'automationKNXgetValue::' . $centrale->getConfiguration('systemid') . '::Starting Request');
+            $value = $MyAlarm->getKNXAutomationStatus($this->getConfiguration('index'));
+            log::add('Diagral_eOne', 'debug', 'automationKNXgetValue::' . $centrale->getConfiguration('systemid') . '::Success');
+            return $value;
+        } catch (Exception $e) {
+            log::add('Diagral_eOne', 'error', 'automationKNXgetValue - '.  $e->getMessage());
         }
     }
 
@@ -1912,11 +1979,51 @@ class Diagral_eOneCmd extends cmd {
             case 'onDemandRecord':
                 $eqLogic->onDemandRecord($MyAlarm);
                 break;
-            case 'openComplete':
-                $eqLogic->openAutomation($MyAlarm, $centrale, "UP");
+            case 'portalOpenComplete':
+            case 'garageMove':
+                $eqLogic->automationSendCmd($MyAlarm, $centrale, "UP");
                 break;
-            case 'openPartial':
-                $eqLogic->openAutomation($MyAlarm, $centrale, "DOWN");
+            case 'portalOpenPartial':
+                $eqLogic->automationSendCmd($MyAlarm, $centrale, "DOWN");
+                break;
+            case 'adyxShutterOpen':
+                $eqLogic->automationSendCmd($MyAlarm, $centrale, "UP");
+                break;
+            case 'adyxShutterClose':
+                $eqLogic->automationSendCmd($MyAlarm, $centrale, "DOWN");
+                break;
+            case 'adyxShutterStop':
+                $eqLogic->automationSendCmd($MyAlarm, $centrale, "STOP");
+                break;
+            case 'KNXshutterOpen':
+                $eqLogic->automationKNXSendCmd($MyAlarm, $centrale, "UP");
+                sleep(20);
+                $eqLogic->deviceRefresh($MyAlarm);
+                break;
+            case 'KNXshutterClose':
+                $eqLogic->automationKNXSendCmd($MyAlarm, $centrale, "DOWN");
+                sleep(20);
+                $eqLogic->deviceRefresh($MyAlarm);
+                break;
+            case 'KNXshutterStop':
+                $eqLogic->automationKNXSendCmd($MyAlarm, $centrale, "STOP");
+                sleep(20);
+                $eqLogic->deviceRefresh($MyAlarm);
+                break;
+            case 'KNXshutterPosition':
+                $eqLogic->automationKNXSendCmd($MyAlarm, $centrale, "POSITION", $_options['slider']);
+                sleep(20);
+                $eqLogic->deviceRefresh($MyAlarm);
+                break;
+            case 'KNXlightOn':
+                $eqLogic->automationKNXSendCmd($MyAlarm, $centrale, "ON");
+                sleep(20);
+                $eqLogic->deviceRefresh($MyAlarm);
+                break;
+            case 'KNXlightOff':
+                $eqLogic->automationKNXSendCmd($MyAlarm, $centrale, "OFF");
+                sleep(20);
+                $eqLogic->deviceRefresh($MyAlarm);
                 break;
             default:
                 log::add('Diagral_eOne', 'warning', 'Commande inconnue : ' . $this->getLogicalId());

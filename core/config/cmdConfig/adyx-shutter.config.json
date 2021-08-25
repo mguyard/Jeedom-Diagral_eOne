@@ -1,19 +1,8 @@
 {
     "commands":[{
-        "name": "Rafraichir",
-        "description": "Lance un refresh du module",
-        "logicalId": "refresh",
-        "type": "action",
-        "subtype": "other",
-        "isVisible": 1,
-        "isDashboard": 1,
-        "display": {
-            "icon": "<i class=\"fas fa-sync\"></i>"
-        }
-    }, {
         "name": "Ouverture",
         "description": "Ouverture Volet",
-        "logicalId": "shutterOpen",
+        "logicalId": "adyxShutterOpen",
         "type": "action",
         "subtype": "other",
         "isVisible": 1,
@@ -21,7 +10,15 @@
     }, {
         "name": "Fermeture",
         "description": "Fermeture Volet",
-        "logicalId": "shutterClose",
+        "logicalId": "adyxShutterClose",
+        "type": "action",
+        "subtype": "other",
+        "isVisible": 1,
+        "isDashboard": 1
+    }, {
+        "name": "Stop",
+        "description": "Arrêt Volet",
+        "logicalId": "adyxShutterStop",
         "type": "action",
         "subtype": "other",
         "isVisible": 1,
