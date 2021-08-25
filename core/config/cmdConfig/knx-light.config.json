@@ -11,17 +11,17 @@
             "icon": "<i class=\"fas fa-sync\"></i>"
         }
     }, {
-        "name": "Ouverture totale",
-        "description": "Ouverture totale",
-        "logicalId": "openComplete",
+        "name": "Allumer",
+        "description": "Allume la lampe",
+        "logicalId": "lightOn",
         "type": "action",
         "subtype": "other",
         "isVisible": 1,
         "isDashboard": 1
     }, {
-        "name": "Ouverture Pieton",
-        "description": "Ouverture partielle ou pieton",
-        "logicalId": "openPartial",
+        "name": "Eteindre",
+        "description": "Eteind la lampe",
+        "logicalId": "lightOff",
         "type": "action",
         "subtype": "other",
         "isVisible": 1,

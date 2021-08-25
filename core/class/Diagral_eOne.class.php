@@ -235,9 +235,11 @@ class Diagral_eOne extends eqLogic {
 
     public static function syncAutomations($MyAlarm, $system) {
         $automationList = $MyAlarm->getAutomations();
+        $KNXautomationList = $MyAlarm->getKNXAutomations();
+        $allAutomations = array_merge($automationList,$KNXautomationList);
         log::add('Diagral_eOne', 'debug', var_export($automationList, TRUE));
         $nbCreated = 0;
-        foreach ($automationList as $automation) {
+        foreach ($allAutomations as $automation) {
             $automationObject = Diagral_eOne::byLogicalId(strtolower($automation['type']['type'].'-'.$automation['type']['application'].'_'.$automation['index']), 'Diagral_eOne');
             if (!is_object($automationObject)) {
                 log::add('Diagral_eOne', 'info', "Synchronize::Automation Equipement Automation trouvé (". $automation['name'] . ")");
@@ -1756,14 +1758,17 @@ class Diagral_eOne extends eqLogic {
      */
     public static function getPathDeviceIcon($eqLogic) {
         switch ($eqLogic->getConfiguration('type')) {
-            case 'adyx-portal':
+            case (preg_match('/.*-portal/', $eqLogic->getConfiguration('type')) ? true : false) :
                 $type = 'portal';
                 break;
-            case 'adyx-shutter':
+            case (preg_match('/.*-shutter/', $eqLogic->getConfiguration('type')) ? true : false) :
                 $type = 'rollershutter';
                 break;
-            case 'adyx-garage_door';
+            case (preg_match('/.*-garage_door/', $eqLogic->getConfiguration('type')) ? true : false) :
                 $type = 'garagedoor';
+                break;
+            case (preg_match('/.*-light/', $eqLogic->getConfiguration('type')) ? true : false) :
+                $type = 'light';
                 break;
             default:
                 $type = $eqLogic->getConfiguration('type');

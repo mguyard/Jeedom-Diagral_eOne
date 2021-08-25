@@ -472,6 +472,44 @@ class Diagral_eOne{
     }
 
 
+    /**
+     * Retrieve all KNX Automations
+     * @return array All KNX automations informations
+     */
+    public function getKNXAutomations() {
+        // Get Automation Sequence
+        $devices = $this->getDevices();
+        $GetKNXAutomationPost = '{"transmitterId":"'.$this->transmitterId.'","centralId":"'.$this->centralId.'","systemId":'.$this->systems[$this->systemId]["id"].',"ttmSessionId":"'.$this->ttmSessionId.'"}';
+        try {
+            if(list($data,$httpRespCode) = $this->doRequest("/installation/getBoxKNXStatusZone", $GetKNXAutomationPost)) {
+                if (is_array($data['devices']) && !empty($data['devices'])) {
+                    foreach ($data['devices'] as &$automation) {
+                        foreach ($devices as $device) {
+                            if ($automation['index'] == $device['index'] && $automation['label'] == $device['name']) {
+                                $temporary = $automation;
+                                $automation = array();
+                                $automation['type']['type'] = $device['type'];
+                                $automation['type']['application'] = $device['application'];
+                                $automation['name'] = $temporary['label'];
+                                $automation['index'] = $temporary['index'];
+                                $automation['custom']['refCom'] = $temporary['refCom'];
+                                $automation['custom']['serial'] = $temporary['serial'];
+                            }
+                        }
+                    }
+                    return $data['devices'];
+                } else {
+                    return $data['devices'];
+                }
+            } else {
+                throw new \Exception("Unable to retrieve KNX automations (http code : ".$httpRespCode.")", 19);
+            }
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+
+
 
 
     /**
@@ -1770,10 +1808,10 @@ class Diagral_eOne{
         $retry = isset($retry) ? $retry : $this->doRequestAttempts - 1;
         $curl = curl_init();
         $curl_headers = array(
-            "User-Agent: eOne/1.11.8.1 CFNetwork/1220.1 Darwin/20.3.0",
+            "User-Agent: eOne/1.12.1.2 CFNetwork/1240.0.4 Darwin/20.6.0",
             "Accept: application/json, text/plain, */*",
             "Accept-Encoding: deflate",
-            "X-App-Version: 1.11.8",
+            "X-App-Version: 1.12.1",
             "X-Identity-Provider: JANRAIN",
             "ttmSessionIdNotRequired: true",
             "X-Vendor: diagral",
