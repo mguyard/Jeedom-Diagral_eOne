@@ -880,7 +880,7 @@ class Diagral_eOne extends eqLogic {
             $this->checkAndUpdateCmd('updates_available', $nbUpdates);
             return $MyAlarm;
         } else {
-            throw new Exception("MasterCode cannot be empty. Please configure it in your device.");
+            throw new Exception("MasterCode of device ".$this->getName()." cannot be empty. Please configure it in your device.");
         }
     }
 
