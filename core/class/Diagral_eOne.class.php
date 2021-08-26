@@ -892,7 +892,7 @@ class Diagral_eOne extends eqLogic {
         log::add('Diagral_eOne', 'debug', 'pull::Starting Request');
         // Recuperer la liste des centrale
         foreach (eqLogic::byTypeAndSearhConfiguration('Diagral_eOne', 'systemid') as $centrale) {
-            if($centrale->getIsEnable()) {
+            if($centrale->getIsEnable() && !empty($centrale->getConfiguration('systemid'))) {
                 //Se connecter sur la centrale
                 $MyAlarm = $centrale->setDiagralEnv();
                 // Récupérer la liste de toutes les alertes
