@@ -16,6 +16,9 @@
         "logicalId": "status",
         "type": "info",
         "subtype": "binary",
+        "display": {
+            "generic_type": "LIGHT_STATE"
+        },
         "isVisible": 1,
         "isHistorized": 1,
         "isDashboard": 1
@@ -25,6 +28,9 @@
         "logicalId": "KNXlightOn",
         "type": "action",
         "subtype": "other",
+        "display": {
+            "generic_type": "LIGHT_ON"
+        },
         "isVisible": 1,
         "isDashboard": 1
     }, {
@@ -33,6 +39,9 @@
         "logicalId": "KNXlightOff",
         "type": "action",
         "subtype": "other",
+        "display": {
+            "generic_type": "LIGHT_OFF"
+        },
         "isVisible": 1,
         "isDashboard": 1
     }]

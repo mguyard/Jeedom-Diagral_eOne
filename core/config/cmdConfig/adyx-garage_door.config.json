@@ -5,6 +5,9 @@
         "logicalId": "garageMove",
         "type": "action",
         "subtype": "other",
+        "display": {
+            "generic_type": "PUSH_BUTTON"
+        },
         "isVisible": 1,
         "isDashboard": 1
     }]

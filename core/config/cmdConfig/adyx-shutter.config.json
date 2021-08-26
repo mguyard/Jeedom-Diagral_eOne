@@ -5,6 +5,9 @@
         "logicalId": "adyxShutterOpen",
         "type": "action",
         "subtype": "other",
+        "display": {
+            "generic_type": "FLAP_UP"
+        },
         "isVisible": 1,
         "isDashboard": 1
     }, {
@@ -13,6 +16,9 @@
         "logicalId": "adyxShutterClose",
         "type": "action",
         "subtype": "other",
+        "display": {
+            "generic_type": "FLAP_DOWN"
+        },
         "isVisible": 1,
         "isDashboard": 1
     }, {
@@ -21,6 +27,9 @@
         "logicalId": "adyxShutterStop",
         "type": "action",
         "subtype": "other",
+        "display": {
+            "generic_type": "FLAP_STOP"
+        },
         "isVisible": 1,
         "isDashboard": 1
     }]

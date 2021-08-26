@@ -16,6 +16,9 @@
         "logicalId": "portalOpenComplete",
         "type": "action",
         "subtype": "other",
+        "display": {
+            "generic_type": "PUSH_BUTTON"
+        },
         "isVisible": 1,
         "isDashboard": 1
     }, {
@@ -24,6 +27,9 @@
         "logicalId": "portalOpenPartial",
         "type": "action",
         "subtype": "other",
+        "display": {
+            "generic_type": "PUSH_BUTTON"
+        },
         "isVisible": 1,
         "isDashboard": 1
     }]
