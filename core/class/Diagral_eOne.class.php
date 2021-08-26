@@ -887,7 +887,7 @@ class Diagral_eOne extends eqLogic {
     /**
      * Recuperation automatique (cron) du statut de l'ensemble des équipements actifs
      */
-    public function pull() {
+    public static function pull() {
         $changed = false;
         log::add('Diagral_eOne', 'debug', 'pull::Starting Request');
         // Recuperer la liste des centrale

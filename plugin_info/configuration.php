@@ -153,6 +153,14 @@ if (empty($plugin_version)) {
 			<i class="fas fa-spider"></i> {{Debug}}
 		</legend>
         <div class="form-group">
+            <label class="col-lg-4 control-label">{{Clé API du plugin}}
+                <sup><i class="fa fa-question-circle tooltips" title="Utiliser pour generer les appels Webhook" style="font-size:1em;color:grey;"></i></sup>
+            </label>
+            <div class="col-lg-4">
+                <span class="label label-info"><?php echo jeedom::getApiKey('Diagral_eOne') ?></span>
+            </div>
+        </div>
+        <div class="form-group">
             <label class="col-lg-4 control-label">{{Verbose}}</label>
             <div class="col-lg-2">
                 <select class="configKey form-control" data-l1key="verbose" disabled>
