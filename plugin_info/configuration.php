@@ -33,13 +33,17 @@ if (empty($plugin_version)) {
 			<i class="fas fa-key"></i> {{Compte Diagral}}
 		</legend>
         <div class="form-group">
-            <label class="col-lg-4 control-label">{{Identifiant}}</label>
+            <label class="col-lg-4 control-label">{{Identifiant}}
+                <sup><i class="fa fa-question-circle tooltips" title="Saisissez votre identifiant tels que vous l'utilisez sur l'application mobile Diagral E-One" style="font-size:1em;color:grey;"></i></sup>
+            </label>
             <div class="col-lg-4">
                 <input class="configKey form-control" data-l1key="login" type="email" placeholder="Adresse email utilisée pour votre compte Diagral"/>
             </div>
         </div>
         <div class="form-group">
-            <label class="col-lg-4 control-label">{{Mot de passe}}</label>
+            <label class="col-lg-4 control-label">{{Mot de passe}}
+                <sup><i class="fa fa-question-circle tooltips" title="Saisissez votre mot de passe tels que vous l'utilisez sur l'application mobile Diagral E-One" style="font-size:1em;color:grey;"></i></sup>
+            </label>
             <div class="col-lg-4">
                 <input class="configKey form-control" data-l1key="password" type="password" placeholder="Mot de passe utilisé pour votre compte Diagral"/>
             </div>
@@ -50,7 +54,9 @@ if (empty($plugin_version)) {
 			<i class="fas fa-wrench"></i> {{Configuration}}
 		</legend>
         <div class="form-group">
-            <label class="col-lg-4 control-label">{{Nombre de tentatives}}</label>
+            <label class="col-lg-4 control-label">{{Nombre de tentatives}}
+                <sup><i class="fa fa-question-circle tooltips" title="Nombre de tentative que le plugin effectuera en cas d'échec de communication avec le Cloud Diagral" style="font-size:1em;color:grey;"></i></sup>
+            </label>
             <div class="col-lg-4">
                 <input class="configKey form-control" data-l1key="retry" type="number" min="1" max="10" placeholder="1"/>
             </div>
@@ -62,13 +68,17 @@ if (empty($plugin_version)) {
             </div>
         </div>
         <div class="form-group">
-            <label class="col-lg-4 control-label">{{Mise à jour automatique (minutes)}}</label>
+            <label class="col-lg-4 control-label">{{Mise à jour automatique (minutes)}}
+                <sup><i class="fa fa-question-circle tooltips" title="Fréquence à laquelle le plugin va récupérer les informations sur le cloud Diagral" style="font-size:1em;color:grey;"></i></sup>
+            </label>
             <div class="col-lg-4">
                 <input class="configKey form-control" data-l1key="polling_interval" type="number" min="1" placeholder="10"/>
             </div>
         </div>
         <div class="form-group">
-            <label class="col-lg-4 control-label">{{Nombre de video à conserver}}</label>
+            <label class="col-lg-4 control-label">{{Nombre de video à conserver}}
+                <sup><i class="fa fa-question-circle tooltips" title="Le plugin peut récupérer et stocker les vidéos effectuées par un détecteur à image Diagral.<br/>Ce paramètre permet de définir le nombre de vidéo a conserver locallement dans Jeedom" style="font-size:1em;color:grey;"></i></sup>
+            </label>
             <div class="col-lg-4">
                 <input class="configKey form-control" data-l1key="video_retention" type="number" min="1" placeholder="100"/>
             </div>
@@ -79,7 +89,7 @@ if (empty($plugin_version)) {
 			<i class="fas fa-chart-line"></i> {{Suivi d'installation}}
 		</legend>
         <div class="alert">
-            <i>Voir la documentation pour plus d'informations sur ce point.</i>
+            <i>Voir la <a href="https://mguyard.github.io/Jeedom-Documentations/fr_FR/Diagral_eOne/documentation#Suivi%20d’installation">documentation</a> pour plus d'informations sur ce point.</i>
         </div>
         <div class="form-group">
             <label class="col-lg-4 control-label">{{Activation de l'envoi des informations}}</label>
@@ -120,13 +130,15 @@ if (empty($plugin_version)) {
         <div class="form-group">
             <label class="col-lg-4 control-label">{{Version du plugin}}</label>
             <div class="col-lg-4">
-                <span class="label label-info"><?php echo config::byKey('plugin_version', 'Diagral_eOne')."(".Diagral_eOne::getPluginBranch().")" ?></span>
+                <span class="label label-info"><?php echo $plugin_version ." (".Diagral_eOne::getPluginBranch().")" ?></span>
             </div>
         </div>
         <div class="form-group">
-            <label class="col-lg-4 control-label">{{Adresse Email}}</label>
+            <label class="col-lg-4 control-label">{{Adresse Email}}
+                <sup><i class="fa fa-question-circle tooltips" title="Saisissez votre email si vous souhaitez recevoir les communications du developpeur.<br/>Estimé : 2 emails maximum par an" style="font-size:1em;color:grey;"></i></sup>
+            </label>
             <div class="col-lg-4">
-                <input class="configKey form-control" data-l1key="InstallBaseEmailAddr" type="email" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$" placeholder="Saisissez votre email si vous souhaitez recevoir les communications du developpeur"/>
+                <input class="configKey form-control" data-l1key="InstallBaseEmailAddr" type="email" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$" placeholder="Saisissez votre email"/>
             </div>
         </div>
         <div class="form-group">
@@ -141,12 +153,28 @@ if (empty($plugin_version)) {
 			<i class="fas fa-spider"></i> {{Debug}}
 		</legend>
         <div class="form-group">
+            <label class="col-lg-4 control-label">{{Clé API du plugin}}
+                <sup><i class="fa fa-question-circle tooltips" title="Utiliser pour generer les appels Webhook" style="font-size:1em;color:grey;"></i></sup>
+            </label>
+            <div class="col-lg-4">
+                <span class="label label-info"><?php echo jeedom::getApiKey('Diagral_eOne') ?></span>
+            </div>
+        </div>
+        <div class="form-group">
             <label class="col-lg-4 control-label">{{Verbose}}</label>
             <div class="col-lg-2">
                 <select class="configKey form-control" data-l1key="verbose" disabled>
                     <option value="1">Enable</option>
                     <option value="0">Disable</option>
                 </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-lg-4 control-label">{{Générer un package de DiagDebug}}
+                <sup><i class="fa fa-question-circle tooltips" title="Permet de générer une archive de support incluant les données nécéssaires au développeur ou à la communauté afin de vous aider" style="font-size:1em;color:grey;"></i></sup>
+            </label>
+            <div class="col-lg-4">
+                <button type="button" id="generateDiagDebug" class="btn btn-danger btn-lg">{{Générer un DiagDebug}}</button>
             </div>
         </div>
 
@@ -204,6 +232,29 @@ if (empty($plugin_version)) {
                     setTimeout( function() {
                         location.reload();
                     }, 2000);
+                }
+            });
+        });
+
+
+        // Génère le package DiagDebug
+        $('#generateDiagDebug').click( function() {
+            $.ajax({// fonction permettant de faire de l'ajax
+                type: "POST", // methode de transmission des données au fichier php
+                url: "plugins/Diagral_eOne/core/ajax/Diagral_eOne.ajax.php", // url du fichier php
+                data: {
+                    action: "generateDiagDebug",
+                },
+                dataType: 'json',
+                error: function (request, status, error) {
+                    handleAjaxError(request, status, error);
+                },
+                success: function (data) { // si l'appel a bien fonctionné
+                    if (data.state != 'ok') {
+                        $('#div_alert').showAlert({message: data.result, level: 'danger'});
+                        return;
+                    }
+                    $('#div_alert').showAlert({message: '{{<i class="fas fa-file-download"></i> Génération du DiagDebug effectuée avec succès. Cliquez <a href="' + data.result.relativePath + '" target="_blank" download>ici</a> pour télécharger l\'archive}}', level: 'success'});
                 }
             });
         });

@@ -1,13 +1,5 @@
 {
     "commands":[{
-        "name": "Déclencher Enregistrement",
-        "description": "Declenche un enregistrement à la demande",
-        "logicalId": "onDemandRecord",
-        "type": "action",
-        "subtype": "other",
-        "isVisible": 1,
-        "isDashboard": 1
-    }, {
         "name": "Dernière video",
         "description": "Affiche le chemin de la dernière video",
         "logicalId": "lastVideoPath",

@@ -44,14 +44,35 @@ try {
 				$return = array('iconPath' => $iconPath);
 				ajax::success(json_encode($return));
 			} else {
-			ajax::success(false);
+			    ajax::success(false);
 			}
 		} catch (Exception $e) {
 			ajax::error(displayExeption($e), $e->getCode());
 		}
 	}
 
-    //Lancement de la suppression des données de tracking
+    // Recupere la liste des équipements associés
+    if (init('action') == 'getChildDevices') {
+		try {
+			$eqLogic = eqLogic::byId(init(eqLogicId), 'Diagral_eOne');
+			if (is_object($eqLogic) && $eqLogic->getConfiguration('type') == 'centrale') {
+                $childDevices = array();
+				foreach (eqLogic::byType('Diagral_eOne', true) as $diagralDevices) {
+                    if ($diagralDevices->getConfiguration('type') != 'centrale' && $eqLogic->getLogicalId() == $diagralDevices->getConfiguration('centrale')) {
+                        array_push($childDevices, array('id' => $diagralDevices->getId(), 'name' => $diagralDevices->getName()));
+                    }
+                }
+                $return = $childDevices;
+				ajax::success(json_encode($return));
+			} else {
+			    ajax::success(false);
+			}
+		} catch (Exception $e) {
+			ajax::error(displayExeption($e), $e->getCode());
+		}
+	}
+
+    // Lancement de la suppression des données de tracking
     if (init('action') == 'delete_remote_datainfo') {
         try {
             Diagral_eOne::installTracking(1);
@@ -61,7 +82,17 @@ try {
         }
     }
 
+    // Génératon d'une archive de DiagDebug
+    if (init('action') == 'generateDiagDebug') {
+        try {
+            $diagDebug = Diagral_eOne::generateDiagDebug();
+            ajax::success($diagDebug);
+        } catch (Exception $e) {
+            ajax::error(displayExeption($e), $e->getCode());
+        }
+    }
 
+    // Execution PostSave
     if (init('action') == 'postSave') {
         //Called after a plugin configuration save
         // Let's first check new configuration values
@@ -119,7 +150,7 @@ try {
         try {
             if(! empty(init('eqID'))) {
                 $eqlogic = eqLogic::byId(init('eqID'));
-                if ($eqlogic->getConfiguration('type') == "imagedetector") {
+                if(in_array($eqlogic->getConfiguration('type'),array('module', 'imagedetector', 'camera', 'adyx-portal', 'adyx-shutter', 'adyx-garage_door', 'knx-shutter', 'knx-light'))) {
                     $centrale = eqLogic::byLogicalId($eqlogic->getConfiguration('centrale'), 'Diagral_eOne');
                     if (is_object($centrale)) {
                         $return = array('centraleId' => $centrale->getId());

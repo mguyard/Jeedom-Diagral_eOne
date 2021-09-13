@@ -177,7 +177,7 @@ class Diagral_eOne{
             } else {
                 throw new \Exception("Unable to login to Diagral Cloud (http code : " . $httpRespCode . ")", 10);
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         }
     }
@@ -205,10 +205,12 @@ class Diagral_eOne{
             } else {
                 throw new \Exception("Unable to retrieve systems (http code : ".$httpRespCode.")", 19);
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         }
     }
+
+
 
 
 
@@ -256,7 +258,7 @@ class Diagral_eOne{
             } else {
                 throw new \Exception("Unable to retrieve configuration (http code : ".$httpRespCode.")", 19);
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         }
     }
@@ -279,7 +281,7 @@ class Diagral_eOne{
             } else {
                 throw new \Exception("Unable to know if eOne is connected (http code : ".$httpRespCode.")", 19);
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         }
     }
@@ -306,7 +308,7 @@ class Diagral_eOne{
             } else {
                 throw new \Exception("Unable to request old session (http code : ".$httpRespCode.")", 19);
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         }
     }
@@ -320,7 +322,7 @@ class Diagral_eOne{
     public function connect($masterCode) {
         try {
             $this->isConnected();
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         }
         if (empty($masterCode)) {
@@ -334,7 +336,7 @@ class Diagral_eOne{
         }
         try {
             $this->createNewSession();
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         }
     }
@@ -365,12 +367,12 @@ class Diagral_eOne{
                             $lastTtmSessionId = $this->getLastTtmSessionId();
                             try {
                                 $this->disconnect($lastTtmSessionId);
-                            } catch (Exception $e) {
+                            } catch (\Exception $e) {
                                 throw $e;
                             }
                             try {
                                 $this->createNewSession();
-                            } catch (Exception $e) {
+                            } catch (\Exception $e) {
                                 throw $e;
                             }
                         } else {
@@ -385,10 +387,159 @@ class Diagral_eOne{
             } else {
                 throw new \Exception("Unable to get new session (http code : ".$httpRespCode.")", 19);
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         }
     }
+
+
+
+
+
+    /**
+     * Retrieve all devices
+     * @return array List of all devices
+     */
+    private function getDevices() {
+        try {
+            if(list($data,$httpRespCode) = $this->doRequest("/api/scenarios/".$this->systems[$this->systemId]["id"]."/devices", "", FALSE, "GET")) {
+                return $data;
+            } else {
+                throw new \Exception("Unable to retrieve automations (http code : ".$httpRespCode.")", 19);
+            }
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+
+
+    /**
+     * Retreive all battery and AutoProtection informations
+     * @param string $type      Type of module (commands / transmitters / sensors / alarms)  
+     * @param string $radioId   RadioID
+     * @return array            List of informations
+     */
+    public function getSystemAlerts() {
+        $getCentralStatusZonePost = '{"centralId":"'.$this->centralId.'","transmitterId":"'.$this->transmitterId.'","systemId":'.$this->systems[$this->systemId]["id"].',"ttmSessionId":"'.$this->ttmSessionId.'"}';
+        try {
+                    if(list($data,$httpRespCode) = $this->doRequest("/configuration/getCentralStatusZone", $getCentralStatusZonePost)) {
+                        if(isset($data['centralStatus'])) {
+                            return $data;
+                        } else {
+                            if ($this->verbose) {
+                                $this->addVerboseEvent("WARNING", "The response seems to be invalid\n" . var_dump($data));
+                            }
+                        }
+                    } else {
+                        throw new \Exception("Unable to request CentralStatusZone Status (http code : ".$httpRespCode." with message ".$data["message"].")", 19);
+                    }
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+
+
+
+    /**
+     * Retrieve all automations
+     * @return array All automations informations
+     */
+    public function getAutomations() {
+        // Get Automation Sequence
+        $devices = $this->getDevices();
+        $GetAutomationPost = '{"systemId":'.$this->systems[$this->systemId]["id"].',"ttmSessionId":"'.$this->ttmSessionId.'"}';
+        try {
+            if(list($data,$httpRespCode) = $this->doRequest("/automation/getAutomationList", $GetAutomationPost)) {
+                if (is_array($data) && !empty($data)) {
+                    foreach ($data as &$automation) {
+                        foreach ($devices as $device) {
+                            if ($automation['index'] == $device['index'] && $automation['name'] == $device['name']) {
+                                $automation['type']['type'] = $device['type'];
+                                $automation['type']['application'] = $device['application'];
+                            }
+                        }
+                    }
+                    return $data;
+                } else {
+                    return $data;
+                }
+            } else {
+                throw new \Exception("Unable to retrieve automations (http code : ".$httpRespCode.")", 19);
+            }
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+
+
+    /**
+     * Retrieve all KNX Automations
+     * @return array All KNX automations informations
+     */
+    public function getKNXAutomations() {
+        // Get Automation Sequence
+        $devices = $this->getDevices();
+        $GetKNXAutomationPost = '{"transmitterId":"'.$this->transmitterId.'","centralId":"'.$this->centralId.'","systemId":'.$this->systems[$this->systemId]["id"].',"ttmSessionId":"'.$this->ttmSessionId.'"}';
+        try {
+            if(list($data,$httpRespCode) = $this->doRequest("/installation/getBoxKNXStatusZone", $GetKNXAutomationPost)) {
+                if (is_array($data['devices']) && !empty($data['devices'])) {
+                    foreach ($data['devices'] as &$automation) {
+                        foreach ($devices as $device) {
+                            if ($automation['index'] == $device['index'] && $automation['label'] == $device['name']) {
+                                $temporary = $automation;
+                                $automation = array();
+                                $automation['type']['type'] = $device['type'];
+                                $automation['type']['application'] = $device['application'];
+                                $automation['name'] = $temporary['label'];
+                                $automation['index'] = $temporary['index'];
+                                $automation['custom']['refCom'] = $temporary['refCom'];
+                                $automation['custom']['serial'] = $temporary['serial'];
+                            }
+                        }
+                    }
+                    return $data['devices'];
+                } else {
+                    return $data['devices'];
+                }
+            } else {
+                throw new \Exception("Unable to retrieve KNX automations (http code : ".$httpRespCode.")", 19);
+            }
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+
+
+    /**
+     * Retrieve KNX Automations status
+     * @param int $index      Index of module  
+     * @return int Value of module
+     */
+    public function getKNXAutomationStatus($index) {
+        // Get Automation Sequence
+        $GetKNXAutomationPost = '{"transmitterId":"'.$this->transmitterId.'","centralId":"'.$this->centralId.'","systemId":'.$this->systems[$this->systemId]["id"].',"ttmSessionId":"'.$this->ttmSessionId.'"}';
+        try {
+            if(list($data,$httpRespCode) = $this->doRequest("/installation/getBoxKNXStatusZone", $GetKNXAutomationPost)) {
+                if (is_array($data['devices']) && !empty($data['devices'])) {
+                    foreach ($data['devices'] as $automation) {
+                        if ($automation['index'] == $index) {
+                            return array_values($automation['status'])[0];
+                        }
+                    }
+                } else {
+                    throw new \Exception("KNX automation return isn't valid. Return : ".var_export($data, True), 19);
+                }
+            } else {
+                throw new \Exception("Unable to retrieve KNX automations (http code : ".$httpRespCode.")", 19);
+            }
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+
+
+
+
 
     /**
      * Verify if firmware update is need
@@ -411,7 +562,7 @@ class Diagral_eOne{
                     } else {
                         throw new \Exception("Unable to request Firmware Update Status (http code : ".$httpRespCode." with message ".$data["message"].")", 19);
                     }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         }
     }
@@ -437,7 +588,7 @@ class Diagral_eOne{
                         case "transmitter.error.invalidsessionid":
                             try {
                                 $this->createNewSession();
-                            } catch (Exception $e) {
+                            } catch (\Exception $e) {
                                 throw $e;
                             }
                             break;
@@ -449,7 +600,7 @@ class Diagral_eOne{
             } else {
                 throw new \Exception("Unable to request Alarm Status (http code : ".$httpRespCode." with message ".$data["message"].")", 19);
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         }
     }
@@ -476,7 +627,7 @@ class Diagral_eOne{
             } else {
                 throw new \Exception("Unable to request Partial Alarm Activation (http code : ".$httpRespCode." with message ".$data["message"].")", 19);
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         }
     }
@@ -520,7 +671,7 @@ class Diagral_eOne{
             } else {
                 throw new \Exception("Unable to request Partial Alarm Desactivation as alarm is in ".$systemState." status", 80);
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         }
     }
@@ -545,7 +696,7 @@ class Diagral_eOne{
             } else {
                 throw new \Exception("Unable to request Presence Alarm Activation (http code : ".$httpRespCode." with message ".$data["message"].")", 19);
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         }
     }
@@ -570,7 +721,7 @@ class Diagral_eOne{
             } else {
                 throw new \Exception("Unable to request Complete Alarm Activation (http code : ".$httpRespCode." with message ".$data["message"].")", 19);
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         }
     }
@@ -584,7 +735,7 @@ class Diagral_eOne{
     public function completeDesactivation() {
         try {
             list($status,$zones) = $this->getAlarmStatus();
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         }
         if ($status != "off") {
@@ -602,7 +753,7 @@ class Diagral_eOne{
                 } else {
                     throw new \Exception("Unable to request Complete Alarm Desactivation (http code : ".$httpRespCode." with message ".$data["message"].")", 19);
                 }
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
                 throw $e;
             }
         } else {
@@ -675,7 +826,7 @@ class Diagral_eOne{
             } else {
                 throw new \Exception("Unable to request History (http code : ".$httpRespCode.")", 19);
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         }
     }
@@ -714,7 +865,7 @@ class Diagral_eOne{
         $eventsTranslated = array();
         try {
             $this->getDevicesMultizone();
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         }
         foreach ($events as $key => $event) {
@@ -1206,7 +1357,7 @@ class Diagral_eOne{
         if(!isset($this->DeviceMultizone["centralLearningZone"]["groupNames"])) {
             try {
                 $this->getDevicesMultizone();
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
                 throw $e;
             }
         }
@@ -1226,7 +1377,7 @@ class Diagral_eOne{
         if(!isset($this->DeviceMultizone["centralLearningZone"]["groupNames"])) {
             try {
                 $this->getDevicesMultizone();
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
                 throw $e;
             }
         }
@@ -1276,9 +1427,13 @@ class Diagral_eOne{
             } else {
                 throw new \Exception("Unable to request DeviceMultizone (http code : ".$httpRespCode.")", 19);
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         }
+    }
+
+    public function refreshDeviceMultizone() {
+        $this->getDevicesMultizone();
     }
 
 
@@ -1293,7 +1448,7 @@ class Diagral_eOne{
         if(!isset($this->DeviceMultizone["boxScenariosZone"])) {
             try {
                 $this->getDevicesMultizone();
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
                 throw $e;
             }
 
@@ -1345,7 +1500,47 @@ class Diagral_eOne{
             } else {
                 throw new \Exception("Unable to execute this scenario (http code : ".$httpRespCode.")", 19);
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+
+
+
+    public function automationSendCmd($index, $command) {
+        $automationSendCmdPost = '{"command":"'.strtoupper($command).'","index":'.intval($index).',"systemId":'.$this->systems[$this->systemId]["id"].',"ttmSessionId":"'.$this->ttmSessionId.'"}';
+        try {
+            if(list($data,$httpRespCode) = $this->doRequest("/automation/sendCommand", $automationSendCmdPost)) {
+                if(isset($data[0]) && $data[0] == "CMD_OK") {
+                    if($this->verbose) {
+                        $this->addVerboseEvent("DEBUG", "Automation Command (open) executed with success");
+                    }
+                } else {
+                    throw new \Exception("Automation command failed to execute" . json_encode($data), 56);
+                }
+            } else {
+                throw new \Exception("Unable to execute this automation command (http code : ".$httpRespCode.")", 19);
+            }
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+
+    public function automationKNXSendCmd($index, $command, $position) {
+        $automationKNXSendCmdPost = '{"transmitterId":"'.$this->transmitterId.'","centralId":"'.$this->centralId.'","systemId":'.$this->systems[$this->systemId]["id"].',"deviceId":'.intval($index).',"action":"'.strtoupper($command).'","param":"'.$position.'","ttmSessionId":"'.$this->ttmSessionId.'"}';
+        try {
+            if(list($data,$httpRespCode) = $this->doRequest("/installation/knxCommand", $automationKNXSendCmdPost)) {
+                if(isset($data[0]) && $data[0] == "CMD_OK") {
+                    if($this->verbose) {
+                        $this->addVerboseEvent("DEBUG", "KNX Automation Command (open) executed with success");
+                    }
+                } else {
+                    throw new \Exception("KNX Automation command failed to execute" . json_encode($data), 56);
+                }
+            } else {
+                throw new \Exception("Unable to execute this KNX automation command (http code : ".$httpRespCode.")", 19);
+            }
+        } catch (\Exception $e) {
             throw $e;
         }
     }
@@ -1373,7 +1568,7 @@ class Diagral_eOne{
             } else {
                 throw new \Exception("Unable to request Disconnect (http code : ".$httpRespCode." with message ".$data["message"].")", 19);
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         }
     }
@@ -1386,7 +1581,7 @@ class Diagral_eOne{
     public function logout() {
         try {
             $this->disconnect();
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         }
         $LogoutPost = '{"systemId":"null"}';
@@ -1402,7 +1597,7 @@ class Diagral_eOne{
             } else {
                 throw new \Exception("Unable to request Logout (http code : ".$httpRespCode." with message ".$data["message"].")", 19);
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         }
     }
@@ -1445,7 +1640,7 @@ class Diagral_eOne{
 
 
 
-    /* ------------------------------- Fonctions dédiés aux Detecteurs à Image ------------------------------ */
+    /* ------------------------------- Fonctions dédiés aux Detecteurs à Image / Cameras ------------------------------ */
 
 
     /**
@@ -1456,7 +1651,7 @@ class Diagral_eOne{
         if(!isset($this->DeviceMultizone["boxLearningZone"]["carirs"])) {
             try {
                 $this->getDevicesMultizone();
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
                 throw $e;
             }
         }
@@ -1464,21 +1659,52 @@ class Diagral_eOne{
     }
 
 
+
     /**
-     * Retreive Videos available for Image Detector
-     * @param str $carirId      Image Detector ID
+     * Retreive Diagral Cameras
+     * @return array     Array of Diagral Image detectors
+     */
+    public function getCameras() {
+        if(!isset($this->DeviceMultizone["boxVideoZone"]["cameras"])) {
+            try {
+                $this->getDevicesMultizone();
+            } catch (\Exception $e) {
+                throw $e;
+            }
+        }
+        return $this->DeviceMultizone["boxVideoZone"]["cameras"];
+    }
+
+
+    /**
+     * Retreive Videos available for Image Detector / Camera
+     * @param str $type         Type d'équiepement (camera ou imagedetector)
+     * @param str $index        Index de l'équipement
      * @return array            List of all videos
      */
-    public function getImageDetectorsVideos($carirId) {
-        $listImageDetectorsVideosPost = '{"carirIds":["DETECTOR'.$carirId.'"],"ttmSessionId":"'.$this->ttmSessionId.'"}';
+    public function getVideos($type, $index) {
+        switch ($type) {
+            case 'imagedetector':
+                $deviceName = "DETECTOR".$index;
+                break;
+            case 'camera':
+                $deviceName = "CAMERA".$index;
+                break;
+        }
+        $listVideosPost = '{"carirIds":["'.$deviceName.'"],"ttmSessionId":"'.$this->ttmSessionId.'"}';
         try {
-            if(list($data,$httpRespCode) = $this->doRequest("/api/videos/".$this->transmitterId, $listImageDetectorsVideosPost)) {
+            if(list($data,$httpRespCode) = $this->doRequest("/api/videos/".$this->transmitterId, $listVideosPost)) {
                 // Si on a des données
-                if(isset($data['DETECTOR'.$carirId])) {
+                if(isset($data['DETECTOR'.$index])) {
                     if($this->verbose) {
                         $this->addVerboseEvent("DEBUG", "List Image Detector Videos with success");
                     }
-                    return $data['DETECTOR'.$carirId];
+                    return $data['DETECTOR'.$index];
+                } else if (isset($data['CAMERA'.$index])) {
+                    if($this->verbose) {
+                        $this->addVerboseEvent("DEBUG", "List Camera Videos with success");
+                    }
+                    return $data['CAMERA'.$index];
                 } else {
                     // No data available (no videos)
                     $this->addVerboseEvent("DEBUG", "List Image Detector Videos with success - No videos available");
@@ -1488,20 +1714,29 @@ class Diagral_eOne{
             } else {
                 throw new \Exception("Unable to request Image Detector Videos list (http code : ".$httpRespCode.")", 19);
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         }
     }
 
     /**
      * Download Video File
-     * @param str $carirId      Image Detector ID
+     * @param str $type         Type d'équiepement (camera ou imagedetector)
+     * @param str $index        Index de l'équipement
      * @param str $videoId      Video ID // Change everytime we request video list
      * @return str              Video content
      */
-    public function downloadImageDetectorsVideo($carirId, $videoId) {
+    public function downloadVideo($type, $index, $videoId) {
         try {
-            if(list($data,$httpRespCode) = $this->doRequest("/api/videos/".$this->transmitterId."/DETECTOR".$carirId."/".$videoId."/mpeg4", "", True, "GET")) {
+            switch ($type) {
+                case 'imagedetector':
+                    $deviceName = "DETECTOR".$index;
+                    break;
+                case 'camera':
+                    $deviceName = "CAMERA".$index;
+                    break;
+            }
+            if(list($data,$httpRespCode) = $this->doRequest("/api/videos/".$this->transmitterId."/".$deviceName."/".$videoId."/mpeg4", "", True, "GET")) {
                 $JSONResult = json_decode($data, True);
                 if (json_last_error() !== JSON_ERROR_NONE) {
                     return $data;
@@ -1511,7 +1746,7 @@ class Diagral_eOne{
             } else {
                 throw new \Exception("Unable to download Image Detector Video (http code : ".$httpRespCode.")", 19);
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         }
 
@@ -1550,7 +1785,7 @@ class Diagral_eOne{
             } else {
                 throw new \Exception("Unable to launch manual video recording (http code : ".$httpRespCode.")", 19);
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         }
     }
@@ -1578,11 +1813,30 @@ class Diagral_eOne{
             } else {
                 throw new \Exception("Unable to verify manual video recording (http code : ".$httpRespCode.")", 19);
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         }
     }
 
+
+    /* ------------------------------- Récupère la liste de toutes les commandes / transmitters / sensors / alarmes ------------------------------ */
+
+
+    /**
+     * Retreive all modules (commands / transmitters / sensors / alarms)
+     * @param string $type      Type of module (commands / transmitters / sensors / alarms)
+     * @return array            List of module (for a specific type passed in argument)
+     */
+    public function getModules($type) {
+        if(!isset($this->DeviceMultizone["centralLearningZone"][$type])) {
+            try {
+                $this->getDevicesMultizone();
+            } catch (\Exception $e) {
+                throw $e;
+            }
+        }
+        return $this->DeviceMultizone["centralLearningZone"][$type]; 
+    }
 
 
     /* ------------------------------- Requêtes WEB ------------------------------ */
@@ -1602,10 +1856,10 @@ class Diagral_eOne{
         $retry = isset($retry) ? $retry : $this->doRequestAttempts - 1;
         $curl = curl_init();
         $curl_headers = array(
-            "User-Agent: eOne/1.11.8.1 CFNetwork/1220.1 Darwin/20.3.0",
+            "User-Agent: eOne/1.12.1.2 CFNetwork/1240.0.4 Darwin/20.6.0",
             "Accept: application/json, text/plain, */*",
             "Accept-Encoding: deflate",
-            "X-App-Version: 1.11.8",
+            "X-App-Version: 1.12.1",
             "X-Identity-Provider: JANRAIN",
             "ttmSessionIdNotRequired: true",
             "X-Vendor: diagral",

@@ -1,0 +1,48 @@
+{
+    "commands":[{
+        "name": "Rafraichir",
+        "description": "Lance un refresh de l'état de la lampe",
+        "logicalId": "refresh",
+        "type": "action",
+        "subtype": "other",
+        "isVisible": 1,
+        "isDashboard": 1,
+        "display": {
+            "icon": "<i class=\"fas fa-sync\"></i>"
+        }
+    }, {
+        "name": "Statut",
+        "description": "Statut de la lampe",
+        "logicalId": "status",
+        "type": "info",
+        "subtype": "binary",
+        "display": {
+            "generic_type": "LIGHT_STATE"
+        },
+        "isVisible": 1,
+        "isHistorized": 1,
+        "isDashboard": 1
+    }, {
+        "name": "Allumer",
+        "description": "Allume la lampe",
+        "logicalId": "KNXlightOn",
+        "type": "action",
+        "subtype": "other",
+        "display": {
+            "generic_type": "LIGHT_ON"
+        },
+        "isVisible": 1,
+        "isDashboard": 1
+    }, {
+        "name": "Eteindre",
+        "description": "Eteind la lampe",
+        "logicalId": "KNXlightOff",
+        "type": "action",
+        "subtype": "other",
+        "display": {
+            "generic_type": "LIGHT_OFF"
+        },
+        "isVisible": 1,
+        "isDashboard": 1
+    }]
+}

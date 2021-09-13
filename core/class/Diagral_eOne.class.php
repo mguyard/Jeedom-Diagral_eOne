@@ -21,8 +21,8 @@ require_once __DIR__  . '/../../../../core/php/core.inc.php';
 
 define('__PLGBASE__', dirname(dirname(__DIR__)));
 require_once (__PLGBASE__.'/3rparty/Diagral-eOne-API-PHP/class/Diagral/Diagral_eOne.class.php');
+require_once (__PLGBASE__.'/3rparty/DiagDebug/DiagDebug.class.php');
 include(__PLGBASE__.'/3rparty/HTTPFul/httpful.phar');
-//use \Mguyard\Diagral\Diagral_eOne;
 
 class Diagral_eOne extends eqLogic {
     /*     * *************************Attributs****************************** */
@@ -42,17 +42,47 @@ class Diagral_eOne extends eqLogic {
     public static function synchronize($type='all') {
         $callResults = array();
         $message = array();
+        // Lancement connexion Diagral
+        $MyAlarm = new Mguyard\Diagral\Diagral_eOne(config::byKey('login', 'Diagral_eOne'),config::byKey('password', 'Diagral_eOne'));
+        $MyAlarm->verbose = boolval(config::byKey('verbose', 'Diagral_eOne'));
+        $accountInfos = $MyAlarm->login();
+        log::add('Diagral_eOne', 'debug', 'Synchronize::Systems::Login ' . var_export($accountInfos, true));
+        $Diagral_systems = $MyAlarm->getSystems();
+        log::add('Diagral_eOne', 'debug', 'Synchronize::Systems::GetSystems ' . var_export($Diagral_systems, true));
+        // Execution des creations/maj d'équipements
         switch($type) {
             case 'systems':
-                $systemsResult = Diagral_eOne::syncSystems();
+                $systemsResult = Diagral_eOne::syncSystems($Diagral_systems);
                 array_push($callResults, $systemsResult);
                 break;
             case 'all':
-                $systemsResult = Diagral_eOne::syncSystems();
-                $imageDetectorResult = Diagral_eOne::syncImageDetectors();
-                array_push($callResults, $systemsResult, $imageDetectorResult);
+                $systemsResult = Diagral_eOne::syncSystems($Diagral_systems);
+                foreach (eqLogic::byTypeAndSearhConfiguration('Diagral_eOne', 'systemid') as $system) {
+                    if ($system->getConfiguration('type') == 'centrale') {
+                        if (! empty($system->getConfiguration('mastercode',''))) {
+                            $MyAlarm->setSystemId(intval($system->getConfiguration('systemid')));
+                            $MyAlarm->getConfiguration();
+                            $MyAlarm->connect($system->getConfiguration('mastercode'));
+                            $MyAlarm->refreshDeviceMultizone();
+                            $imageDetectorResult = Diagral_eOne::syncImageDetectors($MyAlarm, $system);
+                            $cameraResult = Diagral_eOne::syncCameras($MyAlarm, $system);
+                            $automationsResults = Diagral_eOne::syncAutomations($MyAlarm, $system);
+                            $modulesResults = Diagral_eOne::syncModules($MyAlarm, $system);
+                        } else {
+                            if (is_object($system)) {
+                                log::add('Diagral_eOne', 'warning', 'Synchronize::Centrale Bypass de la centrale ' . $system->getName() . ' car le masterCode est vide.');
+                            } else {
+                                log::add('Diagral_eOne', 'warning', 'Synchronize::Centrale Bypass d\'une ou plusieurs centrale(s) car le masterCode est vide.');
+                            }
+                        }
+                    }
+                }
+                
+                array_push($callResults, $systemsResult, $imageDetectorResult, $cameraResult, $automationsResults, $modulesResults);
                 break;
         }
+        // TODO : Voir pourquoi le logout ne marche plus
+        //$MyAlarm->logout();
         foreach ($callResults as $callResult) {
             if ($callResult['nbCreated'] > 0) array_push($message, 'Ajout de ' . $callResult['nbCreated'] . ' ' . $callResult['type']);
             if ($callResult['nbUpdated'] > 0) array_push($message, 'Mise à jour de ' . $callResult['nbUpdated'] . ' '  . $callResult['type']);
@@ -68,25 +98,18 @@ class Diagral_eOne extends eqLogic {
      * Sync Systems
      * @return array
      */
-    public static function syncSystems() {
-        $MyAlarm = new Mguyard\Diagral\Diagral_eOne(config::byKey('login', 'Diagral_eOne'),config::byKey('password', 'Diagral_eOne'));
-        $MyAlarm->verbose = boolval(config::byKey('verbose', 'Diagral_eOne'));
-        $debug_output = $MyAlarm->login();
-        log::add('Diagral_eOne', 'debug', 'Synchronize::Systems::Login ' . var_export($debug_output, true));
-        $Diagral_systems = $MyAlarm->getSystems();
+    public static function syncSystems($Diagral_systems) {
         log::add('Diagral_eOne', 'debug', 'Synchronize::Systems::GetSystems ' . var_export($Diagral_systems, true));
-        // TODO : Voir pourquoi le logout ne marche plus
-        //$MyAlarm->logout();
         $nbCreated = 0;
         foreach ($Diagral_systems as $key => $value) {
-            $Alarm = Diagral_eOne::byLogicalId($value[id], 'Diagral_eOne');
+            $Alarm = Diagral_eOne::byLogicalId($value['id'], 'Diagral_eOne');
             if (!is_object($Alarm)) {
-                log::add('Diagral_eOne', 'info', "Synchronize::Systems Alarme trouvée ".$value[name]."(".$value[id]."):");
+                log::add('Diagral_eOne', 'info', "Synchronize::Systems Alarme trouvée ".$value['name']."(".$value['id']."):");
                 $eqLogic = new Diagral_eOne();
-                $eqLogic->setName($value[name]);
+                $eqLogic->setName($value['name']);
                 $eqLogic->setIsEnable(0);
                 $eqLogic->setIsVisible(1);
-                $eqLogic->setLogicalId($value[id]);
+                $eqLogic->setLogicalId($value['id']);
                 $eqLogic->setEqType_name('Diagral_eOne');
                 $eqLogic->setCategory('security', 1);
                 $eqLogic->setConfiguration('systemid', $key);
@@ -99,7 +122,7 @@ class Diagral_eOne extends eqLogic {
                 $eqLogic->setName($Alarm->getName());
                 $eqLogic->setIsEnable($Alarm->getIsEnable());
                 $eqLogic->setIsVisible($Alarm->getIsVisible());
-                $eqLogic->setLogicalId($value[id]);
+                $eqLogic->setLogicalId($value['id']);
                 $eqLogic->setEqType_name('Diagral_eOne');
                 $eqLogic->setCategory('security', 1);
                 $eqLogic->setConfiguration('systemid', $key);
@@ -117,66 +140,193 @@ class Diagral_eOne extends eqLogic {
         );
     }
 
-    public static function syncImageDetectors() {
-        $MyAlarm = new Mguyard\Diagral\Diagral_eOne(config::byKey('login', 'Diagral_eOne'),config::byKey('password', 'Diagral_eOne'));
-        $MyAlarm->verbose = boolval(config::byKey('verbose', 'Diagral_eOne'));
-        $debug_output = $MyAlarm->login();
-        log::add('Diagral_eOne', 'debug', 'Synchronize::Detectors::Login ' . var_export($debug_output, true));
-        $MyAlarm->getSystems();
-        // Pour chaque equipement Diagral qui a un type centrale
-        foreach (eqLogic::byType('Diagral_eOne') as $system) {
-            if ($system->getConfiguration('type') == 'centrale') {
-                if (! empty($system->getConfiguration('mastercode'))) {
-                    $MyAlarm->setSystemId(intval($system->getConfiguration('systemid')));
-                    $MyAlarm->getConfiguration();
-                    $MyAlarm->connect($system->getConfiguration('mastercode'));
-                    $imageDetectors = $MyAlarm->getImageDetectors();
-                    $nbCreated = 0;
-                    foreach ($imageDetectors as $imageDetector) {
-                        $detector = Diagral_eOne::byLogicalId($imageDetector['radioId'], 'Diagral_eOne');
-                        if (!is_object($detector)) {
-                            log::add('Diagral_eOne', 'info', "Synchronize::ImageDetector Detecteur à image trouvée (". $imageDetector['customLabel'] . ")");
-                            $eqLogic = new Diagral_eOne();
-                            $eqLogic->setName($imageDetector['customLabel']);
-                            $eqLogic->setIsEnable(1);
-                            $eqLogic->setIsVisible(0);
-                            $eqLogic->setLogicalId($imageDetector['radioId']);
-                            $eqLogic->setEqType_name('Diagral_eOne');
-                            $eqLogic->setCategory('security', 1);
-                            $eqLogic->setConfiguration('type', 'imagedetector');
-                            $eqLogic->setConfiguration('centrale', $system->getLogicalId());
-                            $eqLogic->setConfiguration('index', $imageDetector['index']);
-                            $eqLogic->setConfiguration('carirOnDemand', $imageDetector['carirOnDemand']);
-                            $eqLogic->setConfiguration('affectedToZone', $imageDetector['affectedToZone']);
-                            $eqLogic->setConfiguration('autoDlVideo', '0');
-                            $nbCreated++;
-                        } else {
-                            log::add('Diagral_eOne', 'info', "Synchronize::ImageDetectors Detecteur à image (".$detector->getName().") mis à jour.");
-                            $eqLogic = $detector;
-                            $eqLogic->setName($detector->getName());
-                            $eqLogic->setIsEnable($detector->getIsEnable());
-                            $eqLogic->setIsVisible($detector->getIsVisible());
-                            $eqLogic->setLogicalId($imageDetector['radioId']);
-                            $eqLogic->setEqType_name('Diagral_eOne');
-                            $eqLogic->setCategory('security', 1);
-                            $eqLogic->setConfiguration('type', 'imagedetector');
-                            $eqLogic->setConfiguration('centrale', $system->getLogicalId());
-                            $eqLogic->setConfiguration('index', $imageDetector['index']);
-                            $eqLogic->setConfiguration('carirOnDemand', $imageDetector['carirOnDemand']);
-                            $eqLogic->setConfiguration('affectedToZone', $imageDetector['affectedToZone']);
-                        }
-                        $eqLogic->save();
+    /**
+     * Synchronize Diagral Image detectors
+     * @return array to Ajax
+     */
+    public static function syncImageDetectors($MyAlarm, $system) {
+        $imageDetectors = $MyAlarm->getImageDetectors();
+        $nbCreated = 0;
+        foreach ($imageDetectors as $imageDetector) {
+            $detector = Diagral_eOne::byLogicalId($imageDetector['radioId'], 'Diagral_eOne');
+            if (!is_object($detector)) {
+                log::add('Diagral_eOne', 'info', "Synchronize::ImageDetector Detecteur à image trouvée (". $imageDetector['customLabel'] . ")");
+                $eqLogic = new Diagral_eOne();
+                $eqLogic->setName($imageDetector['customLabel']);
+                $eqLogic->setIsEnable(1);
+                $eqLogic->setIsVisible(0);
+                $eqLogic->setLogicalId($imageDetector['radioId']);
+                $eqLogic->setEqType_name('Diagral_eOne');
+                $eqLogic->setCategory('security', 1);
+                $eqLogic->setConfiguration('type', 'imagedetector');
+                $eqLogic->setConfiguration('centrale', $system->getLogicalId());
+                $eqLogic->setConfiguration('index', $imageDetector['index']);
+                $eqLogic->setConfiguration('carirOnDemand', $imageDetector['carirOnDemand']);
+                $eqLogic->setConfiguration('affectedToZone', $imageDetector['affectedToZone']);
+                $eqLogic->setConfiguration('autoDlVideo', '0');
+                $nbCreated++;
+            } else {
+                log::add('Diagral_eOne', 'info', "Synchronize::ImageDetectors Detecteur à image (".$detector->getName().") mis à jour.");
+                $eqLogic = $detector;
+                $eqLogic->setName($detector->getName());
+                $eqLogic->setIsEnable($detector->getIsEnable());
+                $eqLogic->setIsVisible($detector->getIsVisible());
+                $eqLogic->setLogicalId($imageDetector['radioId']);
+                $eqLogic->setEqType_name('Diagral_eOne');
+                $eqLogic->setCategory('security', 1);
+                $eqLogic->setConfiguration('type', 'imagedetector');
+                $eqLogic->setConfiguration('centrale', $system->getLogicalId());
+                $eqLogic->setConfiguration('index', $imageDetector['index']);
+                $eqLogic->setConfiguration('carirOnDemand', $imageDetector['carirOnDemand']);
+                $eqLogic->setConfiguration('affectedToZone', $imageDetector['affectedToZone']);
+            }
+            $eqLogic->save();
+        }
+        return array(
+            "type" => "détecteur(s) à image",
+            "nbCreated" => $nbCreated,
+            "nbUpdated" => count($imageDetectors) - $nbCreated
+        );
+    }
+
+
+    public static function syncCameras($MyAlarm, $system) {
+        $cameras = $MyAlarm->getCameras();
+        $nbCreated = 0;
+        foreach ($cameras as $camera) {
+            $cam = Diagral_eOne::byLogicalId($camera['macAddress'], 'Diagral_eOne');
+            if (!is_object($cam)) {
+                log::add('Diagral_eOne', 'info', "Synchronize::Cameras Camera trouvée (". $camera['name'] . ")");
+                $eqLogic = new Diagral_eOne();
+                $eqLogic->setName($camera['name']);
+                $eqLogic->setIsEnable(1);
+                $eqLogic->setIsVisible(0);
+                $eqLogic->setLogicalId($camera['macAddress']);
+                $eqLogic->setEqType_name('Diagral_eOne');
+                $eqLogic->setCategory('security', 1);
+                $eqLogic->setConfiguration('type', 'camera');
+                $eqLogic->setConfiguration('centrale', $system->getLogicalId());
+                $eqLogic->setConfiguration('index', $camera['index']);
+                $eqLogic->setConfiguration('ip', $camera['ip']);
+                $eqLogic->setConfiguration('autoDlVideo', '0');
+                $nbCreated++;
+            } else {
+                log::add('Diagral_eOne', 'info', "Synchronize::Camera Camera (".$cam->getName().") mis à jour.");
+                $eqLogic = $cam;
+                $eqLogic->setName($cam->getName());
+                $eqLogic->setIsEnable($cam->getIsEnable());
+                $eqLogic->setIsVisible($cam->getIsVisible());
+                $eqLogic->setLogicalId($camera['macAddress']);
+                $eqLogic->setEqType_name('Diagral_eOne');
+                $eqLogic->setCategory('security', 1);
+                $eqLogic->setConfiguration('type', 'camera');
+                $eqLogic->setConfiguration('centrale', $system->getLogicalId());
+                $eqLogic->setConfiguration('index', $camera['index']);
+                $eqLogic->setConfiguration('ip', $camera['ip']);
+            }
+            $eqLogic->save();
+        }
+        return array(
+            "type" => "camera(s)",
+            "nbCreated" => $nbCreated,
+            "nbUpdated" => count($cameras) - $nbCreated
+        );
+    }
+
+    public static function syncAutomations($MyAlarm, $system) {
+        $automationList = $MyAlarm->getAutomations();
+        $KNXautomationList = $MyAlarm->getKNXAutomations();
+        $allAutomations = array_merge($automationList,$KNXautomationList);
+        log::add('Diagral_eOne', 'debug', var_export($automationList, TRUE));
+        $nbCreated = 0;
+        foreach ($allAutomations as $automation) {
+            $automationObject = Diagral_eOne::byLogicalId(strtolower($automation['type']['type'].'-'.$automation['type']['application'].'_'.$automation['index']), 'Diagral_eOne');
+            if (!is_object($automationObject)) {
+                log::add('Diagral_eOne', 'info', "Synchronize::Automation Equipement Automation trouvé (". $automation['name'] . ")");
+                $eqLogic = new Diagral_eOne();
+                $eqLogic->setName($automation['name']);
+                $eqLogic->setIsEnable(1);
+                $eqLogic->setIsVisible(0);
+                $eqLogic->setLogicalId(strtolower($automation['type']['type'].'-'.$automation['type']['application'].'_'.$automation['index']));
+                $eqLogic->setEqType_name('Diagral_eOne');
+                $eqLogic->setCategory('security', 1);
+                $eqLogic->setConfiguration('type', strtolower($automation['type']['type'].'-'.$automation['type']['application']));
+                $eqLogic->setConfiguration('centrale', $system->getLogicalId());
+                $eqLogic->setConfiguration('index', $automation['index']);
+                $nbCreated++;
+            } else {
+                log::add('Diagral_eOne', 'info', "Synchronize::Automation Equipement Automation (".$automationObject->getName().") mis à jour.");
+                $eqLogic = $automationObject;
+                $eqLogic->setName($automationObject->getName());
+                $eqLogic->setIsEnable($automationObject->getIsEnable());
+                $eqLogic->setIsVisible($automationObject->getIsVisible());
+                $eqLogic->setLogicalId(strtolower($automation['type']['type'].'-'.$automation['type']['application'].'_'.$automation['index']));
+                $eqLogic->setEqType_name('Diagral_eOne');
+                $eqLogic->setCategory('security', 1);
+                $eqLogic->setConfiguration('type', strtolower($automation['type']['type'].'-'.$automation['type']['application']));
+                $eqLogic->setConfiguration('centrale', $system->getLogicalId());
+                $eqLogic->setConfiguration('index', $automation['index']);
+            }
+            $eqLogic->save();
+        }
+        return array(
+            "type" => "Automation",
+            "nbCreated" => $nbCreated,
+            "nbUpdated" => count($automationList) - $nbCreated
+        );
+    }
+
+    public static function syncModules($MyAlarm, $system) {
+        $nbCreated = 0;
+        $moduleListSum = 0;
+        foreach (array('commands', 'transmitters', 'sensors', 'alarms') as $moduleType) {
+            $moduleList = $MyAlarm->getModules($moduleType);
+            $moduleListSum = $moduleListSum + count($moduleList);
+            log::add('Diagral_eOne', 'debug', var_export($moduleList, TRUE));
+            foreach ($moduleList as $module) {
+                $moduleObject = Diagral_eOne::byLogicalId($module['radioId'], 'Diagral_eOne');
+                if (!is_object($moduleObject)) {
+                    log::add('Diagral_eOne', 'info', "Synchronize::Modules Module trouvé (". $module['customLabel'] . ")");
+                    $eqLogic = new Diagral_eOne();
+                    if (empty($module['customLabel'])) {
+                        $eqLogic->setName('Module '.$module['radioId']);
+                    } else {
+                        $eqLogic->setName($module['customLabel']);
                     }
-                    return array(
-                        "type" => "détecteur(s) à image",
-                        "nbCreated" => $nbCreated,
-                        "nbUpdated" => count($imageDetectors) - $nbCreated
-                    );
+                    $eqLogic->setIsEnable(1);
+                    $eqLogic->setIsVisible(0);
+                    $eqLogic->setLogicalId($module['radioId']);
+                    $eqLogic->setEqType_name('Diagral_eOne');
+                    $eqLogic->setCategory('security', 1);
+                    $eqLogic->setConfiguration('type', 'module');
+                    $eqLogic->setConfiguration('subtype', $moduleType);
+                    $eqLogic->setConfiguration('centrale', $system->getLogicalId());
+                    $eqLogic->setConfiguration('index', $module['index']);
+                    $nbCreated++;
                 } else {
-                    log::add('Diagral_eOne', 'warning', 'Synchronize::Detectors Bypass de la centrale ' . $eqLogic->getName() . ' car le masterCode est vide.');
+                    log::add('Diagral_eOne', 'info', "Synchronize::Modules Module (".$moduleObject->getName().") mis à jour.");
+                    $eqLogic = $moduleObject;
+                    if ($eqLogic->getConfiguration('type','') == 'module') {
+                        $eqLogic->setName($moduleObject->getName());
+                        $eqLogic->setIsEnable($moduleObject->getIsEnable());
+                        $eqLogic->setIsVisible($moduleObject->getIsVisible());
+                        $eqLogic->setLogicalId($module['radioId']);
+                        $eqLogic->setEqType_name('Diagral_eOne');
+                        $eqLogic->setCategory('security', 1);
+                        $eqLogic->setConfiguration('type', 'module');
+                        $eqLogic->setConfiguration('subtype', $moduleType);
+                        $eqLogic->setConfiguration('centrale', $system->getLogicalId());
+                        $eqLogic->setConfiguration('index', $module['index']);
+                    }
                 }
+                $eqLogic->save();
             }
         }
+        return array(
+            "type" => "Modules",
+            "nbCreated" => $nbCreated,
+            "nbUpdated" => $moduleListSum - $nbCreated
+        );
     }
 
     /*
@@ -231,7 +381,17 @@ class Diagral_eOne extends eqLogic {
     }
 
     public function preRemove() {
-
+        /*
+        Supprimer les équipements dépendant de l'équipement à supprimer
+        */
+        log::add('Diagral_eOne', 'info', ' ┌──── Suppression de l\'équipement ' . $this->getName());
+        $eqLogics = eqLogic::byTypeAndSearhConfiguration(  'Diagral_eOne',   'centrale');
+        foreach ($eqLogics as $eqLogic) {
+            if (!empty($eqLogic->getConfiguration('centrale')) && strcmp($eqLogic->getConfiguration('centrale'), $this->getLogicalId()) == 0) {
+                log::add('Diagral_eOne', 'debug', '│  Suppression de l\'équipement ' . $eqLogic->getName() . ' car il est dépendant de l\'équipement en cours de suppression (' . $this->getName() . ')');
+                $eqLogic->remove();
+            }
+        }
     }
 
     public function postRemove() {
@@ -240,7 +400,7 @@ class Diagral_eOne extends eqLogic {
 
     public function toHtml($_version = 'dashboard') {
         // Si on desactive l'option du template du plugin, alors on repasse en template par defaut (Jeedom)
-        if ($this->getConfiguration('templateDiagral') != 1)
+        if ($this->getConfiguration('templateDiagral') != 1 || $this->getConfiguration('type') != 'centrale')
         {
             return parent::toHtml($_version);
         }
@@ -460,10 +620,9 @@ class Diagral_eOne extends eqLogic {
     /**
      * Generation des groupes Diagral dans un fichier JSON pour un object specifique $this
      */
-    public function generateGroupJson() {
+    public function generateGroupJson($MyAlarm) {
         log::add('Diagral_eOne', 'debug', 'generateGroupJson::Start');
         $filename = __PLGBASE__.'/data/groups_' . $this->getConfiguration('systemid') . '.json';
-        $MyAlarm = $this->setDiagralEnv();
         // Recuperation de l'ensemble des groupes
         $groups = $MyAlarm->getAllGroups();
         $groupsJSON = array();
@@ -480,13 +639,11 @@ class Diagral_eOne extends eqLogic {
     /**
      * Generation des scénarios dans un fichier JSON pour un objet specifique $this
      */
-    public function generateScenariosJson() {
+    public function generateScenariosJson($MyAlarm) {
         log::add('Diagral_eOne', 'debug', 'generateScenariosJson::Start');
         $filename = __PLGBASE__.'/data/scenarios_' . $this->getConfiguration('systemid') . '.json';
-        $MyAlarm = $this->setDiagralEnv();
         // Recuperation de l'ensemble des scenarios
         $scenarios = $MyAlarm->getScenarios();
-        $MyAlarm->logout();
         log::add('Diagral_eOne', 'debug', 'generateScenariosJson::ListScenarios' . var_export($scenarios, true));
         log::add('Diagral_eOne', 'debug', 'generateScenariosJson::' . $this->getConfiguration('systemid') . '::Success');
         $this->writeConfigFile($filename, json_encode(array('lastModified' => date("Y-m-d H:i:s"), 'scenarios' => $scenarios),JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT|JSON_FORCE_OBJECT));
@@ -523,12 +680,15 @@ class Diagral_eOne extends eqLogic {
      * Genere un Liste des groupes de Zone possible
      * @return array Tableau contenant l'ensemble des zones Diagral de l'alarme
      */
-    public function generateGroupsList() {
+    public function generateGroupsList($MyAlarm = NULL) {
         log::add('Diagral_eOne', 'debug', 'generateGroupsList::Start');
         $filename = __PLGBASE__.'/data/groups_' . $this->getConfiguration('systemid') . '.json';
         // Si le fichier JSON des groupes n'existe pas, on le genère.
         if ( file_exists($filename) === false ) {
-            $this->generateGroupJson();
+            if (is_null($MyAlarm) || ! is_object($MyAlarm)) {
+                $MyAlarm = $this->setDiagralEnv();
+            }
+            $this->generateGroupJson($MyAlarm);
         }
         // Recuperation de l'ensemble des groups avec leur nom et leur ID
         $config = $this->loadConfigFile($filename, 'groups');
@@ -550,7 +710,8 @@ class Diagral_eOne extends eqLogic {
         $filename = __PLGBASE__.'/data/groups_' . $this->getConfiguration('systemid') . '.json';
         // Si le fichier JSON des groupes n'existe pas, on le genère.
         if ( file_exists($filename) === false ) {
-            $this->generateGroupJson();
+            $MyAlarm = $this->setDiagralEnv();
+            $this->generateGroupJson($MyAlarm);
         }
         // Recuperation de l'ensemble des groups avec leur nom et leur ID
         $config = $this->loadConfigFile($filename, 'groups');
@@ -588,7 +749,8 @@ class Diagral_eOne extends eqLogic {
         $filename = __PLGBASE__.'/data/scenarios_' . $this->getConfiguration('systemid') . '.json';
         // Si le fichier JSON des groupes n'existe pas, on le genère.
         if ( file_exists($filename) === false ) {
-            $this->generateScenariosJson();
+            $MyAlarm = $this->setDiagralEnv();
+            $this->generateScenariosJson($MyAlarm);
         }
         // Recuperation de l'ensemble des groups avec leur nom et leur ID
         $config = $this->loadConfigFile($filename, 'scenarios');
@@ -695,61 +857,65 @@ class Diagral_eOne extends eqLogic {
      * Genere l'environnement Diagral inclus le login, la recuperation de la configuration ainsi que l'entrée dans le systeme
      * @return object   $MyAlarm
      */
-    private function setDiagralEnv() {
+    public function setDiagralEnv() {
         log::add('Diagral_eOne', 'debug', 'setDiagralEnv::' . $this->getConfiguration('systemid') . '::Start Diagral Environnement');
         if ( ! empty($this->getConfiguration('mastercode'))) {
-        $MyAlarm = new Mguyard\Diagral\Diagral_eOne(config::byKey('login', 'Diagral_eOne'),config::byKey('password', 'Diagral_eOne'));
-        $MyAlarm->verbose = config::byKey('verbose', 'Diagral_eOne');
-        if ( ! empty(config::byKey('retry', 'Diagral_eOne'))) {
-            $MyAlarm->doRequestAttempts = config::byKey('retry', 'Diagral_eOne');
-        }
-        if ( ! empty(config::byKey('waitRetry', 'Diagral_eOne'))) {
-            $MyAlarm->waitBetweenAttempts = config::byKey('waitRetry', 'Diagral_eOne');
-        }
-        $MyAlarm->login();
-        $MyAlarm->getSystems();
-        $MyAlarm->setSystemId(intval($this->getConfiguration('systemid')));
-        $MyAlarm->getConfiguration();
-        $MyAlarm->connect($this->getConfiguration('mastercode'));
-        // Recupere le nombre de mises à jour disponibles
-        $nbUpdates = $MyAlarm->getFirmwareUpdates();
-        log::add('Diagral_eOne', 'debug', 'setDiagralEnv::UpdateAvailable : '.$nbUpdates);
-        log::add('Diagral_eOne', 'debug', 'setDiagralEnv::getVersions : '.var_export($MyAlarm->versions, true));
-        $this->checkAndUpdateCmd('updates_available', $nbUpdates);
-        return $MyAlarm;
+            $MyAlarm = new Mguyard\Diagral\Diagral_eOne(config::byKey('login', 'Diagral_eOne'),config::byKey('password', 'Diagral_eOne'));
+            $MyAlarm->verbose = config::byKey('verbose', 'Diagral_eOne');
+            if ( ! empty(config::byKey('retry', 'Diagral_eOne'))) {
+                $MyAlarm->doRequestAttempts = config::byKey('retry', 'Diagral_eOne');
+            }
+            if ( ! empty(config::byKey('waitRetry', 'Diagral_eOne'))) {
+                $MyAlarm->waitBetweenAttempts = config::byKey('waitRetry', 'Diagral_eOne');
+            }
+            $MyAlarm->login();
+            $MyAlarm->getSystems();
+            $MyAlarm->setSystemId(intval($this->getConfiguration('systemid')));
+            $MyAlarm->getConfiguration();
+            $MyAlarm->connect($this->getConfiguration('mastercode'));
+            // Recupere le nombre de mises à jour disponibles
+            $nbUpdates = $MyAlarm->getFirmwareUpdates();
+            log::add('Diagral_eOne', 'debug', 'setDiagralEnv::UpdateAvailable : '.$nbUpdates);
+            log::add('Diagral_eOne', 'debug', 'setDiagralEnv::getVersions : '.var_export($MyAlarm->versions, true));
+            $this->checkAndUpdateCmd('updates_available', $nbUpdates);
+            return $MyAlarm;
         } else {
-            throw new Exception("MasterCode cannot be empty. Please configure it in your device.");
+            throw new Exception("MasterCode of device ".$this->getName()." cannot be empty. Please configure it in your device.");
         }
     }
 
     /**
      * Recuperation automatique (cron) du statut de l'ensemble des équipements actifs
      */
-    public function pull() {
+    public static function pull() {
         $changed = false;
         log::add('Diagral_eOne', 'debug', 'pull::Starting Request');
-        foreach (eqLogic::byType('Diagral_eOne') as $eqLogic) {
-            //if($eqLogic->getIsEnable() && ! empty($eqLogic->getConfiguration('mastercode'))) {
-            if($eqLogic->getIsEnable()) {
-                switch($eqLogic->getConfiguration('type')) {
-                    // C'est une centrale
-                    case 'centrale':
-                        if (! empty($eqLogic->getConfiguration('mastercode'))) {
-                            $alarmStatus = $eqLogic->getDiagralStatus();
-                            $changed = $eqLogic->checkAndUpdateCmd('status', $alarmStatus['status']) || $changed;
-                            $changed = $eqLogic->checkAndUpdateCmd('mode', $alarmStatus['mode']) || $changed;
-                            $changed = $eqLogic->checkAndUpdateCmd('groups_enable', $alarmStatus['groups']) || $changed;
-                            if ($changed) {
-                                $eqLogic->refreshWidget();
-                            }
+        // Recuperer la liste des centrale
+        foreach (eqLogic::byTypeAndSearhConfiguration('Diagral_eOne', 'systemid') as $centrale) {
+            if($centrale->getIsEnable() && !empty($centrale->getConfiguration('systemid'))) {
+                //Se connecter sur la centrale
+                $MyAlarm = $centrale->setDiagralEnv();
+                // Récupérer la liste de toutes les alertes
+                $allAlerts = $centrale->getAlerts($MyAlarm, TRUE);
+                // Rafraichi la centrale
+                $centrale->deviceRefresh($MyAlarm, $allAlerts['centralStatus']);
+                foreach (eqLogic::byTypeAndSearhConfiguration('Diagral_eOne', 'centrale') as $centralChild) {
+                    // Si le device enfant a bien la centrale en parent
+                    if ($centralChild->getConfiguration('centrale') == $centrale->getLogicalId()) {
+                        switch($centralChild->getConfiguration('type')) {
+                            case 'module':
+                                foreach ($allAlerts[$centralChild->getConfiguration('subtype').'Status'] as $moduleAlert) {
+                                    if ($moduleAlert['index'] == $centralChild->getConfiguration('index')) {
+                                        $centralChild->deviceRefresh($MyAlarm, $moduleAlert);
+                                    }
+                                }
+                                break;
+                            default:
+                                $centralChild->deviceRefresh($MyAlarm);
                         }
-                        break;
-                    // C'est un detecteur a image
-                    case 'imagedetector':
-                        // On lance le telechargement des videos
-                        $eqLogic->listImageDetectorVideos(True);
-                        break;
+                    }
                 }
+                $MyAlarm->logout();
             }
         }
         // Purge Videos Retention
@@ -759,26 +925,101 @@ class Diagral_eOne extends eqLogic {
     }
 
 
+    public function deviceRefresh($MyAlarm, $alert = "") {
+        $changed = false;
+        log::add('Diagral_eOne', 'info', 'deviceRefresh::Start Refresh de l\'équipement '.$this->getName());
+        switch ($this->getConfiguration('type', '')) {
+            case 'centrale':
+                $alarmStatus = $this->getDiagralStatus($MyAlarm);
+                $changed = $this->checkAndUpdateCmd('status', $alarmStatus['status']) || $changed;
+                $changed = $this->checkAndUpdateCmd('mode', $alarmStatus['mode']) || $changed;
+                $changed = $this->checkAndUpdateCmd('groups_enable', $alarmStatus['groups']) || $changed;
+                // Stockage de la batterie
+                if ($alert['mainPowerSupplyAlert'] === TRUE || $alert['secondaryPowerSupplyAlert'] === TRUE) {
+                    $changed = $this->checkAndUpdateCmd('battery', TRUE) || $changed;
+                    $this->batteryStatus(20);
+                } else {
+                    $changed = $this->checkAndUpdateCmd('battery', FALSE) || $changed;
+                    $this->batteryStatus(100);
+                }
+                // Stockage de l'autoProtection
+                if ($alert['autoprotectionMechanicalAlert'] === TRUE || $alert['autoprotectionWiredAlert'] === TRUE) {
+                    $this->checkAndUpdateCmd('autoprotectionAlert', TRUE);
+                } else {
+                    $this->checkAndUpdateCmd('autoprotectionAlert', FALSE);
+                }
+                // Stockage de defaultMediaAlert
+                $this->checkAndUpdateCmd('MediaAlert', $alert['defaultMediaAlert']);
+                break;
+            case 'module':
+                // Stockage de la batterie
+                if ($this->getConfiguration('subtype', '') == 'transmitters') {
+                    if ($alert['mainPowerSupplyAlert'] === TRUE || $alert['secondaryPowerSupplyAlert'] === TRUE) {
+                        $this->checkAndUpdateCmd('battery', TRUE);
+                        $this->batteryStatus(20);
+                    } else {
+                        $this->checkAndUpdateCmd('battery', FALSE);
+                        $this->batteryStatus(100);
+                    }
+                } else {
+                    $batteryAlert = $alert['powerSupplyAlert'];
+                    $this->checkAndUpdateCmd('battery', $alert['powerSupplyAlert']);
+                    if ($alert['powerSupplyAlert'] === TRUE) {
+                        $this->batteryStatus(20);
+                    } else {
+                        $this->batteryStatus(100);
+                    }
+                }
+                
+                // Stockage de l'autoProtection
+                $this->checkAndUpdateCmd('autoprotectionMechanicalAlert', $alert['autoprotectionMechanicalAlert']);
+                // Stockage de radioAlert
+                $this->checkAndUpdateCmd('radioAlert', $alert['radioAlert']);
+                break;
+            case 'knx-shutter':
+                // Recuperation de la centrale
+                $centrale = eqLogic::byLogicalId($this->getConfiguration('centrale'), 'Diagral_eOne');
+                // Recuperation de la position
+                $position = intval($this->automationKNXgetValue($MyAlarm, $centrale));
+                // Stockage de la position
+                $changed = $this->checkAndUpdateCmd('positionState', $position) || $changed;
+                break;
+            case 'knx-light':
+                // Recuperation de la centrale
+                $centrale = eqLogic::byLogicalId($this->getConfiguration('centrale'), 'Diagral_eOne');
+                // Recuperation de la position
+                $value = $this->automationKNXgetValue($MyAlarm, $centrale);
+                switch($value) {
+                    case 'ON':
+                        $status = 1;
+                        break;
+                    case 'OFF':
+                        $status = 0;
+                        break;
+                }
+                // Stockage de la position
+                $changed = $this->checkAndUpdateCmd('status', $status) || $changed;
+                break;
+        }
+        return $changed;
+    }
+
+
     /**
      * Recupere le statut de l'alarme
      * @return array (state => etat binaire de l'alarme / mode => mode actuel de l'alarme / groups => groupes actif)
      */
-    public function getDiagralStatus() {
+    public function getDiagralStatus($MyAlarm) {
         // Stock l'actuelle valeur du status pour pouvoir le comparer avec le nouveau statut plus tard
         $lastStatus = $this->getCmd(null, 'mode')->execCmd();
         log::add('Diagral_eOne', 'debug', 'getDiagralStatus::' . $this->getConfiguration('systemid') . '::Starting Request');
-        $MyAlarm = $this->setDiagralEnv();
-        // Si nous n'avons pas d'information sur l'état de l'alarme (session existante), on demande les informations
-        if(empty($MyAlarm->systemState)) {
-            $MyAlarm->getAlarmStatus();
-        }
-        $MyAlarm->logout();
+        $MyAlarm->getAlarmStatus();
         log::add('Diagral_eOne', 'debug', 'getDiagralStatus::' . $this->getConfiguration('systemid') . '::Result ' . var_export($MyAlarm->systemState, true) );
         if ( strcmp($MyAlarm->systemState, 'off') !== 0) {
             $filename = __PLGBASE__.'/data/groups_' . $this->getConfiguration('systemid') . '.json';
             // Si le fichier JSON des groupes n'existe pas, on le genère.
             if ( file_exists($filename) === false ) {
-                $this->generateGroupJson();
+                $this->generateGroupJson($MyAlarm);
             }
             // Recuperation de l'ensemble des groups avec leur nom et leur ID
             $config = $this->loadConfigFile($filename, 'groups');
@@ -827,11 +1068,9 @@ class Diagral_eOne extends eqLogic {
     /**
      * Fonction de desactivaton totale de l'alarme
      */
-    public function setCompleteDesactivation() {
+    public function setCompleteDesactivation($MyAlarm) {
         log::add('Diagral_eOne', 'debug', 'setCompleteDesactivation::' . $this->getConfiguration('systemid') . '::Starting Request');
-        $MyAlarm = $this->setDiagralEnv();
         $MyAlarm->completeDesactivation();
-        $MyAlarm->logout();
         log::add('Diagral_eOne', 'debug', 'setCompleteDesactivation::' . $this->getConfiguration('systemid') . '::Success');
         // Si une alarme est en cours
         if ($this->isAlarmActive()) {
@@ -843,11 +1082,9 @@ class Diagral_eOne extends eqLogic {
     /**
      * Fonction d'activation complete de l'alarme
      */
-    public function setCompleteActivation() {
+    public function setCompleteActivation($MyAlarm) {
         log::add('Diagral_eOne', 'debug', 'setCompleteActivation::' . $this->getConfiguration('systemid') . '::Starting Request');
-        $MyAlarm = $this->setDiagralEnv();
         $MyAlarm->completeActivation();
-        $MyAlarm->logout();
         log::add('Diagral_eOne', 'debug', 'setPresenceActivation::' . $this->getConfiguration('systemid') . '::Success');
     }
 
@@ -855,11 +1092,9 @@ class Diagral_eOne extends eqLogic {
      * Fonction d'activation du mode presence
      * @param int $systemId ID de l'alarme sur le compte Diagral
      */
-    public function setPresenceActivation() {
+    public function setPresenceActivation($MyAlarm) {
         log::add('Diagral_eOne', 'debug', 'setPresenceActivation::' . $this->getConfiguration('systemid') . '::Starting Request');
-        $MyAlarm = $this->setDiagralEnv();
         $MyAlarm->presenceActivation();
-        $MyAlarm->logout();
         log::add('Diagral_eOne', 'debug', 'setPresenceActivation::' . $this->getConfiguration('systemid') . '::Success');
     }
 
@@ -869,13 +1104,13 @@ class Diagral_eOne extends eqLogic {
      * @param int $cmdValue         ID du listValue recu en parametre de l'execution de la commande
      * @param array $listValue      listValue configuré sur la commande
      */
-    public function setPartialActivation($cmdValue, $listValue) {
+    public function setPartialActivation($MyAlarm, $cmdValue, $listValue) {
         log::add('Diagral_eOne', 'debug', 'setPartialActivation::cmdValue ' . $cmdValue);
         log::add('Diagral_eOne', 'debug', 'setPartialActivation::ListValue ' . var_export($listValue, true));
         $filename = __PLGBASE__.'/data/groups_' . $this->getConfiguration('systemid') . '.json';
         // Si le fichier JSON des groupes n'existe pas, on le genère.
         if ( file_exists($filename) === false ) {
-            $this->generateGroupJson();
+            $this->generateGroupJson($MyAlarm);
         }
         // Recuperation de l'ensemble des groups avec leur nom et leur ID
         $config = $this->loadConfigFile($filename, 'groups');
@@ -900,9 +1135,7 @@ class Diagral_eOne extends eqLogic {
         log::add('Diagral_eOne', 'debug', 'setPartialActivation::groupToEnableWithGroupID ' . var_export($groups, true));
         log::add('Diagral_eOne', 'debug', 'setPartialActivation::' . $this->getConfiguration('systemid') . '::Starting Request');
         // Execution de la demande de mise en activation partielle avec les ID Diagral
-        $MyAlarm = $this->setDiagralEnv();
         $MyAlarm->partialActivation($groups);
-        $MyAlarm->logout();
         log::add('Diagral_eOne', 'debug', 'setPartialActivation::' . $this->getConfiguration('systemid') . '::Success');
     }
 
@@ -911,22 +1144,20 @@ class Diagral_eOne extends eqLogic {
      * @param int $cmdValue  GroupID de la zone (ID tels que connu par Diagral)
      * @return boolean du statut de l'action
      */
-    public function setPartialDesactivation($cmdValue) {
+    public function setPartialDesactivation($MyAlarm, $cmdValue) {
         log::add('Diagral_eOne', 'debug', 'setPartialDesactivation::cmdValue ' . $cmdValue);
-        $MyAlarm = $this->setDiagralEnv();
         try {
             $MyAlarm->partialDesactivation($cmdValue);
         } catch (Exception $e) {
             log::add('Diagral_eOne', 'error', 'setPartialDesactivation::' . $this->getConfiguration('systemid') . '::Failed for groupID ' . $cmdValue . '. Reason : ' . $e->getMessage());
             return FALSE;
         }
-        $MyAlarm->logout();
         log::add('Diagral_eOne', 'debug', 'setPartialDesactivation::' . $this->getConfiguration('systemid') . '::Success for groupID ' . $cmdValue);
         // Si une alarme est en cours
         if ($this->isAlarmActive()) {
             $trigger = $this->getAlarmTrigger();
             // Recuperation de la liste des zones existante
-            $listAlarmZone = $this->generateGroupsList();
+            $listAlarmZone = $this->generateGroupsList($MyAlarm);
             $zoneNameDisabled = $listAlarmZone[$cmdValue];
             // Comparaison de la zone d'alarme et de la zone qui vient d'être désactivé
             $result = strpos(strtolower($trigger['zone']), strtolower($zoneNameDisabled));
@@ -944,13 +1175,13 @@ class Diagral_eOne extends eqLogic {
      * @param int $cmdValue         ID du listValue recu en parametre de l'execution de la commande
      * @param array $listValue      listValue configuré sur la commande
      */
-    public function setScenario($cmdValue, $listValue) {
+    public function setScenario($MyAlarm, $cmdValue, $listValue) {
         log::add('Diagral_eOne', 'debug', 'setScenario::cmdValue ' . $cmdValue);
         log::add('Diagral_eOne', 'debug', 'setScenario::ListValue ' . var_export($listValue, true));
         $filename = __PLGBASE__.'/data/scenarios_' . $this->getConfiguration('systemid') . '.json';
         // Si le fichier JSON des scenarios n'existe pas, on le genère.
         if ( file_exists($filename) === false ) {
-            $this->generateScenariosJson();
+            $this->generateScenariosJson($MyAlarm);
         }
         // Recuperation de l'ensemble des scenarios
         $config = $this->loadConfigFile($filename, 'scenarios');
@@ -964,7 +1195,6 @@ class Diagral_eOne extends eqLogic {
         $scenarioID = $config['scenarios'][$listValue[$cmdValue]][0]['id'];
         log::add('Diagral_eOne', 'debug', 'setScenario::ScenarioToEnableWithScenarioID ' . $scenarioID);
         // Execution de la demande de mise en activation partielle avec les ID Diagral
-        $MyAlarm = $this->setDiagralEnv();
         $MyAlarm->launchScenario($scenarioID);
         $MyAlarm->logout();
         log::add('Diagral_eOne', 'debug', 'setScenario::' . $this->getConfiguration('systemid') . '::Success ' . $listValue[$cmdValue]);
@@ -990,14 +1220,14 @@ class Diagral_eOne extends eqLogic {
     }
 
 
-    /* ------------------------------ Produit Tiers integré Diagral e-One ------------------------------ */
+    /* ------------------------------ Produit Tiers integré Diagral e-One - Detecteur Image ------------------------------ */
 
 
     /**
      * Fonction pour se connecter sur la centrale a partir d'un detecteur/cameras/etc..
      * @return object   Object Diagral
      */
-    private function getCentrale() {
+    public function getCentrale() {
         // $this = Detector
         $centrale = eqLogic::byLogicalId($this->getConfiguration('centrale'), 'Diagral_eOne');
         $MyAlarm = $centrale->setDiagralEnv();
@@ -1010,19 +1240,26 @@ class Diagral_eOne extends eqLogic {
 
 
     /**
-     * Recupère la liste des videos disponible effectuées par un detecteur a image
-     * et les telecharges selon le paramètre $download et la configuration du detecteur
+     * Recupère la liste des videos disponibles effectuées par un detecteur a image / Camera
+     * et les telecharges selon le paramètre $download et la configuration du detecteur/camera
      * @return array    Liste des videos disponibles
      */
-    public function listImageDetectorVideos($download = False) {
+    public function listVideos($download = False) {
         $MyAlarm = $this->getCentrale();
-        log::add('Diagral_eOne', 'debug', 'listImageDetectorVideos::ImageDetectors ' . var_export($MyAlarm->getImageDetectors(), true));
-        $videoList = $MyAlarm->getImageDetectorsVideos(strval($this->getConfiguration('index')));
+        switch ($this->getConfiguration('type')) {
+            case 'imagedetector':
+                log::add('Diagral_eOne', 'debug', 'listVideos::ImageDetectors ' . var_export($MyAlarm->getImageDetectors(), true));
+                break;
+            case 'camera':
+                log::add('Diagral_eOne', 'debug', 'listVideos::Cameras ' . var_export($MyAlarm->getCameras(), true));
+                break;
+        }
+        $videoList = $MyAlarm->getVideos($this->getConfiguration('type'), strval($this->getConfiguration('index')));
         // Tri le tableau en descendant (date la plus recente en haut)
         usort($videoList, function ($item1, $item2) {
             return $item2['timestamp'] <=> $item1['timestamp'];
         });
-        log::add('Diagral_eOne', 'debug', 'listImageDetectorVideos::VideoList ' . var_export($videoList, true));
+        log::add('Diagral_eOne', 'debug', 'listVideos::VideoList ' . var_export($videoList, true));
         // Si le mode AutoDownload des videos est actif et que le telechargement est autorisé en parametre de la fonction, alors on sauvegarde
         if ($this->getConfiguration('autoDlVideo', '0') == '1' && $download === True) {
             foreach ($videoList as $key => $video) {
@@ -1036,23 +1273,23 @@ class Diagral_eOne extends eqLogic {
                 $storePath = __PLGBASE__.'/data/videos/'.$this->getConfiguration('type').'/'.strval($this->getLogicalId()).'/'.$video['timestamp'].'.mp4';
                 if (!file_exists($storePath)) {
                     try {
-                        $videoFile = $MyAlarm->downloadImageDetectorsVideo(strval($this->getConfiguration('index')), $video['id']);
+                        $videoFile = $MyAlarm->downloadVideo($this->getConfiguration('type'), strval($this->getConfiguration('index')), $video['id']);
                     } catch (Exception $e) {
-                        log::add('Diagral_eOne', 'error', 'listImageDetectorVideos::Download&Store Failed - Reason  : ' . $e->getMessage());
+                        log::add('Diagral_eOne', 'error', 'listVideos::Download&Store Failed - Reason  : ' . $e->getMessage());
                         continue;
                     }
                     // Store Videos
                     $videoStorage = fopen($storePath, "wb");
                     fwrite($videoStorage, $videoFile);
                     fclose($videoStorage);
-                    log::add('Diagral_eOne', 'info', 'listImageDetectorVideos::Download&Store Sauvegarde de la video ' . $video['timestamp'] . '.mp4 du ' . $date->format('Y-m-d H:i:s'));
+                    log::add('Diagral_eOne', 'info', 'listVideos::Download&Store Sauvegarde de la video ' . $video['timestamp'] . '.mp4 du ' . $date->format('Y-m-d H:i:s'));
                     // Si c'est l'element 0 du tableau (le plus recent), on stocke le chemin dans la commande lastVideoPath
                     if ($key == '0') {
                         $this->checkAndUpdateCmd('lastVideoPath', $storePath, $date->format('Y-m-d H:i:s'));
                     }
                 } else {
                     // Le fichier existe deja, on le retelecharge pas.
-                    log::add('Diagral_eOne', 'info', 'listImageDetectorVideos::Download&Store Bypass de la video ' . $video['timestamp'] . '.mp4 du ' . $date->format('Y-m-d H:i:s'). ' car elle est déjà sauvegardée');
+                    log::add('Diagral_eOne', 'info', 'listVideos::Download&Store Bypass de la video ' . $video['timestamp'] . '.mp4 du ' . $date->format('Y-m-d H:i:s'). ' car elle est déjà sauvegardée');
                 }
             }
         }
@@ -1065,7 +1302,7 @@ class Diagral_eOne extends eqLogic {
     /**
      * Gere la retention des Videos stockés
      */
-    private function purgeVideos() {
+    private static function purgeVideos() {
         $rii = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(__PLGBASE__.'/data/videos/'));
         $files = array();
         foreach ($rii as $file) {
@@ -1106,19 +1343,70 @@ class Diagral_eOne extends eqLogic {
      * Lance une video a la demande
      * @return void
      */
-    public function onDemandRecord() {
-        $MyAlarm = $this->getCentrale();
+    public function onDemandRecord($MyAlarm) {
         log::add('Diagral_eOne', 'info', 'onDemandRecord::Launching... ');
         try {
             $MyAlarm->launchManualVideo($this->getLogicalId());
             log::add('Diagral_eOne', 'info', 'onDemandRecord::Launch Lancement effectué avec succès.');
-            $this->listImageDetectorVideos(true);
-            $MyAlarm->logout();
+            $this->listVideos(true);
         } catch (Exception $e) {
             log::add('Diagral_eOne', 'error', 'onDemandRecord::Launch Lancement avec erreur : ' . $e->getMessage());
         }
     }
 
+
+    /* ------------------------------ Produit Tiers integré Diagral e-One - Automations ------------------------------ */
+
+    /**
+     * Execute une commande ADYX (allumer/eteindre lampe, ouvrir/fermer volet, etc...)
+     * @param object $MyAlarm
+     * @param object $centrale
+     * @param string $command
+     */
+    public function automationSendCmd($MyAlarm, $centrale, $command) {
+        try{
+            log::add('Diagral_eOne', 'debug', 'automationSendCmd::' . $centrale->getConfiguration('systemid') . '::Starting Request');
+            $MyAlarm->automationSendCmd($this->getConfiguration('index'),$command);
+            log::add('Diagral_eOne', 'debug', 'automationSendCmd::' . $centrale->getConfiguration('systemid') . '::Success');
+        } catch (Exception $e) {
+            log::add('Diagral_eOne', 'error', 'automationSendCmd - '.  $e->getMessage());
+        }
+    }
+
+    /**
+     * Execute une commande KNX (allumer/eteindre lampe, ouvrir/fermer volet, etc...)
+     * @param object $MyAlarm
+     * @param object $centrale
+     * @param string $command
+     * @param int    $position
+     */
+    public function automationKNXSendCmd($MyAlarm, $centrale, $command, $position = 0) {
+        try{
+            log::add('Diagral_eOne', 'debug', 'automationKNXSendCmd::' . $centrale->getConfiguration('systemid') . '::Starting Request');
+            $MyAlarm->automationKNXSendCmd($this->getConfiguration('index'),$command, $position);
+            log::add('Diagral_eOne', 'debug', 'automationKNXSendCmd::' . $centrale->getConfiguration('systemid') . '::Success');
+        } catch (Exception $e) {
+            log::add('Diagral_eOne', 'error', 'automationKNXSendCmd - '.  $e->getMessage());
+        }
+    }
+
+
+    /**
+     * Retourne la valeur d'un module KNX (position pour volet, etat d'une lampe, etc..)
+     * @param object $MyAlarm
+     * @param object $centrale
+     * @return int   $value 
+     */
+    public function automationKNXgetValue($MyAlarm, $centrale) {
+        try{
+            log::add('Diagral_eOne', 'debug', 'automationKNXgetValue::' . $centrale->getConfiguration('systemid') . '::Starting Request');
+            $value = $MyAlarm->getKNXAutomationStatus($this->getConfiguration('index'));
+            log::add('Diagral_eOne', 'debug', 'automationKNXgetValue::' . $centrale->getConfiguration('systemid') . '::Success');
+            return $value;
+        } catch (Exception $e) {
+            log::add('Diagral_eOne', 'error', 'automationKNXgetValue - '.  $e->getMessage());
+        }
+    }
 
     /* ------------------------------ Sécurités du plugins ------------------------------ */
 
@@ -1301,6 +1589,36 @@ class Diagral_eOne extends eqLogic {
     }
 
 
+    /* ------------------------------ Alerte Batterie, AutoProtection, GSM, etc... ------------------------------ */
+
+    public function getAlerts($MyAlarm, $all = FALSE) {
+        try{
+            $allSysAlerts = $MyAlarm->getSystemAlerts();
+            log::add('Diagral_eOne', 'debug', 'List of System alerts : '.var_export($allSysAlerts, TRUE));
+            if ($all) {
+                return $allSysAlerts;
+            } else {
+                switch ($this->getConfiguration('type')) {
+                    case 'centrale':
+                        return $allSysAlerts['centralStatus'];
+                        break;
+                    case 'module':
+                        foreach ($allSysAlerts[$this->getConfiguration('subtype').'Status'] as $module) {
+                            if ($module['index'] == $this->getConfiguration('index')) {
+                                log::add('Diagral_eOne', 'debug', 'List of System alerts for '.$this->getName().': '.var_export($module, TRUE));
+                                return $module;
+                            }
+                        }
+                        break;
+                }
+            } 
+        } catch (Exception $e) {
+            log::add('Diagral_eOne', 'error', 'getAlerts - '.  $e->getMessage());
+        }
+    }
+
+
+
     /* ------------------------------ Tracking d'installation ------------------------------ */
 
 
@@ -1308,7 +1626,7 @@ class Diagral_eOne extends eqLogic {
      * Send information to install database to follow number of installations and communication list
      * @param bool $delete (1 if delete action need. Default : 0)
      */
-    public function installTracking($delete=0) {
+    public static function installTracking($delete=0) {
         log::add('Diagral_eOne', 'debug', 'isEnable::Status ' . config::byKey('InstallBaseStatus', 'Diagral_eOne'));
         log::add('Diagral_eOne', 'debug', 'isAnonymous::Status ' . config::byKey('InstallBaseAnonymousOnly', 'Diagral_eOne'));
         log::add('Diagral_eOne', 'debug', 'emailAddr::Status ' . config::byKey('InstallBaseEmailAddr', 'Diagral_eOne'));
@@ -1338,7 +1656,7 @@ class Diagral_eOne extends eqLogic {
      * @param string $apiKey apikey for request
      * @return array with uid and success of request
      */
-    public function getUIDDataInstallBase($url, $apiKey, $waitingTime=0) {
+    public static function getUIDDataInstallBase($url, $apiKey, $waitingTime=0) {
         log::add('Diagral_eOne', 'debug', 'installTracking Récupération de l\'UID de tracking...');
         $urlArgs = $url . '?q={"productKey":"' . jeedom::getHardwareKey() . '"}';
         $success = FALSE;
@@ -1365,7 +1683,7 @@ class Diagral_eOne extends eqLogic {
             $success = TRUE;
             log::add('Diagral_eOne', 'debug', 'installTracking UID:' . $uid);
         } else {
-            log::add('Diagral_eOne', 'warning', 'installTracking Erreur '. $requestUID->code .' avec le serveur de suivi des installations (' . $requestUID->body->message . ') : ' . var_export($requestUID->body, True));
+            log::add('Diagral_eOne', 'debug', 'installTracking Erreur '. $requestUID->code .' avec le serveur de suivi des installations (' . $requestUID->body->message . ') : ' . var_export($requestUID->body, True));
         }
 
         // Retourne les paramètres collectés
@@ -1379,7 +1697,7 @@ class Diagral_eOne extends eqLogic {
      * get Plugin branch (stable or beta)
      * @return string $pluginbranch
      */
-    public function getPluginBranch() {
+    public static function getPluginBranch() {
         $update = update::byLogicalId('Diagral_eOne');
         $pluginbranch = $update->getConfiguration('version');
         return $pluginbranch;
@@ -1389,7 +1707,7 @@ class Diagral_eOne extends eqLogic {
      * Generate data to send to Install Tracking
      * @return array $data data to send
      */
-    public function generateDataInstallBase() {
+    public static function generateDataInstallBase() {
         log::add('Diagral_eOne', 'debug', 'installTracking Génération des données avant envoi de suivi d\'installation...');
         // Defini les données anonymisées
         $data = array(
@@ -1415,7 +1733,7 @@ class Diagral_eOne extends eqLogic {
      * @param string $url
      * @param string $apiKey
      */
-    public function createUpdateInstallBase($url,$apiKey) {
+    public static function createUpdateInstallBase($url,$apiKey) {
         log::add('Diagral_eOne', 'debug', 'installTracking Lancement de la mise à jour.');
         // Attente aleatoire entre 2 et 10 secondes pour répartir les requètes
         $waitingTime = rand (2, 10);
@@ -1443,7 +1761,7 @@ class Diagral_eOne extends eqLogic {
      * @param string $url
      * @param string $apiKey
      */
-    public function deleteInstallBase($url,$apiKey) {
+    public static function deleteInstallBase($url,$apiKey) {
         log::add('Diagral_eOne', 'debug', 'Suppression de votre installation dans la base de Tracking en cours...');
         // Récuperation de l'UID d'installation
         $uidResponse = Diagral_eOne::getUIDDataInstallBase($url, $apiKey);
@@ -1473,7 +1791,7 @@ class Diagral_eOne extends eqLogic {
      * @param array $data
      * @return string HTTP return code
      */
-    public function sendDataInstallBase($url,$apiKey,$method,$data=array(),$waitingTime=0) {
+    public static function sendDataInstallBase($url,$apiKey,$method,$data=array(),$waitingTime=0) {
         log::add('Diagral_eOne', 'debug', 'installTracking Transmission des données...');
         // Ajout d'une temporisation pour eviter les requetes dans les même secondes
         if ($waitingTime > 0) {
@@ -1495,7 +1813,7 @@ class Diagral_eOne extends eqLogic {
         if (strpos($request->code, '2') === 0) {
             log::add('Diagral_eOne', 'debug', 'installTracking Données envoyées (HTTP '. $request->code .')');
         } else {
-            log::add('Diagral_eOne', 'warning', 'installTracking Erreur '. $request->code .' avec le serveur de suivi des installations (' . $request->body->message . ') : ' . var_export($request->body, True));
+            log::add('Diagral_eOne', 'debug', 'installTracking Erreur '. $request->code .' avec le serveur de suivi des installations (' . $request->body->message . ') : ' . var_export($request->body, True));
         }
         return $request->code;
     }
@@ -1505,13 +1823,51 @@ class Diagral_eOne extends eqLogic {
     /**
      * Renvoi le chemin de l'icone
      */
-    public function getPathDeviceIcon($eqLogic) {
-        if (file_exists(__DIR__ . '/../devices_image/' . $eqLogic->getConfiguration('type') . '_icon.png')) {
-            return 'plugins/Diagral_eOne/core/devices_image/' . $eqLogic->getConfiguration('type') . '_icon.png';
+    public static function getPathDeviceIcon($eqLogic) {
+        switch ($eqLogic->getConfiguration('type')) {
+            case (preg_match('/.*-portal/', $eqLogic->getConfiguration('type')) ? true : false) :
+                $type = 'portal';
+                break;
+            case (preg_match('/.*-shutter/', $eqLogic->getConfiguration('type')) ? true : false) :
+                $type = 'rollershutter';
+                break;
+            case (preg_match('/.*-garage_door/', $eqLogic->getConfiguration('type')) ? true : false) :
+                $type = 'garagedoor';
+                break;
+            case (preg_match('/.*-light/', $eqLogic->getConfiguration('type')) ? true : false) :
+                $type = 'light';
+                break;
+            default:
+                $type = $eqLogic->getConfiguration('type');
+        }
+        if (file_exists(__DIR__ . '/../devices_image/' . $type . '_icon.png')) {
+            return 'plugins/Diagral_eOne/core/devices_image/' . $type . '_icon.png';
         }
         $plugin = plugin::byId('Diagral_eOne');
         return $plugin->getPathImgIcon();
-     }
+    }
+
+
+    /* ------------------------------ Génératon de l'archive de DiagDebug ------------------------------ */
+
+    public function generateDiagDebug() {
+        try {
+            $diag = new DiagDebug('Diagral_eOne');
+            $diag->addPluginLogs();
+            $diag->addJeedomLogs(array('plugin', 'jeedom', 'http.error'));
+            $diag->addCmd('nslookup appv3.tt-monitor.com');
+            $diag->addCmd('ip addr', NULL, TRUE);
+            $diag->addCmd('ip route', NULL, TRUE);
+            $diag->addCmd('ls -lR #PLUGBASE#', NULL, TRUE);
+            $diag->addPluginConf();
+            $diag->addAllPluginEqlogic();
+            $diag->addFile('#PLUGBASE#');
+            return $diag->download();
+        } catch (Exception $e) {
+            log::add('Diagral_eOne', 'error', 'generateDiagDebug - '.  $e->getMessage());
+        }
+    }
+
 
     /*     * **********************Getteur Setteur*************************** */
 }
@@ -1535,17 +1891,25 @@ class Diagral_eOneCmd extends cmd {
     public function execute($_options = array()) {
         $changed = false;
         $eqLogic = $this->getEqLogic(); //récupère l'éqlogic de la commande $this
-        switch ($this->getLogicalId()) {	//vérifie le logicalid de la commande
-            case 'refresh': // LogicalId de la commande rafraîchir que l’on a créé dans la méthode Postsave.
-                $alarmStatus = $eqLogic->getDiagralStatus(); 	//On lance la fonction getDiagralStatus() pour récupérer le statut de l'alarme et on la stocke dans la variable $status
-                $changed = $eqLogic->checkAndUpdateCmd('status', $alarmStatus['status']) || $changed;           // Set la commande status avec le statut binaire de l'alarme
-                $changed = $eqLogic->checkAndUpdateCmd('mode', $alarmStatus['mode']) || $changed;               // Set la commande mode avec le mode actif de l'alarme
-                $changed = $eqLogic->checkAndUpdateCmd('groups_enable', $alarmStatus['groups']) || $changed;    // Set la commande groups_enable avec les groupes actif de l'alarme
+
+        // On se connecte à Diagral
+        if ($eqLogic->getConfiguration('type') != 'centrale') {
+            $centrale = eqLogic::byLogicalId($eqLogic->getConfiguration('centrale'), 'Diagral_eOne');
+            $MyAlarm = $eqLogic->getCentrale();
+        } else {
+            $MyAlarm = $eqLogic->setDiagralEnv();
+        }
+
+        switch ($this->getLogicalId()) {
+            case 'refresh':
+                // Recuperation des alertes
+                $alert = $eqLogic->getAlerts($MyAlarm);
+                $changed = $eqLogic->deviceRefresh($MyAlarm, $alert);
                 break;
             case 'total_disarm':
                 if ( ! $eqLogic->secureDisarm()) { // SecureDisarm n'est pas activée
-                    $eqLogic->setCompleteDesactivation();
-                    $alarmStatus = $eqLogic->getDiagralStatus();
+                    $eqLogic->setCompleteDesactivation($MyAlarm);
+                    $alarmStatus = $eqLogic->getDiagralStatus($MyAlarm);
                     $changed = $eqLogic->checkAndUpdateCmd('status', $alarmStatus['status']) || $changed;
                     $changed = $eqLogic->checkAndUpdateCmd('mode', $alarmStatus['mode']) || $changed;
                     $changed = $eqLogic->checkAndUpdateCmd('groups_enable', $alarmStatus['groups']) || $changed;
@@ -1553,9 +1917,9 @@ class Diagral_eOneCmd extends cmd {
                 break;
             case 'disarm_partial':
                 if ( ! $eqLogic->secureDisarm()) { // SecureDisarm n'est pas activée
-                    $status = $eqLogic->setPartialDesactivation($_options['select']);
+                    $status = $eqLogic->setPartialDesactivation($MyAlarm, $_options['select']);
                     if($status) {
-                        $alarmStatus = $eqLogic->getDiagralStatus();
+                        $alarmStatus = $eqLogic->getDiagralStatus($MyAlarm);
                         $changed = $eqLogic->checkAndUpdateCmd('status', $alarmStatus['status']) || $changed;
                         $changed = $eqLogic->checkAndUpdateCmd('mode', $alarmStatus['mode']) || $changed;
                         $changed = $eqLogic->checkAndUpdateCmd('groups_enable', $alarmStatus['groups']) || $changed;
@@ -1563,15 +1927,15 @@ class Diagral_eOneCmd extends cmd {
                 }
                 break;
             case 'total_arm':
-                $eqLogic->setCompleteActivation();
-                $alarmStatus = $eqLogic->getDiagralStatus();
+                $eqLogic->setCompleteActivation($MyAlarm);
+                $alarmStatus = $eqLogic->getDiagralStatus($MyAlarm);
                 $changed = $eqLogic->checkAndUpdateCmd('status', $alarmStatus['status']) || $changed;
                 $changed = $eqLogic->checkAndUpdateCmd('mode', $alarmStatus['mode']) || $changed;
                 $changed = $eqLogic->checkAndUpdateCmd('groups_enable', $alarmStatus['groups']) || $changed;
                 break;
             case 'arm_presence':
-                $eqLogic->setPresenceActivation();
-                $alarmStatus = $eqLogic->getDiagralStatus();
+                $eqLogic->setPresenceActivation($MyAlarm);
+                $alarmStatus = $eqLogic->getDiagralStatus($MyAlarm);
                 $changed = $eqLogic->checkAndUpdateCmd('status', $alarmStatus['status']) || $changed;
                 $changed = $eqLogic->checkAndUpdateCmd('mode', $alarmStatus['mode']) || $changed;
                 $changed = $eqLogic->checkAndUpdateCmd('groups_enable', $alarmStatus['groups']) || $changed;
@@ -1584,7 +1948,7 @@ class Diagral_eOneCmd extends cmd {
                 $changed = $eqLogic->checkAndUpdateCmd('groups_enable', $alarmStatus['groups']) || $changed;
                 break;
             case 'launch_scenario':
-                $eqLogic->setScenario($_options['select'], $this->getConfiguration('listValue'));
+                $eqLogic->setScenario($MyAlarm, $_options['select'], $this->getConfiguration('listValue'));
                 break;
             case 'import_message':
                 $explodeOptions = explode('|', $_options['title']); // Explose les options pour recuperer le sujet dans la premiere partie separé par "|"
@@ -1607,17 +1971,64 @@ class Diagral_eOneCmd extends cmd {
                 }
                 break;
             case 'force_groups_refresh_json':
-                $eqLogic->generateGroupJson();
+                $eqLogic->generateGroupJson($MyAlarm);
                 break;
             case 'force_scenarios_refresh_json':
-                $eqLogic->generateScenariosJson();
+                $eqLogic->generateScenariosJson($MyAlarm);
                 break;
             case 'onDemandRecord':
-                $eqLogic->onDemandRecord();
+                $eqLogic->onDemandRecord($MyAlarm);
+                break;
+            case 'portalOpenComplete':
+            case 'garageMove':
+                $eqLogic->automationSendCmd($MyAlarm, $centrale, "UP");
+                break;
+            case 'portalOpenPartial':
+                $eqLogic->automationSendCmd($MyAlarm, $centrale, "DOWN");
+                break;
+            case 'adyxShutterOpen':
+                $eqLogic->automationSendCmd($MyAlarm, $centrale, "UP");
+                break;
+            case 'adyxShutterClose':
+                $eqLogic->automationSendCmd($MyAlarm, $centrale, "DOWN");
+                break;
+            case 'adyxShutterStop':
+                $eqLogic->automationSendCmd($MyAlarm, $centrale, "STOP");
+                break;
+            case 'KNXshutterOpen':
+                $eqLogic->automationKNXSendCmd($MyAlarm, $centrale, "UP");
+                sleep(20);
+                $eqLogic->deviceRefresh($MyAlarm);
+                break;
+            case 'KNXshutterClose':
+                $eqLogic->automationKNXSendCmd($MyAlarm, $centrale, "DOWN");
+                sleep(20);
+                $eqLogic->deviceRefresh($MyAlarm);
+                break;
+            case 'KNXshutterStop':
+                $eqLogic->automationKNXSendCmd($MyAlarm, $centrale, "STOP");
+                sleep(20);
+                $eqLogic->deviceRefresh($MyAlarm);
+                break;
+            case 'KNXshutterPosition':
+                $eqLogic->automationKNXSendCmd($MyAlarm, $centrale, "POSITION", $_options['slider']);
+                sleep(20);
+                $eqLogic->deviceRefresh($MyAlarm);
+                break;
+            case 'KNXlightOn':
+                $eqLogic->automationKNXSendCmd($MyAlarm, $centrale, "ON");
+                sleep(20);
+                $eqLogic->deviceRefresh($MyAlarm);
+                break;
+            case 'KNXlightOff':
+                $eqLogic->automationKNXSendCmd($MyAlarm, $centrale, "OFF");
+                sleep(20);
+                $eqLogic->deviceRefresh($MyAlarm);
                 break;
             default:
                 log::add('Diagral_eOne', 'warning', 'Commande inconnue : ' . $this->getLogicalId());
         }
+        $MyAlarm->logout();
         if ($changed) {
             $eqLogic->refreshWidget();
         }

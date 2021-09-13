@@ -1,0 +1,68 @@
+{
+    "commands":[{
+        "name": "Rafraichir",
+        "description": "Lance un refresh du module",
+        "logicalId": "refresh",
+        "type": "action",
+        "subtype": "other",
+        "isVisible": 1,
+        "isDashboard": 1,
+        "display": {
+            "icon": "<i class=\"fas fa-sync\"></i>"
+        }
+    }, {
+        "name": "Alerte Batterie",
+        "description": "Batterie",
+        "logicalId": "battery",
+        "type": "info",
+        "subtype": "binary",
+        "isVisible": 1,
+        "isHistorized": 0,
+        "isDashboard": 0
+    }, {
+        "name": "AutoProtection",
+        "description": "AutoProtection",
+        "logicalId": "autoprotectionMechanicalAlert",
+        "type": "info",
+        "subtype": "binary",
+        "isVisible": 1,
+        "isHistorized": 1,
+        "isDashboard": 0
+    }, {
+        "name": "Radio Alerte",
+        "description": "Radio Alerte",
+        "logicalId": "radioAlert",
+        "type": "info",
+        "subtype": "binary",
+        "isVisible": 1,
+        "isHistorized": 1,
+        "isDashboard": 0
+    }, {
+        "name": "Alerte ADSL",
+        "description": "Alerte ADSL",
+        "logicalId": "mediaADSLAlert",
+        "type": "info",
+        "subtype": "binary",
+        "isVisible": 1,
+        "isHistorized": 1,
+        "isDashboard": 0
+    }, {
+        "name": "Alerte GSM",
+        "description": "Alerte GSM",
+        "logicalId": "mediaGSMAlert",
+        "type": "info",
+        "subtype": "binary",
+        "isVisible": 1,
+        "isHistorized": 1,
+        "isDashboard": 0
+    }, {
+        "name": "Alerte Sensor",
+        "description": "Alerte Sensor",
+        "logicalId": "sensorAlert",
+        "type": "info",
+        "subtype": "binary",
+        "isVisible": 1,
+        "isHistorized": 1,
+        "isDashboard": 0
+    }]
+}

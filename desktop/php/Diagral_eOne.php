@@ -58,12 +58,46 @@ $pluginCompatible = array(
             ?>
         </div>
 
-        <!-- Liste des Detecteurs a Image -->
-        <legend><i class="fas fa-table"></i> {{Mes detecteurs à image}}</legend>
+        <!-- Liste des Detecteurs a Image / Cameras  -->
+        <legend><i class="fas fa-table"></i> {{Mes Cameras / detecteurs à image}}</legend>
         <div class="eqLogicThumbnailContainer">
             <?php
             foreach ($eqLogics as $eqLogic) {
-                if ($eqLogic->getConfiguration('type', '') != 'imagedetector') continue;
+                if (!in_array($eqLogic->getConfiguration('type', ''), array('imagedetector','camera'))) continue;
+                $opacity = ($eqLogic->getIsEnable()) ? '' : 'disableCard';
+                echo '<div class="eqLogicDisplayCard cursor '.$opacity.'" data-eqLogic_id="' . $eqLogic->getId() . '">';
+                echo '<img src="' . Diagral_eOne::getPathDeviceIcon($eqLogic) . '"/>';
+                echo '<br>';
+                echo '<span class="name">' . $eqLogic->getHumanName(true, true) . '</span>';
+                echo '</div>';
+            }
+            ?>
+        </div>
+
+
+        <!-- Liste des Modules  -->
+        <legend><i class="fas fa-table"></i> {{Mes Commandes / Transmetteurs / Sensors / Sirenes}}</legend>
+        <div class="eqLogicThumbnailContainer">
+            <?php
+            foreach ($eqLogics as $eqLogic) {
+                if ($eqLogic->getConfiguration('type', '') != 'module') continue;
+                $opacity = ($eqLogic->getIsEnable()) ? '' : 'disableCard';
+                echo '<div class="eqLogicDisplayCard cursor '.$opacity.'" data-eqLogic_id="' . $eqLogic->getId() . '">';
+                echo '<img src="' . Diagral_eOne::getPathDeviceIcon($eqLogic) . '"/>';
+                echo '<br>';
+                echo '<span class="name">' . $eqLogic->getHumanName(true, true) . '</span>';
+                echo '</div>';
+            }
+            ?>
+        </div>
+
+
+        <!-- Liste des Automations -->
+        <legend><i class="fas fa-table"></i> {{Mes Automations ADYX/KNX}}</legend>
+        <div class="eqLogicThumbnailContainer">
+            <?php
+            foreach ($eqLogics as $eqLogic) {
+                if (!in_array($eqLogic->getConfiguration('type', ''), array('-', 'adyx-portal','adyx-shutter', 'adyx-garage_door','knx-shutter', 'knx-light'))) continue;
                 $opacity = ($eqLogic->getIsEnable()) ? '' : 'disableCard';
                 echo '<div class="eqLogicDisplayCard cursor '.$opacity.'" data-eqLogic_id="' . $eqLogic->getId() . '">';
                 echo '<img src="' . Diagral_eOne::getPathDeviceIcon($eqLogic) . '"/>';
@@ -92,6 +126,7 @@ $pluginCompatible = array(
         <ul class="nav nav-tabs" role="tablist">
             <li role="presentation"><a href="#" class="eqLogicAction" aria-controls="home" role="tab" data-toggle="tab" data-action="returnToThumbnailDisplay"><i class="fa fa-arrow-circle-left"></i></a></li>
             <li role="presentation" class="active"><a href="#eqlogictab" aria-controls="home" role="tab" data-toggle="tab"><i class="fas fa-tachometer-alt"></i> {{Equipement}}</a></li>
+            <li role="presentation" class="eqCustom eqCentrale"><a href="#childDevices" aria-controls="childDevices" role="tab" data-toggle="tab"><i class="fa fa-arrow-circle-down"></i> {{Equiments Attachés}}</a></li>
             <li role="presentation" class="eqCustom eqCentrale"><a href="#badges" aria-controls="badges" role="tab" data-toggle="tab"><i class="fa fa-id-badge"></i> {{Badges}}</a></li>
             <li role="presentation" class="eqCustom eqCentrale"><a href="#notificationDiagral" aria-controls="notificationDiagral" role="tab" data-toggle="tab"><i class="fas fa-envelope-open-text"></i></i> {{Notifications Diagral}}</a></li>
             <li role="presentation"><a href="#commandtab" aria-controls="profile" role="tab" data-toggle="tab"><i class="fa fa-list-alt"></i> {{Commandes}}</a></li>
@@ -176,9 +211,9 @@ $pluginCompatible = array(
                                         </div>
                                     </div>
                                 </div>
-                                <!-- Template for Image Detectors -->
-                                <div class="eqCustom eqImagedetector">
-                                <div class="form-group">
+                                <!-- Template for Cameras / Image Detectors -->
+                                <div class="eqCustom eqImagedetector eqCamera">
+                                    <div class="form-group">
                                         <label class="col-sm-3 control-label">{{Video Auto Download}}
                                             <sup><i class="fa fa-question-circle tooltips" title="Recupère de façon automatique les videos disponibles"></i></sup>
                                         </label>
@@ -186,6 +221,9 @@ $pluginCompatible = array(
                                             <input type="checkbox" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="autoDlVideo"/>
                                         </div>
                                     </div>
+                                </div>
+                                <!-- Template for All device who are connected to Centrale -->
+                                <div class="eqCustom eqModule eqImagedetector eqCamera eqCentralLink">
                                     <div class="form-group">
                                         <label class="col-sm-3 control-label">{{Centrale}}
                                             <sup><i class="fa fa-question-circle tooltips" title="Lien vers la centrale qui gère ce détecteur"></i></sup>
@@ -224,16 +262,83 @@ $pluginCompatible = array(
                                     <a class="btn btn-info btn-sm cmdAction" id="bt_showEvents"><i class="fas fa-info"></i> {{Consulter}}</a>
                                 </div>
                             </div>
-                            <div class="eqCustom eqImagedetector">
+                            <div class="eqCustom eqImagedetector eqCamera">
                                 <div><legend><i class="fas fa-info"></i> {{Liste des vidéos disponibles}}</legend></div>
                                 <div class="col-sm-3"></div>
                                 <div class="col-sm-6">
-                                    <a class="btn btn-info btn-sm cmdAction" id="bt_showImagedetectorVideos"><i class="fas fa-video"></i> {{Consulter}}</a>
+                                    <a class="btn btn-info btn-sm cmdAction" id="bt_showVideos"><i class="fas fa-video"></i> {{Consulter}}</a>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div><!-- /.row-->
+            </div>
+            <div role="tabpanel" class="tab-pane" id="childDevices">
+                <br/>
+                <div class="col-lg-2"></div>
+                <div class="alert alert-info col-lg-8">
+                    Les éléments listés ici sont l'ensemble des équipements attachés à cette centrale.<br/>
+                    Il vous suffit de cliquer dessus pour accèder directement à l'équipement concerné.
+                </div>
+                <div class="col-lg-2"></div>
+                <div class="col-lg-3"></div>
+                <div id="childDeviceList" class="col-lg-6"></div>
+                <div class="col-lg-3"></div>
+            </div>
+            <div role="tabpanel" class="tab-pane" id="badges">
+                <br/>
+                <form class="form-horizontal">
+                    <fieldset>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">{{Badge 1 - Alias}}</label>
+                            <div class="col-sm-3">
+                                <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="badge1-alias" placeholder="Alias"/>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">{{Badge 2 - Alias}}</label>
+                            <div class="col-sm-3">
+                                <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="badge2-alias" placeholder="Alias"/>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">{{Badge 3 - Alias}}</label>
+                            <div class="col-sm-3">
+                                <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="badge3-alias" placeholder="Alias"/>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">{{Badge 4 - Alias}}</label>
+                            <div class="col-sm-3">
+                                <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="badge4-alias" placeholder="Alias"/>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">{{Badge 5 - Alias}}</label>
+                            <div class="col-sm-3">
+                                <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="badge5-alias" placeholder="Alias"/>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">{{Badge 6 - Alias}}</label>
+                            <div class="col-sm-3">
+                                <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="badge6-alias" placeholder="Alias"/>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">{{Badge 7 - Alias}}</label>
+                            <div class="col-sm-3">
+                                <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="badge7-alias" placeholder="Alias"/>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">{{Badge 8 - Alias}}</label>
+                            <div class="col-sm-3">
+                                <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="badge8-alias" placeholder="Alias"/>
+                            </div>
+                        </div>
+                    </fieldset>
+                </form>
             </div>
             <div role="tabpanel" class="tab-pane" id="notificationDiagral">
                 <br/>
@@ -302,61 +407,7 @@ $pluginCompatible = array(
                     Se référer à la <a target="_blank" href="https://mguyard.github.io/Jeedom-Diagral_eOne/fr_FR/">documentation</a> pour plus de détails.
                 </div>
             </div>
-            <div role="tabpanel" class="tab-pane" id="badges">
-                <br/>
-                <form class="form-horizontal">
-                    <fieldset>
-                        <div class="form-group">
-                            <label class="col-sm-3 control-label">{{Badge 1 - Alias}}</label>
-                            <div class="col-sm-3">
-                                <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="badge1-alias" placeholder="Alias"/>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="col-sm-3 control-label">{{Badge 2 - Alias}}</label>
-                            <div class="col-sm-3">
-                                <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="badge2-alias" placeholder="Alias"/>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="col-sm-3 control-label">{{Badge 3 - Alias}}</label>
-                            <div class="col-sm-3">
-                                <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="badge3-alias" placeholder="Alias"/>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="col-sm-3 control-label">{{Badge 4 - Alias}}</label>
-                            <div class="col-sm-3">
-                                <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="badge4-alias" placeholder="Alias"/>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="col-sm-3 control-label">{{Badge 5 - Alias}}</label>
-                            <div class="col-sm-3">
-                                <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="badge5-alias" placeholder="Alias"/>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="col-sm-3 control-label">{{Badge 6 - Alias}}</label>
-                            <div class="col-sm-3">
-                                <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="badge6-alias" placeholder="Alias"/>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="col-sm-3 control-label">{{Badge 7 - Alias}}</label>
-                            <div class="col-sm-3">
-                                <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="badge7-alias" placeholder="Alias"/>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="col-sm-3 control-label">{{Badge 8 - Alias}}</label>
-                            <div class="col-sm-3">
-                                <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="badge8-alias" placeholder="Alias"/>
-                            </div>
-                        </div>
-                    </fieldset>
-                </form>
-            </div>
+            
 
             <!-- Onglet des commandes de l'équipement -->
 			<div role="tabpanel" class="tab-pane" id="commandtab">

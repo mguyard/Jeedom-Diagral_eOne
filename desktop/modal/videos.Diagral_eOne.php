@@ -26,13 +26,16 @@ $eqLogic = eqLogic::byId(init(id));
 $plugin = plugin::byId('Diagral_eOne');
 $pluginBasePath = dirname($plugin->getFilepath(), 2);
 // Lance la récuperations des videos disponibles
-$videosList = $eqLogic->listImageDetectorVideos(False);
-log::add('Diagral_eOne', 'debug', 'modal::imageDetectorVideos Videos disponibles : ' . var_export($videosList, True));
+$videosList = $eqLogic->listVideos(False);
+log::add('Diagral_eOne', 'debug', 'modal::Videos Videos disponibles : ' . var_export($videosList, True));
 
 function getIcon($type) {
     switch ($type) {
         case 'ONDEMAND':
             $icon = 'icon_blue fas fa-hand-point-up';
+            break;
+        case 'ALARM':
+            $icon = 'icon_red fas fa-bell';
             break;
         default:
             $icon = '';

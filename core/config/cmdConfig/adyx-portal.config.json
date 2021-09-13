@@ -1,0 +1,36 @@
+{
+    "commands":[{
+        "name": "Rafraichir",
+        "description": "Lance un refresh du module",
+        "logicalId": "refresh",
+        "type": "action",
+        "subtype": "other",
+        "isVisible": 1,
+        "isDashboard": 1,
+        "display": {
+            "icon": "<i class=\"fas fa-sync\"></i>"
+        }
+    }, {
+        "name": "Ouverture totale",
+        "description": "Ouverture totale",
+        "logicalId": "portalOpenComplete",
+        "type": "action",
+        "subtype": "other",
+        "display": {
+            "generic_type": "PUSH_BUTTON"
+        },
+        "isVisible": 1,
+        "isDashboard": 1
+    }, {
+        "name": "Ouverture Pieton",
+        "description": "Ouverture partielle ou pieton",
+        "logicalId": "portalOpenPartial",
+        "type": "action",
+        "subtype": "other",
+        "display": {
+            "generic_type": "PUSH_BUTTON"
+        },
+        "isVisible": 1,
+        "isDashboard": 1
+    }]
+}
