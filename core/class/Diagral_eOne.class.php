@@ -1941,7 +1941,7 @@ class Diagral_eOneCmd extends cmd {
                 $changed = $eqLogic->checkAndUpdateCmd('groups_enable', $alarmStatus['groups']) || $changed;
                 break;
             case 'arm_partial':
-                $eqLogic->setPartialActivation($_options['select'], $this->getConfiguration('listValue'));
+                $eqLogic->setPartialActivation($MyAlarm, $_options['select'], $this->getConfiguration('listValue'));
                 $alarmStatus = $eqLogic->getDiagralStatus();
                 $changed = $eqLogic->checkAndUpdateCmd('status', $alarmStatus['status']) || $changed;
                 $changed = $eqLogic->checkAndUpdateCmd('mode', $alarmStatus['mode']) || $changed;
