@@ -1941,8 +1941,8 @@ class Diagral_eOneCmd extends cmd {
                 $changed = $eqLogic->checkAndUpdateCmd('groups_enable', $alarmStatus['groups']) || $changed;
                 break;
             case 'arm_partial':
-                $eqLogic->setPartialActivation($_options['select'], $this->getConfiguration('listValue'));
-                $alarmStatus = $eqLogic->getDiagralStatus();
+                $eqLogic->setPartialActivation($MyAlarm, $_options['select'], $this->getConfiguration('listValue'));
+                $alarmStatus = $eqLogic->getDiagralStatus($MyAlarm);
                 $changed = $eqLogic->checkAndUpdateCmd('status', $alarmStatus['status']) || $changed;
                 $changed = $eqLogic->checkAndUpdateCmd('mode', $alarmStatus['mode']) || $changed;
                 $changed = $eqLogic->checkAndUpdateCmd('groups_enable', $alarmStatus['groups']) || $changed;
@@ -1964,7 +1964,7 @@ class Diagral_eOneCmd extends cmd {
                 $eqLogic->checkAndUpdateCmd('imported_last_method', $contents['method']);
                 $eqLogic->checkAndUpdateCmd('imported_last_user', $contents['user']);
                 if($contents['refresh']) {
-                    $alarmStatus = $eqLogic->getDiagralStatus();
+                    $alarmStatus = $eqLogic->getDiagralStatus($MyAlarm);
                     $changed = $eqLogic->checkAndUpdateCmd('status', $alarmStatus['status']) || $changed;
                     $changed = $eqLogic->checkAndUpdateCmd('mode', $alarmStatus['mode']) || $changed;
                     $changed = $eqLogic->checkAndUpdateCmd('groups_enable', $alarmStatus['groups']) || $changed;
