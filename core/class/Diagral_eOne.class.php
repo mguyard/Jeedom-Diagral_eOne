@@ -891,8 +891,10 @@ class Diagral_eOne extends eqLogic {
         $changed = false;
         log::add('Diagral_eOne', 'debug', 'pull::Starting Request');
         // Recuperer la liste des centrale
+        log::add('Diagral_eOne', 'debug', 'pull::ListofCentrale ' . var_export(eqLogic::byTypeAndSearhConfiguration('Diagral_eOne', 'systemid'), true));
         foreach (eqLogic::byTypeAndSearhConfiguration('Diagral_eOne', 'systemid') as $centrale) {
-            if($centrale->getIsEnable() && !empty($centrale->getConfiguration('systemid'))) {
+            log::add('Diagral_eOne', 'debug', 'pull::Centrale ' . $centrale->getName());
+            if($centrale->getIsEnable() && strlen($centrale->getConfiguration('systemid')) != 0) {
                 //Se connecter sur la centrale
                 $MyAlarm = $centrale->setDiagralEnv();
                 // Récupérer la liste de toutes les alertes
@@ -900,6 +902,7 @@ class Diagral_eOne extends eqLogic {
                 // Rafraichi la centrale
                 $centrale->deviceRefresh($MyAlarm, $allAlerts['centralStatus']);
                 foreach (eqLogic::byTypeAndSearhConfiguration('Diagral_eOne', 'centrale') as $centralChild) {
+                    log::add('Diagral_eOne', 'debug', 'pull::CentraleChild ' . $centralChild->getName());
                     // Si le device enfant a bien la centrale en parent
                     if ($centralChild->getConfiguration('centrale') == $centrale->getLogicalId()) {
                         switch($centralChild->getConfiguration('type')) {
@@ -916,6 +919,9 @@ class Diagral_eOne extends eqLogic {
                     }
                 }
                 $MyAlarm->logout();
+            } else {
+                log::add('Diagral_eOne', 'debug', 'pull::Centrale ' . $centrale->getName() . ' is not enable (enabled:'.$centrale->getIsEnable().') or don\'t have systemid configuration (systemID: '.$centrale->getConfiguration('systemid').').');
+
             }
         }
         // Purge Videos Retention
