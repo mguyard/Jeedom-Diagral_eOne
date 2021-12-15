@@ -298,9 +298,9 @@ $('.eqLogicAttr[data-l1key=id], .eqLogicAttr[data-l1key=configuration][data-l2ke
                 var JSONreturn = JSON.parse(data.result);
                 $( "#childDeviceList" ).empty();
                 $( "#childDeviceList" ).append( "<ul>" );
-                console.log(JSONreturn);
+                //console.log(JSONreturn);
                 $.each(JSONreturn, function(i, item) {
-                    console.log(JSONreturn[i].name);
+                    //console.log(JSONreturn[i].name);
                     $( "#childDeviceList" ).append( "<li><a target='_blank' href='/index.php?v=d&m=Diagral_eOne&p=Diagral_eOne&id=" + JSONreturn[i].id + "'>" +  JSONreturn[i].name + "</a></li>")
                 });
                 $( "#childDeviceList" ).append( "</ul>" );

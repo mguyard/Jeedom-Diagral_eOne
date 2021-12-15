@@ -407,7 +407,6 @@ $pluginCompatible = array(
                     Se référer à la <a target="_blank" href="https://mguyard.github.io/Jeedom-Diagral_eOne/fr_FR/">documentation</a> pour plus de détails.
                 </div>
             </div>
-            
 
             <!-- Onglet des commandes de l'équipement -->
 			<div role="tabpanel" class="tab-pane" id="commandtab">

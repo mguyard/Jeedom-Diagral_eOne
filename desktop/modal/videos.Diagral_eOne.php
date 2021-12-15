@@ -85,7 +85,8 @@ function getIcon($type) {
                     echo "<td>" . $video['durationMs'] / 1000 . "</td>";
                     echo "<td>";
                         if ($eqLogic->getConfiguration('autoDlVideo', '0') == '1' && file_exists($pluginBasePath.$video_path)) {
-                            echo "<a href='/plugins/Diagral_eOne".$video_path."' target='_blank'> <i class='icon_green fas fa-2x fa-play-circle'></i></a>";
+                            echo "<a id='playervideo'><i class='icon_green fas fa-2x fa-play-circle'></i></a>";
+                            echo "<a href='core/php/downloadFile.php?pathfile=".$pluginBasePath.$video_path."' target='_blank' download> <i class='fas fa-2x fa-download'></i></a>";
                         } else {
                             echo "<p class='state tooltips tooltipstered' title='Video non disponible car la configuration Video Auto Download est désactivée sur le détecteur ou bien le téléchargement de la vidéo a échoué (consultez les logs).'> <i class='icon_red fas fa-2x fa-video-slash'></i></p>";
                         }
@@ -96,3 +97,11 @@ function getIcon($type) {
         </tbody>
     </table>
 </div>
+
+<script>
+    // Affiche la modale player videos d'ImageDetector / Cameras
+    $('#playervideo').on('click',function() {
+	    $('#md_modal').dialog({title: "{{Player Video}}"});
+        $('#md_modal').load('index.php?v=d&plugin=Diagral_eOne&modal=videoplayer.Diagral_eOne&video=<?php echo $video_path ?>').dialog('open');
+    });
+</script>
