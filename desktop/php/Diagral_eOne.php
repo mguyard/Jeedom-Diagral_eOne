@@ -188,6 +188,12 @@ $pluginCompatible = array(
                                         <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="type" disabled/>
                                     </div>
                                 </div>
+                                <div class="form-group eqCustom eqModule">
+                                    <label class="col-sm-3 control-label">{{Sous-Type}}</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="subtype" disabled/>
+                                    </div>
+                                </div>
                                 <br/>
                                 <div><legend><i class="fas fa-cog"></i> {{Paramètres}}</legend></div>
                                 <!-- Template for Centrale -->
