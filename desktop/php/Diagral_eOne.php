@@ -297,54 +297,17 @@ $pluginCompatible = array(
                 <br/>
                 <form class="form-horizontal">
                     <fieldset>
-                        <div class="form-group">
-                            <label class="col-sm-3 control-label">{{Badge 1 - Alias}}</label>
-                            <div class="col-sm-3">
-                                <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="badge1-alias" placeholder="Alias"/>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="col-sm-3 control-label">{{Badge 2 - Alias}}</label>
-                            <div class="col-sm-3">
-                                <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="badge2-alias" placeholder="Alias"/>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="col-sm-3 control-label">{{Badge 3 - Alias}}</label>
-                            <div class="col-sm-3">
-                                <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="badge3-alias" placeholder="Alias"/>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="col-sm-3 control-label">{{Badge 4 - Alias}}</label>
-                            <div class="col-sm-3">
-                                <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="badge4-alias" placeholder="Alias"/>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="col-sm-3 control-label">{{Badge 5 - Alias}}</label>
-                            <div class="col-sm-3">
-                                <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="badge5-alias" placeholder="Alias"/>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="col-sm-3 control-label">{{Badge 6 - Alias}}</label>
-                            <div class="col-sm-3">
-                                <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="badge6-alias" placeholder="Alias"/>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="col-sm-3 control-label">{{Badge 7 - Alias}}</label>
-                            <div class="col-sm-3">
-                                <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="badge7-alias" placeholder="Alias"/>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="col-sm-3 control-label">{{Badge 8 - Alias}}</label>
-                            <div class="col-sm-3">
-                                <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="badge8-alias" placeholder="Alias"/>
-                            </div>
-                        </div>
+                        <?php
+                            // Create Badge 1 to 10
+                            for ($badgeCount = 1; $badgeCount<=10; $badgeCount++) {
+                                echo "<div class='form-group'>";
+                                    echo "<label class='col-sm-3 control-label'>{{Badge}} ".$badgeCount." - Alias</label>";
+                                    echo "<div class='col-sm-3'>";
+                                        echo "<input type='text' class='eqLogicAttr form-control' data-l1key='configuration' data-l2key='badge".$badgeCount."-alias' placeholder='Alias'/>";
+                                    echo "</div>";
+                                echo "</div>";
+                            } 
+                        ?>
                     </fieldset>
                 </form>
             </div>
