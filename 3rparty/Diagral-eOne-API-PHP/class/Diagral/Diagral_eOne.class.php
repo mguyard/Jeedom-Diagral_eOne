@@ -1856,7 +1856,7 @@ class Diagral_eOne{
         $retry = isset($retry) ? $retry : $this->doRequestAttempts - 1;
         $curl = curl_init();
         $curl_headers = array(
-            "User-Agent: eOne/1.12.1.2 CFNetwork/1240.0.4 Darwin/20.6.0",
+            "User-Agent: eOne/1.12.1.2 CFNetwork/1333.0.4 Darwin/21.5.0",
             "Accept: application/json, text/plain, */*",
             "Accept-Encoding: deflate",
             "X-App-Version: 1.12.1",
