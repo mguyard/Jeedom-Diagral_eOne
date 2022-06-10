@@ -57,30 +57,34 @@ if (empty($plugin_version)) {
             <label class="col-lg-4 control-label">{{Nombre de tentatives}}
                 <sup><i class="fa fa-question-circle tooltips" title="Nombre de tentative que le plugin effectuera en cas d'échec de communication avec le Cloud Diagral" style="font-size:1em;color:grey;"></i></sup>
             </label>
-            <div class="col-lg-4">
-                <input class="configKey form-control" data-l1key="retry" type="number" min="1" max="10" placeholder="1"/>
+            <div class="col-lg-4 input-group">
+                <input class="configKey form-control" data-l1key="retry" type="number" min="1" max="10" step="1" placeholder="1"/>
+                <span class="input-group-addon">{{tentatives}}</span>
             </div>
         </div>
         <div class="form-group">
             <label class="col-lg-4 control-label">{{Délai entre les tentatives (secondes)}}</label>
-            <div class="col-lg-4">
-                <input class="configKey form-control" data-l1key="waitRetry" type="number" min="5" placeholder="5"/>
+            <div class="col-lg-4 input-group">
+                <input class="configKey form-control" data-l1key="waitRetry" type="number" min="5" step="1" placeholder="5"/>
+                <span class="input-group-addon">{{secondes}}</span>
             </div>
         </div>
         <div class="form-group">
             <label class="col-lg-4 control-label">{{Mise à jour automatique (minutes)}}
                 <sup><i class="fa fa-question-circle tooltips" title="Fréquence à laquelle le plugin va récupérer les informations sur le cloud Diagral" style="font-size:1em;color:grey;"></i></sup>
             </label>
-            <div class="col-lg-4">
-                <input class="configKey form-control" data-l1key="polling_interval" type="number" min="1" placeholder="10"/>
+            <div class="col-lg-4 input-group">
+                <input class="configKey form-control" data-l1key="polling_interval" type="number" min="10" step="1" placeholder="10"/>
+                <span class="input-group-addon">{{minutes}}</span>
             </div>
         </div>
         <div class="form-group">
             <label class="col-lg-4 control-label">{{Nombre de video à conserver}}
                 <sup><i class="fa fa-question-circle tooltips" title="Le plugin peut récupérer et stocker les vidéos effectuées par un détecteur à image Diagral.<br/>Ce paramètre permet de définir le nombre de vidéo a conserver locallement dans Jeedom" style="font-size:1em;color:grey;"></i></sup>
             </label>
-            <div class="col-lg-4">
-                <input class="configKey form-control" data-l1key="video_retention" type="number" min="1" placeholder="100"/>
+            <div class="col-lg-4 input-group">
+                <input class="configKey form-control" data-l1key="video_retention" type="number" min="1" step="1" placeholder="100"/>
+                <span class="input-group-addon">{{videos}}</span>
             </div>
         </div>
     </fieldset>

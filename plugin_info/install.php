@@ -44,7 +44,11 @@ function Diagral_eOne_update() {
     // Mise à jour des CRONs
     Diagral_eOne_Cron_Pull('update');
     Diagral_eOne_Cron_JSON('update');
+    // Correction du délai de refresh suite à échange avec Diagral - Minimum 10 minutes
+    Diagral_eOne_updatePollingInterval();
+    // Active le tracking usage
     config::save('InstallBaseStatus', 1, 'Diagral_eOne'); // Active le mode de communication par defaut -- A retirer plus tard car reactivera ceux qui ont désactivé entre 2 updates
+    // Affiche les messages utilisateurs
     message::add('Diagral_eOne', 'La mise à jour a (re)activer la communication avec le developpeur. Voir la documentation pour des compléments d\'informations'); // A retirer plus tard avec la ligne de code du dessus
     message::add('Diagral_eOne', 'Merci pour la mise à jour de ce plugin (version '.$pluginVersion.'), consultez les notes de version (https://community.jeedom.com/t/plugin-diagral-eone/10909) avant utilisation svp. N\'hésitez pas à laisser un avis sur le Market Jeedom');
 }
@@ -138,6 +142,15 @@ function Diagral_eOne_setVersion() {
     config::save('plugin_version', $pluginVersion, 'Diagral_eOne');
     log::add('Diagral_eOne', 'debug', 'Version du plugin : '.$pluginVersion);
     return $pluginVersion;
+}
+
+// Correction du délai de refresh suite à échange avec Diagral - Minimum 10 minutes
+// Si la configuration en place est < 10 minutes alors on la positionne sur 10 minutes
+function Diagral_eOne_updatePollingInterval() {
+    if (config::byKey('polling_interval', 'Diagral_eOne') < 10) {
+        config::save('polling_interval', 10, 'Diagral_eOne');
+        message::add('Diagral_eOne', 'IMPORTANT : Votre temps de rafraichissement est inférieur à 10 minutes. Il vient d\'être forcé à 10 minutes.');
+    }
 }
 
 ?>
