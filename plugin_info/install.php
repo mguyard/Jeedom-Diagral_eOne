@@ -149,6 +149,8 @@ function Diagral_eOne_setVersion() {
 function Diagral_eOne_updatePollingInterval() {
     if (config::byKey('polling_interval', 'Diagral_eOne') < 10) {
         config::save('polling_interval', 10, 'Diagral_eOne');
+        Diagral_eOne_Cron_Pull('remove');
+        Diagral_eOne_Cron_Pull('create');
         message::add('Diagral_eOne', 'IMPORTANT : Votre temps de rafraichissement est inférieur à 10 minutes. Il vient d\'être forcé à 10 minutes.');
     }
 }
