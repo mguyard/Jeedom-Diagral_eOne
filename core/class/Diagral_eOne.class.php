@@ -43,7 +43,7 @@ class Diagral_eOne extends eqLogic {
         $callResults = array();
         $message = array();
         // Lancement connexion Diagral
-        $MyAlarm = new Mguyard\Diagral\Diagral_eOne(config::byKey('login', 'Diagral_eOne'),config::byKey('password', 'Diagral_eOne'));
+        $MyAlarm = new Mguyard\Diagral\Diagral_eOne(config::byKey('login', 'Diagral_eOne'),config::byKey('password', 'Diagral_eOne'), config::byKey('plugin_version', 'Diagral_eOne'));
         $MyAlarm->verbose = boolval(config::byKey('verbose', 'Diagral_eOne'));
         $accountInfos = $MyAlarm->login();
         log::add('Diagral_eOne', 'debug', 'Synchronize::Systems::Login ' . var_export($accountInfos, true));
@@ -815,8 +815,8 @@ class Diagral_eOne extends eqLogic {
         //Checking polling interval
         log::add('Diagral_eOne', 'debug', 'checkConfig::polling_interval::Start');
         if ( ! empty(config::byKey('polling_interval', 'Diagral_eOne'))) {
-            if(!filter_var(config::byKey('polling_interval', 'Diagral_eOne'), FILTER_VALIDATE_INT, array('options' => array('min_range' => 1)))){
-                throw new Exception(__('La frequence de mise à jour (polling) est invalide. Elle doit contenir un nombre (entier) de minutes superieur a 1.', __FILE__));
+            if(!filter_var(config::byKey('polling_interval', 'Diagral_eOne'), FILTER_VALIDATE_INT, array('options' => array('min_range' => 10)))){
+                throw new Exception(__('La frequence de mise à jour (polling) est invalide. Elle doit contenir un nombre (entier) de minutes superieur ou égale à 10.', __FILE__));
             } else {
                 log::add('Diagral_eOne', 'debug', 'checkConfig::polling_interval OK with value ' . config::byKey('polling_interval', 'Diagral_eOne'));
             }
@@ -860,7 +860,7 @@ class Diagral_eOne extends eqLogic {
     public function setDiagralEnv() {
         log::add('Diagral_eOne', 'debug', 'setDiagralEnv::' . $this->getConfiguration('systemid') . '::Start Diagral Environnement');
         if ( ! empty($this->getConfiguration('mastercode'))) {
-            $MyAlarm = new Mguyard\Diagral\Diagral_eOne(config::byKey('login', 'Diagral_eOne'),config::byKey('password', 'Diagral_eOne'));
+            $MyAlarm = new Mguyard\Diagral\Diagral_eOne(config::byKey('login', 'Diagral_eOne'),config::byKey('password', 'Diagral_eOne'), config::byKey('plugin_version', 'Diagral_eOne'));
             $MyAlarm->verbose = config::byKey('verbose', 'Diagral_eOne');
             if ( ! empty(config::byKey('retry', 'Diagral_eOne'))) {
                 $MyAlarm->doRequestAttempts = config::byKey('retry', 'Diagral_eOne');
@@ -890,6 +890,12 @@ class Diagral_eOne extends eqLogic {
     public static function pull() {
         $changed = false;
         log::add('Diagral_eOne', 'debug', 'pull::Starting Request');
+        // Place un temps d'attente pour éviter que tout les utilisateurs ne se connecte en même temps chez Diagral
+        $delay = random_int(0,10);
+        if ($delay > 0) {
+            log::add(__CLASS__, 'debug', __('CRON - Ajout d\'un délai d\'attente aléatoire de', __FILE__) . ': ' . strval($delay) . ' ' . __('secondes', __FILE__));
+            sleep($delay); 
+        }
         // Recuperer la liste des centrale
         log::add('Diagral_eOne', 'debug', 'pull::ListofCentrale ' . var_export(eqLogic::byTypeAndSearhConfiguration('Diagral_eOne', 'systemid'), true));
         foreach (eqLogic::byTypeAndSearhConfiguration('Diagral_eOne', 'systemid') as $centrale) {

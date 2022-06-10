@@ -38,7 +38,9 @@ $pluginCompatible = array(
 		<div class="input-group" style="margin:5px;">
 			<input class="form-control roundedLeft" placeholder="{{Rechercher}}" id="in_searchEqlogic"/>
 			<div class="input-group-btn">
-				<a id="bt_resetSearch" class="btn roundedRight" style="width:30px"><i class="fas fa-times"></i></a>
+				<!-- <a id="bt_resetSearch" class="btn" style="width:30px"><i class="fas fa-times"></i></a> -->
+                <a id="bt_resetSearch" class="btn" style="width:30px"><i class="fas fa-times"></i></a>
+                <a class="btn roundedRight hidden" id="bt_pluginDisplayAsTable" data-coreSupport="1" data-state="0"><i class="fas fa-grip-lines"></i></a>
 			</div>
 		</div>
 
@@ -186,6 +188,12 @@ $pluginCompatible = array(
                                         <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="type" disabled/>
                                     </div>
                                 </div>
+                                <div class="form-group eqCustom eqModule">
+                                    <label class="col-sm-3 control-label">{{Sous-Type}}</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="subtype" disabled/>
+                                    </div>
+                                </div>
                                 <br/>
                                 <div><legend><i class="fas fa-cog"></i> {{Paramètres}}</legend></div>
                                 <!-- Template for Centrale -->
@@ -289,54 +297,17 @@ $pluginCompatible = array(
                 <br/>
                 <form class="form-horizontal">
                     <fieldset>
-                        <div class="form-group">
-                            <label class="col-sm-3 control-label">{{Badge 1 - Alias}}</label>
-                            <div class="col-sm-3">
-                                <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="badge1-alias" placeholder="Alias"/>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="col-sm-3 control-label">{{Badge 2 - Alias}}</label>
-                            <div class="col-sm-3">
-                                <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="badge2-alias" placeholder="Alias"/>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="col-sm-3 control-label">{{Badge 3 - Alias}}</label>
-                            <div class="col-sm-3">
-                                <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="badge3-alias" placeholder="Alias"/>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="col-sm-3 control-label">{{Badge 4 - Alias}}</label>
-                            <div class="col-sm-3">
-                                <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="badge4-alias" placeholder="Alias"/>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="col-sm-3 control-label">{{Badge 5 - Alias}}</label>
-                            <div class="col-sm-3">
-                                <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="badge5-alias" placeholder="Alias"/>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="col-sm-3 control-label">{{Badge 6 - Alias}}</label>
-                            <div class="col-sm-3">
-                                <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="badge6-alias" placeholder="Alias"/>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="col-sm-3 control-label">{{Badge 7 - Alias}}</label>
-                            <div class="col-sm-3">
-                                <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="badge7-alias" placeholder="Alias"/>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="col-sm-3 control-label">{{Badge 8 - Alias}}</label>
-                            <div class="col-sm-3">
-                                <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="badge8-alias" placeholder="Alias"/>
-                            </div>
-                        </div>
+                        <?php
+                            // Create Badge 1 to 10
+                            for ($badgeCount = 1; $badgeCount<=10; $badgeCount++) {
+                                echo "<div class='form-group'>";
+                                    echo "<label class='col-sm-3 control-label'>{{Badge}} ".$badgeCount." - Alias</label>";
+                                    echo "<div class='col-sm-3'>";
+                                        echo "<input type='text' class='eqLogicAttr form-control' data-l1key='configuration' data-l2key='badge".$badgeCount."-alias' placeholder='Alias'/>";
+                                    echo "</div>";
+                                echo "</div>";
+                            } 
+                        ?>
                     </fieldset>
                 </form>
             </div>
@@ -407,7 +378,6 @@ $pluginCompatible = array(
                     Se référer à la <a target="_blank" href="https://mguyard.github.io/Jeedom-Diagral_eOne/fr_FR/">documentation</a> pour plus de détails.
                 </div>
             </div>
-            
 
             <!-- Onglet des commandes de l'équipement -->
 			<div role="tabpanel" class="tab-pane" id="commandtab">

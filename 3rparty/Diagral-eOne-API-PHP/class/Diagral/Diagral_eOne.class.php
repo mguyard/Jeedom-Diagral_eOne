@@ -23,6 +23,11 @@ namespace Mguyard\Diagral;
 class Diagral_eOne{
 
     /**
+     * Contain Diagral Plugin Jeedom Version
+     * @var string
+     */
+    private $jeedomPluginVersion;
+    /**
      * Enable/Disable verbose define by user when calling API with variable verbose (ex. $MyAlarm->verbose = True;)
      * @var bool
      */
@@ -141,9 +146,10 @@ class Diagral_eOne{
      * @param string $username Diagral Cloud Username
      * @param string $password Diagral Cloud Password
      */
-    public function __construct($username,$password) {
+    public function __construct($username,$password, $jeedomPluginVersion = "Unknown") {
         $this->username = $username;
         $this->password = $password;
+        $this->jeedomPluginVersion = $jeedomPluginVersion;
         $this->eventsRetry = 100;
         $this->doRequestAttempts = 1;
         $this->waitBetweenAttempts = 5;
@@ -1856,7 +1862,7 @@ class Diagral_eOne{
         $retry = isset($retry) ? $retry : $this->doRequestAttempts - 1;
         $curl = curl_init();
         $curl_headers = array(
-            "User-Agent: eOne/1.12.1.2 CFNetwork/1240.0.4 Darwin/20.6.0",
+            "User-Agent: Jeedom/". $this->jeedomPluginVersion,
             "Accept: application/json, text/plain, */*",
             "Accept-Encoding: deflate",
             "X-App-Version: 1.12.1",
