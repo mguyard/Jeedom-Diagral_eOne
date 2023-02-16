@@ -74,7 +74,7 @@
     <script>
         var default_widget_height = 280;
         // FA for Mode
-        jeedom.cmd.update['#mode_id#'] = function(_options) {
+        jeedom.cmd.addUpdateFunction('#mode_id#', function(_options) {
             // Force widget height with default value
             $('.Diagral_eOne_widget').css('height', default_widget_height);
             // Define widget_height with actual widget height
@@ -136,10 +136,11 @@
                 // Add some pixels to widget height for Scenarios showing
                 $('.Diagral_eOne_widget').css('height', widget_height + 80);
             }
-        }
-        jeedom.cmd.update['#mode_id#']({display_value:'#mode#'});
+        });
+        jeedom.cmd.refreshValue([{cmd_id :'#mode_id#',display_value: '#mode#', valueDate: '#mode_valueDate#', collectDate: '#mode_collectDate#', alertLevel: '#mode_alertLevel#', unit: '#mode_unite#'}]);
 
-        jeedom.cmd.update['#updates_available_id#'] = function(_options) {
+
+        jeedom.cmd.addUpdateFunction('#updates_available_id#', function(_options) {
             // Define (not same function) and Retrieve actual widget height
             var widget_height = $('.Diagral_eOne_widget').height();
             if (_options.display_value > '0') {
@@ -147,8 +148,8 @@
                 // Add some pixels to widget height for updates showing
                 $('.Diagral_eOne_widget').css('height', widget_height + 20);
             }
-        }
-        jeedom.cmd.update['#updates_available_id#']({display_value:'#updates_available#'});
+        });
+        jeedom.cmd.refreshValue([{cmd_id :'#updates_available_id#',display_value: '#updates_available#', valueDate: '#updates_available_valueDate#', collectDate: '#updates_available_collectDate#', alertLevel: '#updates_available_alertLevel#', unit: '#updates_available_unite#'}]);
         
     </script>
 </div>
