@@ -489,7 +489,15 @@ class Diagral_eOne extends eqLogic {
     private function createCmd() {
         // Definition et chargement du fichier de configuration globale qui inclus notament les commandes
         $filename = __PLGBASE__.'/core/config/cmdConfig/'. $this->getConfiguration('type') .'.config.json';
-        $config = $this->loadConfigFile($filename, 'commands');
+        try {
+            $config = $this->loadConfigFile($filename, 'commands');
+        } catch(Exception $e){
+            if (preg_match('/Impossible de trouver le fichier de configuration .*/', $e)) {
+                $message = 'Le ou l\'un des modules sauvegardés n\'est pas supporté (consulter les logs DEBUG pour plus de détails sur le module concerné). Veuillez vous référer à la documentation https://mguyard.github.io/Jeedom-Documentations/fr_FR/Diagral_eOne/documentation#Equipements%20support%C3%A9s';
+                log::add('Diagral_eOne', 'warning', $message);
+                throw new Exception($message);
+            }
+        }
         // Attribue les valeurs par defaut d'un device
         $eqLogicConf = $config['eqLogic'];
         log::add('Diagral_eOne', 'debug', 'createCmd::EqTemplate ' . var_export($eqLogicConf, true));
