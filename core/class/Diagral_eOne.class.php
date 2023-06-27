@@ -416,8 +416,24 @@ class Diagral_eOne extends eqLogic {
 
         // Traitement des commandes infos
         foreach ($this->getCmd('info') as $cmd) {
-			$replace['#' . $cmd->getLogicalId() . '_id#'] = $cmd->getId();
-			$replace['#' . $cmd->getLogicalId() . '#'] = $cmd->execCmd();
+			$replace['#' . $cmd->getLogicalId() . '_display#'] = (is_object($cmd) && $cmd->getIsVisible()) ? '#' . $cmd->getLogicalId() . '_display#' : "none";
+            $replace['#' . $cmd->getLogicalId() . '_name_display#'] = ($cmd->getDisplay('icon') != '') ? $cmd->getDisplay('icon') : $cmd->getName();
+            $replace['#' . $cmd->getLogicalId() . '_name#'] = $cmd->getName();
+            $replace['#' . $cmd->getLogicalId() . '_unite#'] = $cmd->getUnite();
+            $replace['#' . $cmd->getLogicalId() . '_hide_name#'] = '';
+            $replace['#' . $cmd->getLogicalId() . '#'] = $cmd->execCmd();
+            $replace['#' . $cmd->getLogicalId() . '_version#'] = $_version;
+            $replace['#' . $cmd->getLogicalId() . '_id#'] = $cmd->getId();
+            $replace['#' . $cmd->getLogicalId() . '_uid#'] = 'cmd' . $cmd->getId() . eqLogic::UIDDELIMITER . mt_rand() . eqLogic::UIDDELIMITER;
+            $replace['#' . $cmd->getLogicalId() . '_collectDate#'] = $cmd->getCollectDate();
+            $replace['#' . $cmd->getLogicalId() . '_valueDate#'] = $cmd->getValueDate();
+            $replace['#' . $cmd->getLogicalId() . '_alertLevel#'] = $cmd->getCache('alertLevel', 'none');
+            if ($cmd->getIsHistorized() == 1) {
+                $replace['#' . $cmd->getLogicalId() . '_history#'] = 'history cursor';
+            }
+            if ($cmd->getDisplay('showNameOn' . $_version, 1) == 0) {
+                $replace['#' . $cmd->getLogicalId() . '_hide_name#'] = 'hidden';
+            }
         }
 
         // Traitement des commandes actions
@@ -473,7 +489,15 @@ class Diagral_eOne extends eqLogic {
     private function createCmd() {
         // Definition et chargement du fichier de configuration globale qui inclus notament les commandes
         $filename = __PLGBASE__.'/core/config/cmdConfig/'. $this->getConfiguration('type') .'.config.json';
-        $config = $this->loadConfigFile($filename, 'commands');
+        try {
+            $config = $this->loadConfigFile($filename, 'commands');
+        } catch(Exception $e){
+            if (preg_match('/Impossible de trouver le fichier de configuration .*/', $e)) {
+                $message = 'Le ou l\'un des modules sauvegardés n\'est pas supporté (consulter les logs DEBUG pour plus de détails sur le module concerné). Veuillez vous référer à la documentation https://mguyard.github.io/Jeedom-Documentations/fr_FR/Diagral_eOne/documentation#Equipements%20support%C3%A9s';
+                log::add('Diagral_eOne', 'warning', $message);
+                throw new Exception($message);
+            }
+        }
         // Attribue les valeurs par defaut d'un device
         $eqLogicConf = $config['eqLogic'];
         log::add('Diagral_eOne', 'debug', 'createCmd::EqTemplate ' . var_export($eqLogicConf, true));
