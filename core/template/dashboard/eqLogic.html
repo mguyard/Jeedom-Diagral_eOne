@@ -1,62 +1,66 @@
-<div id="Diagral_eOne_WidgetID" class="eqLogic eqLogic-widget noResize Diagral_eOne_widget Diagral_eOne cmd cmd-widget" data-eqType="#eqType#" data-translate-category="#translate_category#" data-category="#category#" data-tags="#tags#" data-version="#version#" style="text-align:center; width: 300px;border:#border#;border-radius:#border-radius#;background-color: #background-color#;color: #color#;#style#;height:280px;" data-eqLogic_id="#id#" data-eqLogic_uid="#uid#" template='#template#'>
+<div id="Diagral_eOne_WidgetID" class="eqLogic eqLogic-widget noResize Diagral_eOne_widget Diagral_eOne cmd cmd-widget" data-eqType="#eqType#" data-translate-category="#translate_category#" data-category="#category#" data-tags="#tags#" data-version="#version#" style="text-align:center; max-width: 350px;border:#border#;border-radius:#border-radius#;background-color: #background-color#;color: #color#;#style#;min-height:340px;max-height:610px;" data-eqLogic_id="#id#" data-eqLogic_uid="#uid#" template='#template#'>
     <link rel="stylesheet" href="plugins/Diagral_eOne/core/template/dashboard/css/style.css" />
-    <span class="cmd refresh pull-right cursor" data-cmd_id="#refresh_id" style="margin-top: 2px;margin-right: 2px;" onclick="jeedom.cmd.execute({id: #refresh_id#});">
-		<i class="fa fa-sync"></i>
-	</span>
-    <center class="widget-name">
-		<span class="reportModeVisible state" style="font-size : 1.2em;display:none;">#name_display#</span>
-		<a href="#eqLink#" class="reportModeHidden" style="font-size : 1.2em;#hideEqLogicName#">#name_display#</a>
-    </center>
-    <div id="updates" style="display: none;">
-        <span><b>#updates_available#</b> mise à jour disponible(s)</span>
+    <!-- Widget Name -->
+    <div class="widget-name">
+        <span style="color:#background-color#" data-title="" class="tippied">
+          <i class=""></i>
+        </span>
+        <!-- Show Refresh Button on widget -->
+        <span class="cmd refresh pull-right cursor" data-cmd_id="#refresh_id#" style="margin-top: 2px;margin-right: 2px;"
+            onclick="jeedom.cmd.execute({id: #refresh_id#});">
+            <i class="fa fa-sync"></i>
+        </span>
+        <span class="reportModeVisible state" style="font-size : 1.2em;display:none;">#name_display#</span>
+        <a href="#eqLink#" class="reportModeHidden" style="font-size : 1.2em;#hideEqLogicName#">#name_display#</a>
     </div>
     
     <div class="container-fluid">
         <div class="row">
-            <div class="col-12">
+            <div class="col-12" style="margin-bottom: 10px;">
                 <span class="state">
                     <i class="fa-5x iconCmd#mode_id#"></i>
                 </span>
             </div>
         </div>
-        <div class="row" id="groups">
+        <div class="row blockZone" id="groups">
+            <span class="cmd label cmdName title">Zones</span>
             <div class="col-12">
                 <table class="table" id="groupsTable">
                 </table>
             </div>
         </div>
-        <hr>
-        <span class="cmd label cmdName">Actions</span>
-        <div class="row" id="actions">
-            <div class="btn-group" role="group">
-                    <button class="btn cmd action oundedLeft" data-cmd_id="#total_arm_id#" title="Armement Total" onclick="jeedom.cmd.execute({id: #total_arm_id#});"><i class="fa-black fa fa-lock"></i></button>
-                    <button class="btn cmd action" data-cmd_id="#total_disarm_id#" title="Désarmement Total" onclick="jeedom.cmd.execute({id: #total_disarm_id#});"><i class="fa-black fa fa-unlock"></i></button>
-                    <button class="btn cmd action roundedRight" data-cmd_id="#arm_presence_id#" title="Mode Presence" onclick="jeedom.cmd.execute({id: #arm_presence_id#});"><i class="fa-black fa fa-home"></i></button>
-            </div>
-            <div class="cmd cmd-widget reportModeHidden partial_arm col-12" data-type="action" data-subtype="select" data-cmd_id="#arm_partial_id#" data-cmd_uid="cmd#arm_partial_id#partial" data-version="#version#" data-eqLogic_id="#arm_partial_id#">
-                <select class="selectCmd action form-control form-control-lg" title="Activation Partielle">#arm_partial_listValue#</select>
-                <script>
-                        $(".cmd[data-cmd_uid=cmd#arm_partial_id#partial] .selectCmd").on('change', function () {
-                            if ($(this).value() != "") {
-                                jeedom.cmd.execute({id: '#arm_partial_id#', value: {select: $(this).value()}});
-                            }
-                        });
-                </script>
-            </div>
-            <div class="cmd cmd-widget reportModeHidden partial_disarm col-12" data-type="action" data-subtype="select" data-cmd_id="#disarm_partial_id#" data-cmd_uid="cmd#disarm_partial_id#partial" data-version="#version#" data-eqLogic_id="#disarm_partial_id#">
-                <select class="selectCmd action form-control form-control-lg" title="Desactivation Partielle">#disarm_partial_listValue#</select>
-                <script>
-                        $(".cmd[data-cmd_uid=cmd#disarm_partial_id#partial] .selectCmd").on('change', function () {
-                            if ($(this).value() != "") {
-                                jeedom.cmd.execute({id: '#disarm_partial_id#', value: {select: $(this).value()}});
-                            }
-                        });
-                </script>
+        <div class="row blockZone" id="column">
+            <div class="col-xs-12" id="tile">
+                <span class="cmd label cmdName title">Actions</span>
+                <div id="actions">
+                        <button class="btn cmd action rounded-buttons" data-cmd_id="#total_arm_id#" title="Armement Total" onclick="jeedom.cmd.execute({id: #total_arm_id#});"><i class="fa-black fa fa-lock rounded-buttons-icon"></i></button>
+                        <button class="btn cmd action rounded-buttons" data-cmd_id="#total_disarm_id#" title="Désarmement Total" onclick="jeedom.cmd.execute({id: #total_disarm_id#});"><i class="fa-black fa fa-unlock rounded-buttons-icon"></i></button>
+                        <button class="btn cmd action rounded-buttons" data-cmd_id="#arm_presence_id#" title="Mode Presence" onclick="jeedom.cmd.execute({id: #arm_presence_id#});"><i class="fa-black fa fa-home rounded-buttons-icon"></i></button>
+                </div>
+                <div class="cmd cmd-widget reportModeHidden partial_arm col-12" data-type="action" data-subtype="select" data-cmd_id="#arm_partial_id#" data-cmd_uid="cmd#arm_partial_id#partial" data-version="#version#" data-eqLogic_id="#arm_partial_id#">
+                    <select class="selectCmd action form-control form-control-lg" title="Activation Partielle">#arm_partial_listValue#</select>
+                    <script>
+                            $(".cmd[data-cmd_uid=cmd#arm_partial_id#partial] .selectCmd").on('change', function () {
+                                if ($(this).value() != "") {
+                                    jeedom.cmd.execute({id: '#arm_partial_id#', value: {select: $(this).value()}});
+                                }
+                            });
+                    </script>
+                </div>
+                <div class="cmd cmd-widget reportModeHidden partial_disarm col-12" data-type="action" data-subtype="select" data-cmd_id="#disarm_partial_id#" data-cmd_uid="cmd#disarm_partial_id#partial" data-version="#version#" data-eqLogic_id="#disarm_partial_id#">
+                    <select class="selectCmd action form-control form-control-lg" title="Desactivation Partielle">#disarm_partial_listValue#</select>
+                    <script>
+                            $(".cmd[data-cmd_uid=cmd#disarm_partial_id#partial] .selectCmd").on('change', function () {
+                                if ($(this).value() != "") {
+                                    jeedom.cmd.execute({id: '#disarm_partial_id#', value: {select: $(this).value()}});
+                                }
+                            });
+                    </script>
+                </div>
             </div>
         </div>
-        <div id="globalScenario" style="display: none;">
-            <hr>
-            <span class="cmd label cmdName">Scenarios</span>
+        <div class="row blockZone" id="globalScenario" style="display: none;">
+            <span class="cmd label cmdName title">Scenarios</span>
             <div class="row" id="scenarios">
                 <div class="cmd cmd-widget reportModeHidden launch_scenario col-12" data-type="action" data-subtype="select" data-cmd_id="#launch_scenario_id#" data-cmd_uid="cmd#launch_scenario_id#Scenario" data-version="#version#" data-eqLogic_id="#launch_scenario_id#">
                     <select class="selectCmd form-control form-control-lg" id="cmd#launch_scenario_id#Scenario" title="Scenarios">#launch_scenario_listValue#</select>
@@ -69,64 +73,41 @@
             </div>
         </div>
     </div>
+    <div id="updates" style="display: none;">
+        <span><b>#updates_available#</b> mise à jour disponible(s)</span>
+    </div>
 
     
     <script>
-        var default_widget_height = 280;
+        var default_widget_height = 310;
         // FA for Mode
         jeedom.cmd.addUpdateFunction('#mode_id#', function(_options) {
             // Force widget height with default value
-            $('.Diagral_eOne_widget').css('height', default_widget_height);
+            $('.Diagral_eOne_widget').css('min-height', default_widget_height);
+            $('.Diagral_eOne_widget').css('max-height', default_widget_height);
             // Define widget_height with actual widget height
             var widget_height = $('.Diagral_eOne_widget').height();
             switch(_options.display_value) {
                 case 'off':
-                    $('.iconCmd#mode_id#').addClass('fas fa-unlock');
+                    $('.iconCmd#mode_id#').addClass('fas fa-unlock icon-green');
                     break;
                 case 'presence':
-                    $('.iconCmd#mode_id#').addClass('fas fa-cloud-moon');
+                    $('.iconCmd#mode_id#').addClass('fas fa-cloud-moon icon-red');
                     break;
                 case 'group':
-                    $('.iconCmd#mode_id#').addClass('fas fa-lock');
+                    $('.iconCmd#mode_id#').addClass('fas fa-lock icon-red');
                     break;
                 case 'tempogroup':
-                    $('.iconCmd#mode_id#').addClass('fa fa-stopwatch');
+                    $('.iconCmd#mode_id#').addClass('fa fa-stopwatch icon-orange');
                     break;
                 case 'alarm':
-                    $('.iconCmd#mode_id#').addClass('fas fa-bullhorn');
+                    $('.iconCmd#mode_id#').addClass('fas fa-bullhorn icon-red');
                     break;
                 default:
                     $('.iconCmd#mode_id#').addClass('fas fa-spinner fa-spin');
                     break;
             }
-
-            // FA for Groups
-            if (_options.display_value == 'off') {
-                $( "#groups" ).hide();
-            } else {
-                // Retrieve actual widget height
-                widget_height = $('.Diagral_eOne_widget').height();
-                // Add some pixels to widget height for Groups showing
-                $('.Diagral_eOne_widget').css('height', widget_height + 100);
-                $.getJSON("/plugins/Diagral_eOne/data/groups_#systemID#.json", function(groups_JSON) {
-                    $.each(groups_JSON.groups, function (key, val) {
-                        var test = "#groups_enable#"
-                        var icon = "";
-                        if (test != "") {
-                            if (test.includes(val.groupName)) {
-                                icon = "<i class='fa fa-lock' style='color: red;'></i>";
-                            } else {
-                                icon = "<i class='fa fa-unlock' style='color: green;'></i>";
-                            }
-                        }
-                        $('<tr class="row text-center">').append(
-                            $('<td class="col-10 text-left">').text(val.groupName),
-                            $('<td class="col-2">').html(icon),
-                        ).appendTo("#groupsTable");                    
-                    });
-                });
-            }
-
+            
             // Show Scenario when exist
             // First real option need to have text to be considere as valid
             if ( $('#cmd#launch_scenario_id#Scenario option').eq(1).text() != "" && '#launch_scenario_visible#' == '1') {
@@ -134,10 +115,60 @@
                 // Retrieve actual widget height
                 widget_height = $('.Diagral_eOne_widget').height();
                 // Add some pixels to widget height for Scenarios showing
-                $('.Diagral_eOne_widget').css('height', widget_height + 80);
+                $('.Diagral_eOne_widget').css('min-height', widget_height + 110);
+                $('.Diagral_eOne_widget').css('max-height', widget_height + 110);
             }
         });
         jeedom.cmd.refreshValue([{cmd_id :'#mode_id#',display_value: '#mode#', valueDate: '#mode_valueDate#', collectDate: '#mode_collectDate#', alertLevel: '#mode_alertLevel#', unit: '#mode_unite#'}]);
+
+
+        jeedom.cmd.addUpdateFunction('#groups_enable_id#', function(_options) {
+            // FA for Groups
+            if (_options.display_value == '') {
+                $( "#groupsTable" ).empty();
+                $( "#groups" ).hide();
+            } else {
+                // Retrieve actual widget height
+                widget_height = $('.Diagral_eOne_widget').height();
+                // Add some pixels to widget height for Groups showing
+                $('.Diagral_eOne_widget').css('min-height', widget_height + 170);
+                $('.Diagral_eOne_widget').css('max-height', widget_height + 170);
+                $.ajax({
+                    type: "POST",
+                    url: "plugins/Diagral_eOne/core/ajax/Diagral_eOne.ajax.php",
+                    data: {
+                        action: "getJSON",
+                        file: "groups_#systemID#"
+                    },
+                    dataType: 'json',
+                    async: false,
+                    error: function (request, status, error) {
+                        handleAjaxError(request, status, error);
+                    },
+                    success: function (data) {
+                        groups_JSON = JSON.parse(data.result);
+                        // Append each enabled groups
+                        $.each(groups_JSON.groups, function (key, val) {
+                            var test = _options.display_value
+                            var icon = "";
+                            if (test != "") {
+                                if (test.includes(val.groupName)) {
+                                    icon = "<i class='fa fa-lock icon-red'></i>";
+                                } else {
+                                    icon = "<i class='fa fa-unlock icon-green'></i>";
+                                }
+                            }
+                            $('<tr class="row text-center" style="height: 20px">').append(
+                                $('<td class="col-10 text-left">').text(val.groupName),
+                                $('<td class="col-2">').html(icon),
+                            ).appendTo("#groupsTable");
+                        });
+                    }
+                });
+                $( "#groups" ).show();
+            }
+        });
+        jeedom.cmd.refreshValue([{cmd_id :'#groups_enable_id#',display_value: '#groups_enable#', valueDate: '#groups_enable_valueDate#', collectDate: '#groups_enable_collectDate#', alertLevel: '#groups_enable_alertLevel#', unit: '#groups_enable_unite#'}]);
 
 
         jeedom.cmd.addUpdateFunction('#updates_available_id#', function(_options) {
@@ -146,7 +177,8 @@
             if (_options.display_value > '0') {
                 $('#updates').show();
                 // Add some pixels to widget height for updates showing
-                $('.Diagral_eOne_widget').css('height', widget_height + 20);
+                $('.Diagral_eOne_widget').css('min-height', widget_height + 20);
+                $('.Diagral_eOne_widget').css('max-height', widget_height + 20);
             }
         });
         jeedom.cmd.refreshValue([{cmd_id :'#updates_available_id#',display_value: '#updates_available#', valueDate: '#updates_available_valueDate#', collectDate: '#updates_available_collectDate#', alertLevel: '#updates_available_alertLevel#', unit: '#updates_available_unite#'}]);

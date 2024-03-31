@@ -5,6 +5,34 @@
 
 .Diagral_eOne_widget .container-fluid {
     margin-top: 20px;
+    padding: 0px 8px 0px 8px !important;
+}
+
+.Diagral_eOne_widget .blockZone {
+    margin: 2px 0px 8px 0px;
+    padding: 5px 0px 10px 0px;
+    border-radius: 20px;
+    background-color: #4F4F4F;
+    color: #fff;
+}
+
+.Diagral_eOne_widget .icon-green {
+    color: #68CA4B;
+}
+
+.Diagral_eOne_widget .icon-red {
+    color: #E83E3E;
+}
+
+.Diagral_eOne_widget .icon-orange {
+    color: #FFA500;
+}
+
+.Diagral_eOne_widget .title {
+    margin: 5px 0px 5px 0px;
+    color: #ffffff !important;
+    font-size: 1.3em !important;
+    font-weight: bold !important;
 }
 
 .Diagral_eOne_widget #groups {
@@ -12,11 +40,36 @@
 }
 
 .Diagral_eOne_widget #actions {
-    margin-top: 20px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.Diagral_eOne_widget .rounded-buttons {
+    border-radius: 20px !important;
+    max-height: 40px;
+    height: 40px;
+    max-width: 40px;
+    width: 40px;
+    margin: 0px 10px 0px 10px;
+}
+
+.Diagral_eOne_widget .rounded-buttons-icon {
+    font-size: 16px;
+    color: #4F4F4F !important;
 }
 
 .Diagral_eOne_widget #scenarios {
     margin-top: 20px;
+}
+
+.Diagral_eOne_widget #scenarios div[data-subtype=select] {
+    max-width: 90% !important;
+    min-width: 90% !important;
+    width: 90% !important;
+}
+
+.Diagral_eOne_widget .selectCmd {
+    border-radius: 20px !important;
 }
 
 .Diagral_eOne_widget #actions .btn-group {
