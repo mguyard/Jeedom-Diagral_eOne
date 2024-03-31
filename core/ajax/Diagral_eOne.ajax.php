@@ -27,12 +27,30 @@ try {
     ajax::init();
     // Lancement de la synchronisation des equipements
     if (init('action') == 'synchronize') {
-      try {
-		    Diagral_eOne::synchronize('all');
-		    ajax::success();
-      } catch (Exception $e) {
-            ajax::error(displayExeption($e), $e->getCode());
-      }
+        try {
+            Diagral_eOne::synchronize('all');
+            ajax::success();
+        } catch (Exception $e) {
+            if (version_compare(jeedom::version(), '4.4', '>=')) {
+                ajax::error(displayException($e), $e->getCode());
+            } else {
+                ajax::error(displayExeption($e), $e->getCode());
+            }
+        }
+    }
+
+    // Récupère le contenu d'un fichier de cache JSON
+    if (init('action') == 'getJSON') {
+        try {
+            $result = file_get_contents( dirname(__FILE__).'/../../data/'.init('file').'.json');
+            ajax::success($result);
+        } catch (Exception $e) {
+			if (version_compare(jeedom::version(), '4.4', '>=')) {
+                ajax::error(displayException($e), $e->getCode());
+            } else {
+                ajax::error(displayExeption($e), $e->getCode());
+            }
+		}
     }
 
     // Mise en place des icones d'équipement selon le type
@@ -47,7 +65,11 @@ try {
 			    ajax::success(false);
 			}
 		} catch (Exception $e) {
-			ajax::error(displayExeption($e), $e->getCode());
+			if (version_compare(jeedom::version(), '4.4', '>=')) {
+                ajax::error(displayException($e), $e->getCode());
+            } else {
+                ajax::error(displayExeption($e), $e->getCode());
+            }
 		}
 	}
 
@@ -68,7 +90,11 @@ try {
 			    ajax::success(false);
 			}
 		} catch (Exception $e) {
-			ajax::error(displayExeption($e), $e->getCode());
+			if (version_compare(jeedom::version(), '4.4', '>=')) {
+                ajax::error(displayException($e), $e->getCode());
+            } else {
+                ajax::error(displayExeption($e), $e->getCode());
+            }
 		}
 	}
 
@@ -78,7 +104,11 @@ try {
             Diagral_eOne::installTracking(1);
             ajax::success();
         } catch (Exception $e) {
-            ajax::error(displayExeption($e), $e->getCode());
+            if (version_compare(jeedom::version(), '4.4', '>=')) {
+                ajax::error(displayException($e), $e->getCode());
+            } else {
+                ajax::error(displayExeption($e), $e->getCode());
+            }
         }
     }
 
@@ -88,7 +118,11 @@ try {
             $diagDebug = Diagral_eOne::generateDiagDebug();
             ajax::success($diagDebug);
         } catch (Exception $e) {
-            ajax::error(displayExeption($e), $e->getCode());
+            if (version_compare(jeedom::version(), '4.4', '>=')) {
+                ajax::error(displayException($e), $e->getCode());
+            } else {
+                ajax::error(displayExeption($e), $e->getCode());
+            }
         }
     }
 
@@ -110,7 +144,11 @@ try {
             config::save('InstallBaseAnonymousOnly', init('InstallBaseAnonymousOnly'), 'Diagral_eOne');
             config::save('InstallBaseEmailAddr', init('InstallBaseEmailAddr'), 'Diagral_eOne');
     		//Let's then the error details
-    		ajax::error(displayExeption($e), $e->getCode());
+    		if (version_compare(jeedom::version(), '4.4', '>=')) {
+                ajax::error(displayException($e), $e->getCode());
+            } else {
+                ajax::error(displayExeption($e), $e->getCode());
+            }
         }
 
         // Default Value
@@ -165,7 +203,11 @@ try {
                 ajax::success(json_encode(array('centraleId' => '')));
             }
         } catch (Exception $e) {
-            ajax::error(displayExeption($e), $e->getCode());
+            if (version_compare(jeedom::version(), '4.4', '>=')) {
+                ajax::error(displayException($e), $e->getCode());
+            } else {
+                ajax::error(displayExeption($e), $e->getCode());
+            }
         }
     }
 
@@ -183,7 +225,11 @@ try {
             }
 
         } catch (Exception $e) {
-            ajax::error(displayExeption($e), $e->getCode());
+            if (version_compare(jeedom::version(), '4.4', '>=')) {
+                ajax::error(displayException($e), $e->getCode());
+            } else {
+                ajax::error(displayExeption($e), $e->getCode());
+            }
         }
     }
 
@@ -266,7 +312,11 @@ try {
                 ajax::success();
 
         } catch (Exception $e) {
-            ajax::error(displayExeption($e), $e->getCode());
+            if (version_compare(jeedom::version(), '4.4', '>=')) {
+                ajax::error(displayException($e), $e->getCode());
+            } else {
+                ajax::error(displayExeption($e), $e->getCode());
+            }
         }
     }
 
@@ -286,9 +336,13 @@ try {
             }
             ajax::success();
         } catch (Exception $e) {
-            ajax::error(displayExeption($e), $e->getCode());
+            if (version_compare(jeedom::version(), '4.4', '>=')) {
+                ajax::error(displayException($e), $e->getCode());
+            } else {
+                ajax::error(displayExeption($e), $e->getCode());
+            }
         }
-      }
+    }
 
 
     throw new Exception(__('Aucune méthode correspondante à : ', __FILE__) . init('action'));
