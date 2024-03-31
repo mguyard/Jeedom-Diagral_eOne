@@ -17,22 +17,21 @@
 }
 
 .Diagral_eOne_widget .icon-green {
-    color: #68CA4B;
+    color: var(--logo-primary-color);
 }
 
 .Diagral_eOne_widget .icon-red {
-    color: #E83E3E;
+    color: var(--al-danger-color);
 }
 
 .Diagral_eOne_widget .icon-orange {
-    color: #FFA500;
+    color: var(--al-warning-color);
 }
 
 .Diagral_eOne_widget .title {
     margin: 5px 0px 5px 0px;
     color: #ffffff !important;
     font-size: 1.3em !important;
-    font-weight: bold !important;
 }
 
 .Diagral_eOne_widget #groups {
@@ -55,7 +54,7 @@
 
 .Diagral_eOne_widget .rounded-buttons-icon {
     font-size: 16px;
-    color: #4F4F4F !important;
+    color: var(--logo-secondary-color) !important;
 }
 
 .Diagral_eOne_widget #scenarios {
