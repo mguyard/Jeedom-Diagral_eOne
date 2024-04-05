@@ -456,13 +456,10 @@ class Diagral_eOne extends eqLogic {
 
         // On defini le template a appliquer par rapport à la version Jeedom utilisée
         if (version_compare(jeedom::version(), '4.4.0') >= 0) {
-            log::add('Diagral_eOne', 'debug', 'Version Jeedom 4.4.0 ou supérieure');
             $template = 'eqLogic';
         } elseif (version_compare(jeedom::version(), '4.0.0') >= 0) {
-            log::add('Diagral_eOne', 'debug', 'Version Jeedom 4.0.0 ou inferieur a 4.4.0');
             $template = 'eqLogic4-0';
         } else {
-            log::add('Diagral_eOne', 'debug', 'Version Jeedom inferieur a 4.0.0');
             $template = 'eqLogic3';
         }
         $replace['#template#'] = $template;
