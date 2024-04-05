@@ -237,10 +237,11 @@ class Diagral_eOne extends eqLogic {
         $automationList = $MyAlarm->getAutomations();
         $KNXautomationList = $MyAlarm->getKNXAutomations();
         $allAutomations = array_merge($automationList,$KNXautomationList);
-        log::add('Diagral_eOne', 'debug', var_export($automationList, TRUE));
+        log::add('Diagral_eOne', 'debug', 'Automation List Content : ' . var_export($allAutomations, TRUE));
         $nbCreated = 0;
         foreach ($allAutomations as $automation) {
             $automationObject = Diagral_eOne::byLogicalId(strtolower($automation['type']['type'].'-'.$automation['type']['application'].'_'.$automation['index']), 'Diagral_eOne');
+            log::add('Diagral_eOne', 'debug', 'Automation Object found : ' . var_export($automationObject, TRUE));
             if (!is_object($automationObject)) {
                 log::add('Diagral_eOne', 'info', "Synchronize::Automation Equipement Automation trouvé (". $automation['name'] . ")");
                 $eqLogic = new Diagral_eOne();
