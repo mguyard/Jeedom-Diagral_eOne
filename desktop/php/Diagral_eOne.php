@@ -99,7 +99,7 @@ $pluginCompatible = array(
         <div class="eqLogicThumbnailContainer">
             <?php
             foreach ($eqLogics as $eqLogic) {
-                if (!in_array($eqLogic->getConfiguration('type', ''), array('-', 'adyx-portal','adyx-shutter', 'adyx-garage_door','knx-shutter', 'knx-light'))) continue;
+                if (!in_array($eqLogic->getConfiguration('type', ''), array('-', 'adyx-portal','adyx-shutter', 'adyx-garage_door','knx-garage_door','knx-shutter', 'knx-light'))) continue;
                 $opacity = ($eqLogic->getIsEnable()) ? '' : 'disableCard';
                 echo '<div class="eqLogicDisplayCard cursor '.$opacity.'" data-eqLogic_id="' . $eqLogic->getId() . '">';
                 echo '<img src="' . Diagral_eOne::getPathDeviceIcon($eqLogic) . '"/>';

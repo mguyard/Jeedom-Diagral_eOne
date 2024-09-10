@@ -57,7 +57,7 @@ class Diagral_eOne extends eqLogic {
                 break;
             case 'all':
                 $systemsResult = Diagral_eOne::syncSystems($Diagral_systems);
-                foreach (eqLogic::byTypeAndSearhConfiguration('Diagral_eOne', 'systemid') as $system) {
+                foreach (eqLogic::byTypeAndSearchConfiguration('Diagral_eOne', 'systemid') as $system) {
                     if ($system->getConfiguration('type') == 'centrale') {
                         if (! empty($system->getConfiguration('mastercode',''))) {
                             $MyAlarm->setSystemId(intval($system->getConfiguration('systemid')));
@@ -237,10 +237,11 @@ class Diagral_eOne extends eqLogic {
         $automationList = $MyAlarm->getAutomations();
         $KNXautomationList = $MyAlarm->getKNXAutomations();
         $allAutomations = array_merge($automationList,$KNXautomationList);
-        log::add('Diagral_eOne', 'debug', var_export($automationList, TRUE));
+        log::add('Diagral_eOne', 'debug', 'Automation List Content : ' . var_export($allAutomations, TRUE));
         $nbCreated = 0;
         foreach ($allAutomations as $automation) {
             $automationObject = Diagral_eOne::byLogicalId(strtolower($automation['type']['type'].'-'.$automation['type']['application'].'_'.$automation['index']), 'Diagral_eOne');
+            log::add('Diagral_eOne', 'debug', 'Automation Object found : ' . var_export($automationObject, TRUE));
             if (!is_object($automationObject)) {
                 log::add('Diagral_eOne', 'info', "Synchronize::Automation Equipement Automation trouvé (". $automation['name'] . ")");
                 $eqLogic = new Diagral_eOne();
@@ -385,7 +386,7 @@ class Diagral_eOne extends eqLogic {
         Supprimer les équipements dépendant de l'équipement à supprimer
         */
         log::add('Diagral_eOne', 'info', ' ┌──── Suppression de l\'équipement ' . $this->getName());
-        $eqLogics = eqLogic::byTypeAndSearhConfiguration(  'Diagral_eOne',   'centrale');
+        $eqLogics = eqLogic::byTypeAndSearchConfiguration(  'Diagral_eOne',   'centrale');
         foreach ($eqLogics as $eqLogic) {
             if (!empty($eqLogic->getConfiguration('centrale')) && strcmp($eqLogic->getConfiguration('centrale'), $this->getLogicalId()) == 0) {
                 log::add('Diagral_eOne', 'debug', '│  Suppression de l\'équipement ' . $eqLogic->getName() . ' car il est dépendant de l\'équipement en cours de suppression (' . $this->getName() . ')');
@@ -454,8 +455,10 @@ class Diagral_eOne extends eqLogic {
         $replace['#systemID#'] = $this->getConfiguration('systemid');
 
         // On defini le template a appliquer par rapport à la version Jeedom utilisée
-        if (version_compare(jeedom::version(), '4.0.0') >= 0) {
+        if (version_compare(jeedom::version(), '4.4.0') >= 0) {
             $template = 'eqLogic';
+        } elseif (version_compare(jeedom::version(), '4.0.0') >= 0) {
+            $template = 'eqLogic4-0';
         } else {
             $template = 'eqLogic3';
         }
@@ -921,8 +924,8 @@ class Diagral_eOne extends eqLogic {
             sleep($delay); 
         }
         // Recuperer la liste des centrale
-        log::add('Diagral_eOne', 'debug', 'pull::ListofCentrale ' . var_export(eqLogic::byTypeAndSearhConfiguration('Diagral_eOne', 'systemid'), true));
-        foreach (eqLogic::byTypeAndSearhConfiguration('Diagral_eOne', 'systemid') as $centrale) {
+        log::add('Diagral_eOne', 'debug', 'pull::ListofCentrale ' . var_export(eqLogic::byTypeAndSearchConfiguration('Diagral_eOne', 'systemid'), true));
+        foreach (eqLogic::byTypeAndSearchConfiguration('Diagral_eOne', 'systemid') as $centrale) {
             log::add('Diagral_eOne', 'debug', 'pull::Centrale ' . $centrale->getName());
             if($centrale->getIsEnable() && strlen($centrale->getConfiguration('systemid')) != 0) {
                 //Se connecter sur la centrale
@@ -931,7 +934,7 @@ class Diagral_eOne extends eqLogic {
                 $allAlerts = $centrale->getAlerts($MyAlarm, TRUE);
                 // Rafraichi la centrale
                 $centrale->deviceRefresh($MyAlarm, $allAlerts['centralStatus']);
-                foreach (eqLogic::byTypeAndSearhConfiguration('Diagral_eOne', 'centrale') as $centralChild) {
+                foreach (eqLogic::byTypeAndSearchConfiguration('Diagral_eOne', 'centrale') as $centralChild) {
                     log::add('Diagral_eOne', 'debug', 'pull::CentraleChild ' . $centralChild->getName());
                     // Si le device enfant a bien la centrale en parent
                     if ($centralChild->getConfiguration('centrale') == $centrale->getLogicalId()) {
