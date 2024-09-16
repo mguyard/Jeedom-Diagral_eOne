@@ -1,8 +1,8 @@
 {
     "branches": [
-        "master",
+        "main",
         {
-            "name": "develop",
+            "name": "beta",
             "prerelease": true
         }
     ],
